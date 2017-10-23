@@ -250,14 +250,8 @@ Guppy.get_loc = function(x,y,current_node,current_caret){
     var g = Guppy.active_guppy;
     var min_dist = -1;
     var mid_dist = 0;
-    var pos = "";
     var opt = null;
-    var cur = null;
-    var car = null;
     // check if we go to first or last element
-    var bb = g.editor.getElementsByClassName("katex")[0];
-    if(!bb) return;
-    var rect = bb.getBoundingClientRect();
     if(current_node){
 	var current_path = GuppyUtils.path_to(current_node);
 	var current_pos = parseInt(current_path.substring(current_path.lastIndexOf("e")+1));
@@ -297,8 +291,8 @@ Guppy.get_loc = function(x,y,current_node,current_caret){
     var loc = opt.path.substring("guppy_loc".length);
     loc = loc.replace(/_/g,"/");
     loc = loc.replace(/([0-9]+)(?=.*?\/)/g,"[$1]");
-    cur = g.backend.doc.xpath_node(loc.substring(0,loc.lastIndexOf("/")), g.backend.doc.root());
-    car = parseInt(loc.substring(loc.lastIndexOf("/")+1));
+    var cur = g.backend.doc.xpath_node(loc.substring(0, loc.lastIndexOf("/")), g.backend.doc.root());
+    var car = parseInt(loc.substring(loc.lastIndexOf("/") + 1));
     // Check if we want the cursor before or after the element
     if(mid_dist > 0 && !(opt.blank)){
 	car++;
@@ -474,9 +468,6 @@ Guppy.prototype.deactivate = function(blur){
     else if(!this.editor.className.match(r2)){
 	this.editor.className += ' guppy_inactive ';
     }
-    Guppy.kb.shift_down = false;
-    Guppy.kb.ctrl_down = false;
-    Guppy.kb.alt_down = false;
     if (blur && this.fakeInput)
         this.fakeInput.blur();
     if(this.ready){
@@ -583,7 +574,6 @@ Guppy.register_keyboard_handlers = function(){
     	Mousetrap.bind(i,function(i){ return function(){
 	    if(!Guppy.active_guppy) return true;
 	    Guppy.active_guppy.temp_cursor.node = null;
-	    Guppy.active_guppy.backend.space_caret = 0;
 	    Guppy.active_guppy.backend.insert_symbol(Guppy.kb.k_syms[i]);
 	    Guppy.active_guppy.render(true);
 	    return false;
@@ -591,7 +581,6 @@ Guppy.register_keyboard_handlers = function(){
     for(var i in Guppy.kb.k_controls)
     	Mousetrap.bind(i,function(i){ return function(){
 	    if(!Guppy.active_guppy) return true;
-	    Guppy.active_guppy.backend.space_caret = 0;
 	    Guppy.active_guppy.backend[Guppy.kb.k_controls[i]]();
 	    Guppy.active_guppy.temp_cursor.node = null;
 	    Guppy.active_guppy.render(["up","down","right","left","home","end","sel_left","sel_right"].indexOf(i) < 0);

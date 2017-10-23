@@ -15,18 +15,5 @@
      "current":0,
      "group":"array",
      "type":"matrix"
-    },
-        
-    "cohom":
-    {"output":{
-        "latex":"H^{{$1}}\\left({$2}\\right)",
-	"text":"cohomology({$2},{$1})"},
-     "current":0,
-     "group":"topology",
-     "type":"cohomology",
-     "attrs":[
-	 {"up":"2","down":"1","small":"yes","name":"degree"},
-	 {"up":"2","down":"1","name":"space"}
-     ]
     }
 }

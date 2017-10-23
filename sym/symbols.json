@@ -1,14 +1,4 @@
 {
-    "norm":
-    {"output":{
-        "latex":"||{$1}||",
-        "text":"norm({$1})"},
-     "current":0,
-     "type":"norm",
-     "group":"functions",
-     "attrs":[{"delete":"1"}]
-    },
-    
     "text":
     {"output":{
         "latex":"\\text{{$1}}",
@@ -98,20 +88,6 @@
     },
     
     "frac":
-    {"output":{
-        "latex":"\\dfrac{{$1}}{{$2}}",
-        "small_latex":"\\frac{{$1}}{{$2}}",
-	"text":"({$1})/({$2})"},
-     "current":0,
-     "type":"fraction",
-     "group":"functions",
-     "attrs":[
-	 {"up":"1","down":"2","name":"numerator"},
-	 {"up":"1","down":"2","name":"denominator"}
-     ]
-    },
-    
-    "slash":
     {"output":{
         "latex":"\\dfrac{{$1}}{{$2}}",
         "small_latex":"\\frac{{$1}}{{$2}}",
@@ -217,5 +193,5 @@
     ],
 
     "_literal":[{"group":"greek",
-		"symbols":["alpha","beta","gamma","delta","epsilon","zeta","eta","theta","iota","kappa","lambda","mu","nu","xi","omicron","pi","rho","sigma","tau","upsilon","phi","chi","psi","omega","Gamma","Delta","Theta","Lambda","Xi","Pi","Sigma","Phi","Psi","Omega"]}]
+		"symbols":["alpha","beta","gamma","delta","epsilon","zeta","theta","iota","kappa","lambda","mu","nu","xi","omicron","pi","rho","sigma","tau","upsilon","phi","chi","psi","omega","Gamma","Delta","Theta","Lambda","Xi","Pi","Sigma","Phi","Psi","Omega"]}]
 }

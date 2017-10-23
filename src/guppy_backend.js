@@ -59,7 +59,6 @@ var GuppyBackend = function(config){
     this.clipboard = null;
     this.current = this.doc.root().firstChild;
     this.caret = 0;
-    this.space_caret = 0;
     this.sel_start = null;
     this.sel_end = null;
     this.undo_data = [];
@@ -352,7 +351,6 @@ GuppyBackend.prototype.symbol_to_node = function(sym_name, content){
 	    for(var i = 0; i < out.length; i++){
 		m = out[i].match(/^\{\$([0-9]+)((?:\{[^}]+\})*)\}$/);
 		if(m){
-		    //console.log("O",out);
 		    out[i] = {'ref':parseInt(m[1])};
 		    if(m[2].length > 0){
 			mm = m[2].match(/\{[^}]*\}/g);
@@ -398,8 +396,6 @@ GuppyBackend.prototype.symbol_to_node = function(sym_name, content){
 	if(s['attrs'])
 	    for(var a in (s['attrs'][i] || {}))
 		nc.setAttribute(a,s['attrs'][i][a]);
-	    // for(var a in s['attrs'])
-	    // 	if(s['attrs'][a][i] != 0) nc.setAttribute(a,s['attrs'][a][i]);
 	if(i in lists){
 	    var par = f;
 	    for(var j = 0; j < lists[i]; j++){
@@ -420,7 +416,6 @@ GuppyBackend.prototype.insert_symbol = function(sym_name){
     if(this.is_blacklisted(s['type'])){
 	return false;
     }
-    var node_list = {};
     var content = {};
     var left_piece,right_piece;
     var cur = s['current'] == null ? 0 : parseInt(s['current']);
@@ -433,7 +428,6 @@ GuppyBackend.prototype.insert_symbol = function(sym_name){
 	cur--;
 	if(this.sel_status != GuppyBackend.SEL_NONE){
 	    var sel = this.sel_get();
-	    sel_parent = sel.involved[0].parentNode;
 	    to_remove = sel.involved;
 	    left_piece = this.make_e(GuppyUtils.get_value(sel.remnant).slice(0,this.sel_start.caret));
 	    right_piece = this.make_e(GuppyUtils.get_value(sel.remnant).slice(this.sel_start.caret));
@@ -476,13 +470,10 @@ GuppyBackend.prototype.insert_symbol = function(sym_name){
     // Thus all we should have to do now is symbol_to_node(sym_type,
     // content) and then add the left_piece, resulting node, and
     // right_piece in that order.
-    
-    var new_current = null;
     var current_parent = this.current.parentNode;
     
     var sym = this.symbol_to_node(sym_name,content);
     var f = sym.f;
-    var new_current = sym.first;
 
     var next = this.current.nextSibling;
 
@@ -543,22 +534,6 @@ GuppyBackend.prototype.sel_get = function(){
 	    "involved":involved,
 	    "cursor":0};
 }
-
-// GuppyBackend.prototype.print_selection = function(){
-//     var sel = this.sel_get();
-//     if(sel == null) return "[none]";
-//     var ans = "";
-//     ans += "node_list: \n";
-//     for(var i = 0; i < sel.node_list.length; i++){
-// 	var n = sel.node_list[i];
-// 	ans += (new XMLSerializer()).serializeToString(n) + "\n";
-//     }
-//     ans += "\ninvolved: \n";
-//     for(var i = 0; i < sel.involved.length; i++){
-// 	var n = sel.involved[i];
-// 	ans += (new XMLSerializer()).serializeToString(n) + "\n";
-//     }
-// }
 
 GuppyBackend.prototype.make_e = function(text){
     var base = this.doc.base;
@@ -637,7 +612,6 @@ GuppyBackend.prototype.sel_paste = function(){
     if(!(this.clipboard) || this.clipboard.length == 0) return;
     this.insert_nodes(this.clipboard, true);
     this.checkpoint();
-    return;
 }
 
 GuppyBackend.prototype.sel_clear = function(){
@@ -936,7 +910,6 @@ GuppyBackend.prototype.right = function(){
 
 GuppyBackend.prototype.spacebar = function(){
     if(GuppyUtils.is_text(this.current)) this.insert_string(" ");
-    else this.space_caret = this.caret;
 }
 
 GuppyBackend.prototype.left = function(){
@@ -1203,7 +1176,7 @@ GuppyBackend.prototype.check_for_symbol = function(){
     var instance = this;
     if(GuppyUtils.is_text(this.current)) return;
     for(var s in this.symbols){
-	if(instance.current.nodeName == 'e' && s.length <= (instance.caret - instance.space_caret) && !(GuppyUtils.is_blank(instance.current)) && instance.current.firstChild.nodeValue.search_at(instance.caret,s)){
+	if(instance.current.nodeName == 'e' && !(GuppyUtils.is_blank(instance.current)) && instance.current.firstChild.nodeValue.search_at(instance.caret,s)){
 	    var temp = instance.current.firstChild.nodeValue;
 	    var temp_caret = instance.caret;
 	    instance.current.firstChild.nodeValue = instance.current.firstChild.nodeValue.slice(0,instance.caret-s.length)+instance.current.firstChild.nodeValue.slice(instance.caret);
@@ -1213,7 +1186,7 @@ GuppyBackend.prototype.check_for_symbol = function(){
 		instance.current.firstChild.nodeValue = temp;
 		instance.caret = temp_caret;
 	    }
-	    break;
+	    return;
 	}
     }
 }
