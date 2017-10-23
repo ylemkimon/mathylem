@@ -80,10 +80,10 @@
      "attrs":[{"delete":"1"}]
     },
     
-    "exp":
+    "power":
     {"output":{
         "latex":"{{$1}}^{{$2}}",
-	"text":"({$1})^({$2})"},
+	"text":"({$1})**({$2})"},
      "current":1,
      "type":"exponential",
      "current_type":"token",
@@ -127,7 +127,7 @@
     {"output":{
         "latex":"\\displaystyle\\int{{$1}}d{$2}",
         "small_latex":"\\int{{$1}}d{$2}",
-	"text":"integrate({$1},{$2})"},
+	"text":"Integral({$1},{$2})"},
      "current":0,
      "type":"indefinite_integral",
      "group":"calculus",
@@ -141,7 +141,7 @@
     {"output":{
         "latex":"\\displaystyle\\int_{{$1}}^{{$2}}{$3}d{$4}",
         "small_latex":"\\int_{{$1}}^{{$2}}{$3}d{$4}",
-	"text":"integrate({$3},{$4},{$1},{$2})"},
+	"text":"Integral({$3},({$4},{$1},{$2}))"},
      "current":0,
      "type":"definite_integral",
      "group":"calculus",
@@ -157,7 +157,7 @@
     {"output":{
         "latex":"\\displaystyle\\frac{d}{d{$1}}{$2}",
         "small_latex":"\\frac{d}{d{$1}}{$2}",
-	"text":"diff({$2},{$1})"},
+	"text":"Derivative({$2},{$1})"},
      "current":0,
      "type":"derivative",
      "group":"calculus",
@@ -185,7 +185,7 @@
     "root":
     {"output":{
         "latex":"\\sqrt[{$1}]{{$2}}",
-	"text":"nroot({$1},{$2})"},
+	"text":"root({$2},{$1})"},
      "current":0,
      "type":"root",
      "group":"functions",
@@ -215,7 +215,7 @@
 	     "greater":{"latex":">","text":" > "}}},
 	{"group":"qwerty",
 	 "symbols":{
-	     "infty":{"latex":"\\infty","text":" $infinity "}}}
+	     "infty":{"latex":"\\infty","text":"oo"}}}
     ],
 
     "_literal":[{"group":"greek",

@@ -552,6 +552,7 @@ GuppyBackend.prototype.insert_string = function(s){
 	this.sel_delete();
 	this.sel_clear();
     }
+    if (s == "*" && this.check_for_power()) return;
     if (this.current.firstChild)
         this.current.firstChild.nodeValue = this.current.firstChild.nodeValue.splice(this.caret, s);
     else
@@ -1176,6 +1177,25 @@ GuppyBackend.prototype.is_blacklisted = function(symb_type){
 	if(symb_type == this.blacklist[i]) return true;
     return false;
 }
+
+GuppyBackend.prototype.check_for_power = function() {
+	if (this.autoreplace && this.caret == 0 && this.current.previousSibling && this.current.previousSibling.nodeName == 'f' && this.current.previousSibling.getAttribute("type") == "*") {
+        var n = this.current.previousSibling;
+        var p = n.parentNode;
+        var prev = n.previousSibling;
+        var next = n.nextSibling;
+        var new_node = this.make_e(GuppyUtils.get_value(prev) + GuppyUtils.get_value(next));
+        this.current = new_node;
+        this.caret = GuppyUtils.get_length(prev);
+        p.insertBefore(new_node, prev);
+        p.removeChild(prev);
+        p.removeChild(n);
+        p.removeChild(next);
+        this.insert_symbol("power");
+        return true;
+    }
+    return false;
+};
 
 GuppyBackend.prototype.check_for_symbol = function(){
     var instance = this;
