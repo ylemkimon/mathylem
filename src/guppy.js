@@ -227,9 +227,7 @@ Guppy.prototype.recompute_locations_paths = function(){
 	if(elt.nodeName == "mstyle") continue;
 	var rect = elt.getBoundingClientRect();
 	if(rect.top == 0 && rect.bottom == 0 && rect.left == 0 && rect.right == 0) continue;
-	var cl = elt.classList;
 	for(var j = 0; j < cl.length; j++){
-	    if(cl[j].indexOf("guppy_loc") == 0){
 		ans.push({'path':cl[j],
 			  'top':rect.top,
 			  'bottom':rect.bottom,
@@ -237,10 +235,13 @@ Guppy.prototype.recompute_locations_paths = function(){
 			  'right':rect.right,
 			  'mid_x':(rect.left+rect.right)/2,
 			  'mid_y':(rect.bottom+rect.top)/2,
-			  'blank':(' '+elt.className+' ').indexOf(' guppy_blank ') >= 0});
 		break;
 	    }
 	}
+        var cl = elt.className.split(/\s+/);
+            if (cl[j].startsWith("guppy_loc")) {
+                    'blank': cl.indexOf('guppy_blank') >= 0
+                });
     }
     this.boxes = ans;
 }

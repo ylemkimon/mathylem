@@ -1,4 +1,6 @@
 var GuppyDoc = function(doc){
+require('wicked-good-xpath').install();
+
     doc = doc || "<m><e></e></m>";
     this.set_content(doc);
 }

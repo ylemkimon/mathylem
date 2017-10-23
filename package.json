@@ -29,6 +29,7 @@
   "dependencies": {
     "mousetrap": "^1.6.0",
     "throttle-debounce": "^1.0.1",
+    "wicked-good-xpath": "^1.3.0"
   },
   "devDependencies": {
     "browserify": "latest"

@@ -12,6 +12,10 @@ GuppyUtils.is_blank = function(n){
     return n.firstChild == null || n.firstChild.nodeValue == '';
 }
 
+GuppyUtils.get_value = function(n) {
+    return n.firstChild ? n.firstChild.nodeValue : "";
+};
+
 GuppyUtils.get_length = function(n){
     if(GuppyUtils.is_blank(n) || n.nodeName == 'f') return 0
     return n.firstChild.nodeValue.length;
