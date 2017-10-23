@@ -27,7 +27,8 @@
   },
   "homepage": "https://github.com/daniel3735928559/guppy#readme",
   "dependencies": {
-    "mousetrap": "^1.6.0"
+    "mousetrap": "^1.6.0",
+    "throttle-debounce": "^1.0.1",
   },
   "devDependencies": {
     "browserify": "latest"

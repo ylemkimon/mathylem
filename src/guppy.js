@@ -3,6 +3,7 @@ katex = require('../lib/katex/katex-modified.min.js');
 GuppyBackend = require('./guppy_backend.js');
 GuppyUtils = require('./guppy_utils.js');
 GuppySymbols = require('./guppy_symbols.js');
+debounce = require('throttle-debounce/debounce');
 
 var Guppy = function(guppy_div, config){
     var self = this;
@@ -29,6 +30,8 @@ var Guppy = function(guppy_div, config){
     this.empty_content = options['empty_content'] || "\\red{[?]}"
     this.editor = guppy_div;
     this.blacklist = [];
+    this.maintain_focus = false;
+    this.processed_fake_input = 20;
     this.autoreplace = true;
     this.ready = false;
 
@@ -37,17 +40,89 @@ var Guppy = function(guppy_div, config){
     Guppy.instances[guppy_div.id] = this;
 
     config['parent'] = self;
+
+    if (/Mobi/.test(navigator.userAgent)) {
+        var fakeInput = document.createElement('textarea');
+        this.fakeInput = fakeInput;
+        
+        fakeInput.setAttribute('id', 'fakeInput_' + guppy_div.id);
+        fakeInput.setAttribute('autocapitalize', 'none');
+        fakeInput.setAttribute('autocomplete', 'off');
+        fakeInput.setAttribute('autocorrect', 'off');
+        fakeInput.setAttribute('spellcheck', 'false');
+        guppy_div.insertAdjacentElement('afterend', fakeInput);
+
+        fakeInput.style.position = 'absolute';
+        fakeInput.style.top = guppy_div.offsetTop + 'px';
+        fakeInput.style.left = guppy_div.offsetLeft + 'px';
+        fakeInput.style.width = '1px';
+        fakeInput.style.height = '1px';
+        fakeInput.style.opacity = 0;
+        fakeInput.style.padding = 0;
+        fakeInput.style.margin = 0;
+        fakeInput.style.border = 0;
+        fakeInput.addEventListener('input', debounce(100, function() {
+        	for (; self.processed_fake_input > self.fakeInput.value.length; self.processed_fake_input--) {
+        		Mousetrap.trigger("backspace");
+        	}
+        	if (self.fakeInput.value.length == 0) {
+        		self.processed_fake_input = 20;
+                self.fakeInput.value = "____________________";
+        	}
+        	for (; self.processed_fake_input < self.fakeInput.value.length; self.processed_fake_input++) {
+                var c = self.fakeInput.value[self.processed_fake_input];
+                if (c !== c.toLowerCase())
+                    Mousetrap.trigger('shift+' + c.	toLowerCase());
+                else if (c == " ")
+                	Mousetrap.trigger('space');
+                else
+                    Mousetrap.trigger(c);
+        	}
+        }));
+        fakeInput.addEventListener('keydown', function(e) {
+            if (e.keycode == 8) {
+            	Mousetrap.trigger("backspace");
+            	e.preventDefault();
+            } else if (e.keycode == 13) {
+            	Mousetrap.trigger("enter");
+            	e.preventDefault();
+            }
+        });
+        fakeInput.addEventListener('focus', function() {
+        	self.activate(false);
+        });
+        fakeInput.addEventListener('blur', function() {
+            if (self.maintain_focus) {
+                self.maintain_focus = false;
+                this.focus();
+            } else
+                self.deactivate(false);
+        });
+        fakeInput.value = "____________________";
+    }
+    
     this.backend = new GuppyBackend(config);
     this.temp_cursor = {"node":null,"caret":0}
-    this.editor.addEventListener("keydown",Guppy.key_down, false);
-    this.editor.addEventListener("keyup",Guppy.key_up, false);
-    this.editor.addEventListener("focus", function(e) { Guppy.kb.alt_down = false; if(self.activate) self.activate();}, false);
     if(Guppy.ready && !this.ready){
+    this.editor.addEventListener('click', function() {
+        var g = Guppy.instances[this.id];
+        var b = g.backend;
+    	if (g.editor_active)
+    		return;
+        g.maintain_focus = true;
+        setTimeout(function() {
+        	g.maintain_focus = false;
+        }, 500);
+        b.sel_clear();
+        b.current = b.doc.root().lastChild;
+        b.caret = GuppyUtils.get_length(b.current);
+        g.activate(true);
+    });
     	this.ready = true;
     	this.backend.fire_event("ready");
 	this.render(true);
     }
-    this.deactivate();
+    this.deactivate(true);
     this.recompute_locations_paths();
 }
 
@@ -249,38 +324,31 @@ Guppy.mouse_up = function(e){
 Guppy.mouse_down = function(e){
     var n = e.target;
     Guppy.kb.is_mouse_down = true;
-    if(e.target == document.getElementById("toggle_ref")) toggle_div("help_card");
-    else while(n != null){
-	if(n.id in Guppy.instances){
-	    e.preventDefault();
-	    var prev_active = Guppy.active_guppy;
-	    for(var i in Guppy.instances){
-		if(i != n.id) Guppy.instances[i].deactivate();
-		Guppy.active_guppy = Guppy.instances[n.id];
-		Guppy.active_guppy.activate();
-	    }
-	    var g = Guppy.active_guppy;
-	    var b = Guppy.active_guppy.backend;
-	    g.space_caret = 0;
-	    if(prev_active == g){
-		if(e.shiftKey){
-		    g.select_to(e.clientX, e.clientY, true);
-		}
-		else {
-		    var loc = Guppy.get_loc(e.clientX,e.clientY);
-		    if(!loc) return;
-		    b.current = loc.current;
-		    b.caret = loc.caret;
-		    b.sel_status = GuppyBackend.SEL_NONE;
-		}
-		g.render(true);
-	    }
-	    return;
-	}
-	if(n.classList && n.classList.contains("guppy_osk")){
-	    return;
-	}
 	n = n.parentNode;
+    while (n != null) {
+        if (n.id in Guppy.instances){
+            var g = Guppy.active_guppy;
+            if (Guppy.instances[n.id] == g) {
+	            g.maintain_focus = true;
+	            setTimeout(function() {
+	            	g.maintain_focus = false;
+	            }, 500);
+                if (e.shiftKey) {
+                    g.select_to(e.clientX, e.clientY, true);
+                } else {
+	            	var loc = e.touches ? Guppy.get_loc(e.touches[0].clientX, e.touches[0].clientY) : Guppy.get_loc(e.clientX, e.clientY);
+                    if (!loc)
+                        return;
+                    var b = g.backend;
+                    b.current = loc.current;
+                    b.caret = loc.caret;
+                    b.sel_status = GuppyBackend.SEL_NONE;
+                }
+                g.render(true);
+            } else if (g)
+        		g.deactivate(true);
+            return;
+        }
     }
     Guppy.active_guppy = null;
     for(var i in Guppy.instances){
@@ -310,6 +378,14 @@ Guppy.mouse_move = function(e){
     }
 }
 
+Guppy.touch_move = function(e) {
+    var g = Guppy.active_guppy;
+    if (!g)
+        return;
+    g.select_to(e.touches[0].clientX, e.touches[0].clientY, true);
+    g.render(g.is_changed());
+}
+
 Guppy.prototype.select_to = function(x, y, mouse){
     var sel_caret = this.backend.caret;
     var sel_cursor = this.backend.current;
@@ -326,10 +402,14 @@ Guppy.prototype.select_to = function(x, y, mouse){
     this.backend.select_to(loc, sel_cursor, sel_caret, mouse);
 }
 
-
-window.addEventListener("mousedown",Guppy.mouse_down, false);
-window.addEventListener("mouseup",Guppy.mouse_up, false);
-window.addEventListener("mousemove",Guppy.mouse_move, false);
+if ('ontouchstart' in window) {
+    window.addEventListener("touchstart", Guppy.mouse_down, false);
+    window.addEventListener("touchmove", Guppy.touch_move, false);
+} else {
+    window.addEventListener("mousedown", Guppy.mouse_down, false);
+    window.addEventListener("mouseup", Guppy.mouse_up, false);
+    window.addEventListener("mousemove", Guppy.mouse_move, false);
+}
 
 Guppy.prototype.render_node = function(t){
     // All the interesting work is done by transform.  This function just adds in the cursor and selection-start cursor
@@ -364,18 +444,26 @@ Guppy.prototype.render = function(updated){
     }
 }
 
-Guppy.prototype.activate = function(){
+Guppy.prototype.activate = function(focus){
     Guppy.active_guppy = this;
     this.editor_active = true;
     this.editor.className = this.editor.className.replace(new RegExp('(\\s|^)guppy_inactive(\\s|$)'),' guppy_active ');
-    this.editor.focus();
+    if (focus) {
+        if (this.fakeInput) {
+            this.fakeInput.style.top = this.editor.offsetTop + 'px';
+            this.fakeInput.style.left = this.editor.offsetLeft + 'px';
+    		this.fakeInput.focus();
+    		this.fakeInput.setSelectionRange(this.fakeInput.value.length, this.fakeInput.value.length);
+        } else
+            this.editor.focus();
+    }
     if(this.ready){
 	this.render(true);
 	this.backend.fire_event("focus",{"focused":true});
     }
 }
 
-Guppy.prototype.deactivate = function(){
+Guppy.prototype.deactivate = function(blur){
     this.editor_active = false;
     var r1 = new RegExp('(?:\\s|^)guppy_active(?:\\s|$)');
     var r2 = new RegExp('(?:\\s|^)guppy_inactive(?:\\s|$)');
@@ -388,6 +476,8 @@ Guppy.prototype.deactivate = function(){
     Guppy.kb.shift_down = false;
     Guppy.kb.ctrl_down = false;
     Guppy.kb.alt_down = false;
+    if (blur && this.fakeInput)
+        this.fakeInput.blur();
     if(this.ready){
 	this.render();
 	this.backend.fire_event("focus",{"focused":false});
