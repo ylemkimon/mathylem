@@ -861,7 +861,7 @@ GuppyBackend.prototype.list_remove_row = function(){
     if(!n.parentNode) return;
     // Don't remove if there is only a single row:
     if(n.previousSibling != null){
-	this.current = n.previousSibling.firstChild.lastChild;
+	this.current = n.previousSibling.lastChild.lastChild;
 	this.caret = GuppyUtils.get_length(this.current);
     }
     else if(n.nextSibling != null){
