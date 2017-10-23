@@ -110,6 +110,12 @@ GuppyBackend.prototype.add_symbols = function(name, sym){
     }
 }
 
+GuppyBackend.prototype.add_symbol_func_nonlatex = function(name, group){
+    var new_syms = GuppySymbols.add_symbols("_func_nonlatex", [{"group":group,"symbols":[name]}]);
+    for(var s in new_syms)
+	this.symbols[s] = new_syms[s];
+}
+
 GuppyBackend.prototype.add_symbol_func = function(name, group){
     var new_syms = GuppySymbols.add_symbols("_func", [{"group":group,"symbols":[name]}]);
     for(var s in new_syms)

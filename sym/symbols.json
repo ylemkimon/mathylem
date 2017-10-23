@@ -195,6 +195,11 @@
      ]
     },
     
+    "_func_nonlatex":[{
+	"group":"functions",
+	"symbols":["sech","csch","asin","acos","atan","acot","asec","acsc","asinh","acosh","atanh","acoth","asech","acsch"]
+    }],
+    
     "_func":[{
 	"group":"functions",
 	"symbols":["sin","cos","tan","sec","csc","cot","log","ln"]
