@@ -56,7 +56,6 @@ var GuppyBackend = function(config){
     this.symbols = {};
     this.doc = new GuppyDoc(options["xml_content"]);
     
-    this.clipboard = null;
     this.current = this.doc.root().firstChild;
     this.caret = 0;
     this.sel_start = null;
@@ -76,13 +75,14 @@ GuppyBackend.SEL_NONE = 0;
 GuppyBackend.SEL_CURSOR_AT_START = 1;
 GuppyBackend.SEL_CURSOR_AT_END = 2;
 
+GuppyBackend.clipboard = null;
+
 GuppyBackend.prototype.get_content = function(t,r){
     return this.doc.get_content(t,r);
 }
 
 GuppyBackend.prototype.set_content = function(xml_data){
     this.doc = new GuppyDoc(xml_data);
-    this.clipboard = null;
     this.current = this.doc.root().firstChild;
     this.caret = 0;
     this.sel_start = null;
@@ -555,9 +555,9 @@ GuppyBackend.prototype.insert_string = function(s){
 GuppyBackend.prototype.sel_copy = function(){
     var sel = this.sel_get();
     if(!sel) return;
-    this.clipboard = [];
+    GuppyBackend.clipboard = [];
     for(var i = 0; i < sel.node_list.length; i++){
-	this.clipboard.push(sel.node_list[i].cloneNode(true));
+	GuppyBackend.clipboard.push(sel.node_list[i].cloneNode(true));
     }
     this.sel_clear();
 }
@@ -565,9 +565,9 @@ GuppyBackend.prototype.sel_copy = function(){
 GuppyBackend.prototype.sel_cut = function(){
     var node_list = this.sel_delete();
     if(!node_list) return;
-    this.clipboard = [];
+    GuppyBackend.clipboard = [];
     for(var i = 0; i < node_list.length; i++){
-	this.clipboard.push(node_list[i].cloneNode(true));
+	GuppyBackend.clipboard.push(node_list[i].cloneNode(true));
     }
     this.sel_clear();
     this.checkpoint();
@@ -605,8 +605,8 @@ GuppyBackend.prototype.insert_nodes = function(node_list, move_cursor){
 GuppyBackend.prototype.sel_paste = function(){
     this.sel_delete();
     this.sel_clear();
-    if(!(this.clipboard) || this.clipboard.length == 0) return;
-    this.insert_nodes(this.clipboard, true);
+    if(!(GuppyBackend.clipboard) || GuppyBackend.clipboard.length == 0) return;
+    this.insert_nodes(GuppyBackend.clipboard, true);
     this.checkpoint();
 }
 
