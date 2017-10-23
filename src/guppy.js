@@ -497,19 +497,18 @@ Guppy.kb.k_chars = {
     ".":".",
     ",":",",
     "shift+/":"/",
-    "shift+=":"+",
-    "!":"!"
+    "shift+=":"+"
 };
 Guppy.kb.k_syms = {
-    "/":"slash",
-    "^":"exp",
-    "*":"*",
+    "/":"frac",
+    "^":"power",
     "(":"paren",
     "<":"less",
     ">":"greater",
     "_":"sub",
     "|":"abs",
-    "shift+up":"exp",
+    "!":"factorial",
+    "shift+up":"power",
     "shift+down":"sub"
 };
 Guppy.kb.k_controls = {
