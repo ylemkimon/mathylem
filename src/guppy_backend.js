@@ -1180,6 +1180,20 @@ GuppyBackend.prototype.is_blacklisted = function(symb_type){
 GuppyBackend.prototype.check_for_symbol = function(){
     var instance = this;
     if(GuppyUtils.is_text(this.current)) return;
+    if (this.current.parentNode.parentNode.nodeName == 'f' && this.current.parentNode.firstChild == this.current.parentNode.lastChild && this.current.firstChild.nodeValue == 'h') {
+        var n = this.current.parentNode.parentNode;
+        var sym_name = n.getAttribute("type") + 'h';
+        var s = this.symbols[sym_name];
+        if (!s || this.is_blacklisted(s['type']))
+            return;
+        var f = this.symbol_to_node(sym_name, []).f;
+        n.parentNode.replaceChild(f, n);
+        this.caret = 0;
+        this.current = f;
+        this.down_from_f_to_blank();
+        this.checkpoint();
+        return;
+    }
     for(var s in this.symbols){
 	if(instance.current.nodeName == 'e' && !(GuppyUtils.is_blank(instance.current)) && instance.current.firstChild.nodeValue.search_at(instance.caret,s)){
 	    var temp = instance.current.firstChild.nodeValue;

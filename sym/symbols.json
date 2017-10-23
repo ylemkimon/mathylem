@@ -202,7 +202,7 @@
     
     "_func":[{
 	"group":"functions",
-	"symbols":["sin","cos","tan","sec","csc","cot","log","ln"]
+	"symbols":["sin","cos","tan","sec","csc","cot","log","ln","sinh","cosh","tanh","coth"]
     }],
     
     "_raw":[
