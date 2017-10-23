@@ -414,6 +414,9 @@ GuppyBackend.prototype.symbol_to_node = function(sym_name, content){
 }
 
 GuppyBackend.prototype.insert_symbol = function(sym_name){
+    if (sym_name == "power" && this.caret == 0 && this.current.parentNode.parentNode.nodeName == 'f' && this.current.parentNode.firstChild == this.current.parentNode.lastChild)
+        this.current = this.current.parentNode.parentNode.nextSibling;
+    
     var s = this.symbols[sym_name];
     if(this.is_blacklisted(s['type'])){
 	return false;
