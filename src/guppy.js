@@ -350,7 +350,7 @@ Guppy.mouse_down = function(e){
     }
     Guppy.active_guppy = null;
     for(var i in Guppy.instances){
-	Guppy.instances[i].deactivate();
+        Guppy.instances[i].deactivate(true);
     }
 }
 
