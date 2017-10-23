@@ -83,8 +83,8 @@ GuppyBackend.prototype.get_content = function(t,r){
 
 GuppyBackend.prototype.set_content = function(xml_data){
     this.doc = new GuppyDoc(xml_data);
-    this.current = this.doc.root().firstChild;
-    this.caret = 0;
+    this.current = this.doc.root().lastChild;
+    this.caret = GuppyUtils.get_length(this.current);
     this.sel_start = null;
     this.sel_end = null;
     this.undo_data = [];
