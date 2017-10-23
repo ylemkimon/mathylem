@@ -126,22 +126,18 @@ GuppyBackend.prototype.add_symbol_raw = function(name, latex, text, group){
 
 GuppyBackend.prototype.select_to = function(loc, sel_cursor, sel_caret, mouse){
     if(loc.current == sel_cursor && loc.caret == sel_caret){
-	this.current = loc.current;
-	this.caret = loc.caret;
 	this.sel_status = GuppyBackend.SEL_NONE;
     }
     else if(loc.pos == "left"){
 	this.sel_end = {"node":sel_cursor,"caret":sel_caret};
-	this.current = loc.current;
-	this.caret = loc.caret;
 	this.set_sel_boundary(GuppyBackend.SEL_CURSOR_AT_START, mouse);
     }
     else if(loc.pos == "right"){
 	this.sel_start = {"node":sel_cursor,"caret":sel_caret};
-	this.current = loc.current;
-	this.caret = loc.caret;
 	this.set_sel_boundary(GuppyBackend.SEL_CURSOR_AT_END, mouse);
     }
+    this.current = loc.current;
+    this.caret = loc.caret;
 }
 
 GuppyBackend.prototype.set_sel_start = function(){
@@ -170,7 +166,7 @@ GuppyBackend.prototype.add_paths = function(n,path){
 GuppyBackend.prototype.add_classes_cursors = function(n,path){
     if(n.nodeName == "e"){
 	var text = GuppyUtils.get_value(n);
-	ans = "";
+	var ans = "";
 	var sel_cursor;
 	var text_node = GuppyUtils.is_text(n);
 	if(this.sel_status == GuppyBackend.SEL_CURSOR_AT_START) sel_cursor = this.sel_end;

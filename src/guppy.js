@@ -103,7 +103,6 @@ var Guppy = function(guppy_div, config){
     
     this.backend = new GuppyBackend(config);
     this.temp_cursor = {"node":null,"caret":0}
-    if(Guppy.ready && !this.ready){
     this.editor.addEventListener('click', function() {
         var g = Guppy.instances[this.id];
         var b = g.backend;
@@ -118,6 +117,7 @@ var Guppy = function(guppy_div, config){
         b.caret = GuppyUtils.get_length(b.current);
         g.activate(true);
     });
+    if (Guppy.ready && !this.ready){
     	this.ready = true;
     	this.backend.fire_event("ready");
 	this.render(true);
@@ -203,16 +203,13 @@ Guppy.prototype.is_changed = function(){
     var bb = this.editor.getElementsByClassName("katex")[0];
     if(!bb) return;
     var rect = bb.getBoundingClientRect();
-    if(this.bounding_box)
-	ans = this.bounding_box.top != rect.top || this.bounding_box.bottom != rect.bottom || this.bounding_box.right != rect.right || this.bounding_box.left != rect.left;
-    else
-	ans = true;
+    var ans = !this.bounding_box || this.bounding_box.top != rect.top || this.bounding_box.bottom != rect.bottom || this.bounding_box.right != rect.right || this.bounding_box.left != rect.left;
     this.bounding_box = rect;
     return ans;
 }
 
 Guppy.prototype.recompute_locations_paths = function(){
-    ans = [];
+    var ans = [];
     var bb = this.editor.getElementsByClassName("katex")[0];
     if(!bb) return;
     var rect = bb.getBoundingClientRect();
@@ -297,15 +294,21 @@ Guppy.get_loc = function(x,y,current_node,current_caret){
     if(mid_dist > 0 && !(opt.blank)){
 	car++;
     }
-    ans = {"current":cur,"caret":car,"pos":pos};
+    ans = {
+        "current": cur,
+        "caret": car,
+        "pos": "none"
+    };
     if(current_node && opt){
 	var opt_pos = parseInt(opt.path.substring(opt.path.lastIndexOf("e")+1,opt.path.lastIndexOf("_")));
-	if(opt_pos < current_pos) pos = "left";
-	else if(opt_pos > current_pos) pos = "right";
-	else if(car < current_caret) pos = "left";
-	else if(car > current_caret) pos = "right";
-	if(pos) ans['pos'] = pos;
-	else ans['pos'] = "none";
+        if (opt_pos < current_pos)
+            ans['pos'] = "left";
+        else if(opt_pos > current_pos)
+            ans['pos'] = "right";
+        else if(car < current_caret)
+            ans['pos'] = "left";
+        else if(car > current_caret)
+            ans['pos'] = "right";
     }
     return ans;
 }
@@ -319,7 +322,6 @@ Guppy.mouse_up = function(e){
 Guppy.mouse_down = function(e){
     var n = e.target;
     Guppy.kb.is_mouse_down = true;
-	n = n.parentNode;
     while (n != null) {
         if (n.id in Guppy.instances){
             var g = Guppy.active_guppy;
@@ -344,6 +346,7 @@ Guppy.mouse_down = function(e){
         		g.deactivate(true);
             return;
         }
+        n = n.parentNode;
     }
     Guppy.active_guppy = null;
     for(var i in Guppy.instances){
