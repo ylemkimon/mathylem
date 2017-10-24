@@ -479,22 +479,22 @@ MathYlemBackend.prototype.sel_get = function () {
   var remnant = null;
 
   if (this.sel_start.node == this.sel_end.node) {
-    return {'node_list': [this.make_e(MathYlemUtils.get_value(this.sel_start).substring(this.sel_start.caret, this.sel_end.caret))],
-      'remnant': this.make_e(MathYlemUtils.get_value(this.sel_start).substring(0, this.sel_start.caret) + MathYlemUtils.get_value(this.sel_end).substring(this.sel_end.caret)),
+    return {'node_list': [this.make_e(MathYlemUtils.get_value(this.sel_start.node).substring(this.sel_start.caret, this.sel_end.caret))],
+      'remnant': this.make_e(MathYlemUtils.get_value(this.sel_start.node).substring(0, this.sel_start.caret) + MathYlemUtils.get_value(this.sel_end.node).substring(this.sel_end.caret)),
       'involved': [this.sel_start.node]};
   }
 
-  node_list.push(this.make_e(MathYlemUtils.get_value(this.sel_start).substring(this.sel_start.caret)));
+  node_list.push(this.make_e(MathYlemUtils.get_value(this.sel_start.node).substring(this.sel_start.caret)));
   involved.push(this.sel_start.node);
   involved.push(this.sel_end.node);
-  remnant = this.make_e(MathYlemUtils.get_value(this.sel_start).substring(0, this.sel_start.caret) + MathYlemUtils.get_value(this.sel_end).substring(this.sel_end.caret));
+  remnant = this.make_e(MathYlemUtils.get_value(this.sel_start.node).substring(0, this.sel_start.caret) + MathYlemUtils.get_value(this.sel_end.node).substring(this.sel_end.caret));
   var n = this.sel_start.node.nextSibling;
   while (n != null && n != this.sel_end.node) {
     involved.push(n);
     node_list.push(n);
     n = n.nextSibling;
   }
-  node_list.push(this.make_e(MathYlemUtils.get_value(this.sel_end).substring(0, this.sel_end.caret)));
+  node_list.push(this.make_e(MathYlemUtils.get_value(this.sel_end.node).substring(0, this.sel_end.caret)));
   return {'node_list': node_list,
     'remnant': remnant,
     'involved': involved,
