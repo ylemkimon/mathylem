@@ -184,7 +184,7 @@
     
     "deriv":
     {"output":{
-        "latex":"\\displaystyle\\frac{d}{d{$1}}{$2}",
+        "latex":"\\dfrac{d}{d{$1}}{$2}",
         "small_latex":"\\frac{d}{d{$1}}{$2}",
 	"text":"Derivative({$2},{$1})"},
      "current":0,
