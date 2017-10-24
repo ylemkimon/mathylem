@@ -100,11 +100,6 @@ see the current state of the editor with all your modifications.  As
 you're making edits, be sure to run `./make` before refreshing in
 order to see your changes reflected in the page.
 
-If you're in a position where you don't have internet connectivity,
-you can test using
-[localhost:8000/basic.html](localhost:8000/index.html) instead, as
-this page does not require any outside resources.
-
 ## Further documentation
 
 * [The Javascript API for controlling the editor](doc/editor_api.md)
