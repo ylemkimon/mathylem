@@ -13,7 +13,7 @@ $('document').ready(function() {
         $('#stuff')[0].innerHTML = '';
     });
 
-    MathYlem.init_symbols(["sym/symbols.json"]);
+    MathYlem.init_symbols(["build/symbols.json"]);
     var g1 = new MathYlem("mathylem1", {
 	"events":{
 	    //'debug':10,

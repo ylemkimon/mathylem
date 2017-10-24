@@ -23,14 +23,14 @@ A stripped-down version of the demo page would look like:
 <html>
   <head>
     <link rel="stylesheet" href="build/mathylem.katex.min.css">
-    <link rel="stylesheet" href="style/mathylem.css">
+    <link rel="stylesheet" href="build/mathylem.css">
     <script type="text/javascript" src="build/mathylem.min.js"></script>
   </head>
   <body>
     <div id="mathylem_div"></div>
     
     <script>
-        MathYlem.init_symbols(["sym/symbols.json"]);
+        MathYlem.init_symbols(["build/symbols.json"]);
         new MathYlem("mathylem_div");
     </script>
     <button onclick="alert(MathYlem.instances.mathylem_div.get_content('xml'))">See XML</button>
@@ -42,14 +42,12 @@ A stripped-down version of the demo page would look like:
 
 ## Installation and deployment
 
-* Download the `build`, `style` and `sym` folders.
+* Download the `build` folder.
 
 * Include the `build/mathylem.min.js`, `build/mathylem.katex.min.css`,
-  `style/mathylem.css` files in your page.
+  `build/mathylem.css` files in your page.
 
-* Pass a list of paths to various symbol definition files (several of
-  which are in `sym/`) as well as the string `"builtins"` (if you want
-  the built-in symbols, such as Greek letters) to `MathYlem.init_symbols`
+* Pass a list of paths to symbol definition files to `MathYlem.init_symbols`
   as in the example above.  This only needs to happen once per page.
   Symbol names from files that appear later in the list will override
   symbol names from files earlier in the list.
@@ -62,7 +60,7 @@ A stripped-down version of the demo page would look like:
 
 * How do I change the styling of the editor?
 
-  MathYlem provides default styling at `style/mathylem.css`.
+  MathYlem provides default styling at `css/mathylem.css`.
 
   There are multiple configuration options and CSS classes that can be
   used to customise the appearance of the editor.  See [the
@@ -85,7 +83,7 @@ can be added by modifying `symbols.json`.
 ## Development
 
 When working on the editor, any changes made to the Javascript source
-(e.g. [src/mathylem.js](https://github.com/ylemkimon/mathylem/blob/master/src/mathylem.js)
+(e.g. [js/mathylem.js](https://github.com/ylemkimon/mathylem/blob/master/js/mathylem.js)
 need to be complied by running `./make -d`).
 
 Because the editor makes AJAX requests as part of its normal
