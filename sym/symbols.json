@@ -23,7 +23,7 @@
     {"output":{
         "latex":"\\left|{$1}\\right|",
 	"text":"abs({$1})"},
-     "current":0,
+     "current":1,
      "type":"absolute_value",
      "group":"functions",
      "attrs":[{"delete":"1"}]
@@ -80,6 +80,7 @@
 	"text":"({$1})"},
      "current":1,
      "type":"bracket",
+     "current_type": "token",
      "group":"functions",
      "attrs":[{"delete":"1","is_bracket":"yes"}]
     },
