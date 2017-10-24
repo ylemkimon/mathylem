@@ -478,6 +478,7 @@ MathYlem.kb.k_chars = {
 };
 MathYlem.kb.k_syms = {
   '/': 'frac',
+  '%': 'mod',
   '^': 'power',
   '(': 'paren',
   '<': 'less',

@@ -60,6 +60,20 @@
         "attrs":[{"delete":"1","bracket":"yes"}]
     },
     
+    "binom":
+    {"output":{
+        "latex":"\\displaystyle\\binom{{$1}}{{$2}}",
+        "small_latex":"\\binom{{$1}}{{$2}}",
+	"text":"binomial({$1},{$2})"},
+     "current":0,
+     "type":"binomial",
+     "group":"functions",
+     "attrs":[
+	 {"up":"1","down":"2","name":"n"},
+	 {"up":"1","down":"2","name":"k"}
+     ]
+    },
+    
     "paren":
     {"output":{
         "latex":"\\left({$1}\\right)",
@@ -123,6 +137,20 @@
      ]
     },
     
+    "mod":
+    {"output":{
+        "latex":"{$1}\\bmod{$2}",
+	"text":"({$1})%({$2})"},
+     "current":1,
+     "current_type":"token",
+     "type":"mod",
+     "group":"functions",
+     "attrs":[
+	 {"up":"1","down":"2","bracket":"yes","name":"dividend"},
+	 {"up":"1","down":"2","bracket":"yes","name":"divisor"}
+     ]
+    },
+    
     "int":
     {"output":{
         "latex":"\\displaystyle\\int{{$1}}d{$2}",
@@ -182,6 +210,22 @@
 	 {"down":"1","up":"3","delete":"4","bracket":"yes","name":"summand"}
      ]
     },
+        
+    "prod":
+    {"output":{
+        "latex":"\\displaystyle\\prod_{{$1}={$2}}^{{$3}}{$4}",
+        "small_latex":"\\prod_{{$1}={$2}}^{{$3}}{$4}",
+	"text":"Product({$4},({$1},{$2},{$3}))"},
+     "current":0,
+     "type":"multiplication",
+     "group":"functions",
+     "attrs":[
+	 {"down":"1","up":"3","small":"yes","name":"index"},
+	 {"down":"1","up":"3","small":"yes","name":"lower_limit"},
+	 {"down":"1","up":"3","small":"yes","name":"upper_limit"},
+	 {"down":"1","up":"3","delete":"4","bracket":"yes","name":"factor"}
+     ]
+    },
 
     "root":
     {"output":{
@@ -221,7 +265,7 @@
     
     "_func":[{
 	"group":"functions",
-	"symbols":["sin","cos","tan","sec","csc","cot","log","ln","sinh","cosh","tanh","coth"]
+	"symbols":["sin","cos","tan","sec","csc","cot","log","ln","sinh","cosh","tanh","coth","Re","Im","arg"]
     }],
     
     "_raw":[
@@ -238,5 +282,5 @@
     ],
 
     "_literal":[{"group":"greek",
-		"symbols":["alpha","beta","gamma","delta","epsilon","zeta","theta","iota","kappa","lambda","mu","nu","xi","omicron","pi","rho","sigma","tau","upsilon","phi","chi","psi","omega","Gamma","Delta","Theta","Lambda","Xi","Pi","Sigma","Phi","Psi","Omega","eta"]}]
+		"symbols":["alpha","beta","gamma","delta","epsilon","zeta","theta","iota","kappa","lambda","mu","nu","xi","omicron","pi","rho","sigma","tau","upsilon","phi","chi","omega","Gamma","Delta","Theta","Lambda","Xi","Pi","Sigma","Upsilon","Phi","Psi","Omega","eta"]}]
 }
