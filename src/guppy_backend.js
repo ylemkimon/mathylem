@@ -414,7 +414,7 @@ GuppyBackend.prototype.symbol_to_node = function(sym_name, content){
 }
 
 GuppyBackend.prototype.insert_symbol = function(sym_name){
-    if (sym_name == "power" && this.caret == 0 && this.current.parentNode.parentNode.nodeName == 'f' && this.current.parentNode.firstChild == this.current.parentNode.lastChild)
+    if (sym_name == "power" && this.caret == 0 && this.current.parentNode.parentNode.nodeName == 'f' && this.current.parentNode.childNodes.length == 1)
         this.current = this.current.parentNode.parentNode.nextSibling;
     
     var s = this.symbols[sym_name];
@@ -1200,7 +1200,7 @@ GuppyBackend.prototype.check_for_power = function() {
 GuppyBackend.prototype.check_for_symbol = function(){
     var instance = this;
     if(GuppyUtils.is_text(this.current)) return;
-    if (this.current.parentNode.parentNode.nodeName == 'f' && this.current.parentNode.firstChild == this.current.parentNode.lastChild && this.current.firstChild.nodeValue == 'h') {
+    if (this.current.parentNode.parentNode.nodeName == 'f' && this.current.parentNode.childNodes.length == 1 && this.current.firstChild.nodeValue == 'h') {
         var n = this.current.parentNode.parentNode;
         var sym_name = n.getAttribute("type") + 'h';
         var s = this.symbols[sym_name];
