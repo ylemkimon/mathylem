@@ -22,7 +22,7 @@ A stripped-down version of the demo page would look like:
 ```
 <html>
   <head>
-    <link rel="stylesheet" href="build/mathylem.min.css">
+    <link rel="stylesheet" href="build/mathylem.katex.min.css">
     <link rel="stylesheet" href="style/mathylem.css">
     <script type="text/javascript" src="build/mathylem.min.js"></script>
   </head>
@@ -44,7 +44,7 @@ A stripped-down version of the demo page would look like:
 
 * Download the `build`, `style` and `sym` folders.
 
-* Include the `build/mathylem.min.js`, `build/mathylem.min.css`,
+* Include the `build/mathylem.min.js`, `build/mathylem.katex.min.css`,
   `style/mathylem.css` files in your page.
 
 * Pass a list of paths to various symbol definition files (several of
