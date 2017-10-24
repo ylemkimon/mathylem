@@ -64,7 +64,7 @@ A stripped-down version of the demo page would look like:
 
   There are multiple configuration options and CSS classes that can be
   used to customise the appearance of the editor.  See [the
-  documentation](doc/style.md).
+  documentation](https://github.com/ylemkimon/mathylem/wiki/CSS-styling).
 
 ## Editor usage
 
@@ -100,12 +100,12 @@ order to see your changes reflected in the page.
 
 ## Further documentation
 
-* [The Javascript API for controlling the editor](doc/editor_api.md)
-* [The Javascript APIs for document manipulation, on-screen keyboard, and rendering](doc/other_api.md)
-* [Editor styling options](doc/style.md)
-* [The JSON specification used to describe available symbols](doc/symbols.md)
-* [The XML format used to represent expressions](doc/format.md)
-* [Editor internals](doc/internals.md)
+* [The Javascript API for controlling the editor](https://github.com/ylemkimon/mathylem/wiki/Editor-API-reference)
+* [The Javascript APIs for document manipulation, on-screen keyboard, and rendering](https://github.com/ylemkimon/mathylem/wiki/Auxiliary-APIs)
+* [Editor styling options](https://github.com/ylemkimon/mathylem/wiki/CSS-styling)
+* [The JSON specification used to describe available symbols](https://github.com/ylemkimon/mathylem/wiki/Symbol-definition-reference)
+* [The XML format used to represent expressions](https://github.com/ylemkimon/mathylem/wiki/XML-data-format)
+* [Editor internals](https://github.com/ylemkimon/mathylem/wiki/Internals)
 
 ## License
 
