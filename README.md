@@ -30,7 +30,7 @@ A stripped-down version of the demo page would look like:
     
     <script>
         new MathYlem("mathylem_div");
-        MathYlem.init_symbols(["sym/symbols.json", "sym/extra_symbols.json"]);
+        MathYlem.init_symbols(["sym/symbols.json"]);
     </script>
     <button onclick="alert(MathYlem.instances.mathylem_div.get_content('xml'))">See XML</button>
     <button onclick="alert(MathYlem.instances.mathylem_div.get_content('latex'))">See LaTeX</button>

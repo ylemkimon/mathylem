@@ -16,14 +16,14 @@ editor) and whose values are dictionaries with the following keys:
   * If the ith entry is intended to be an array, with commas rendered
     between elements of the array, then that entry should be
     represented by `{$i{,}}`.  See the `vec` symbol in
-    [/sym/extra_symbols.json](https://github.com/ylemkimon/mathylem/blob/master/sym/extra_symbols.json)
+    [/sym/symbols.json](https://github.com/ylemkimon/mathylem/blob/master/sym/symbols.json)
     for an example of this.
 
   * If the ith entry is intended to be a 2D array, with, say, commas
     separating elements of each row and semicolons separating columns,
     then that entry is represented by `{$i{,}{;}}`.  See the `mx`
     symbol in
-    [/sym/extra_symbols.json](https://github.com/ylemkimon/mathylem/blob/master/sym/extra_symbols.json)
+    [/sym/symbols.json](https://github.com/ylemkimon/mathylem/blob/master/sym/symbols.json)
     for an example of this.
 
 * `type`: A string name for the symbol (will appear in the XML and can
