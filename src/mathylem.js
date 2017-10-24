@@ -20,6 +20,7 @@ var MathYlem = function (mathylem_div, config) {
     MathYlem.max_uid = i;
     mathylem_div.id = 'mathylem_uid_' + i;
   }
+  mathylem_div.className += " mathylem";
   var i = MathYlem.max_tabIndex || 0;
   mathylem_div.tabIndex = i;
   MathYlem.max_tabIndex = i + 1;

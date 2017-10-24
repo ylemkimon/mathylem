@@ -10,22 +10,6 @@ div {
     max-width: 900px;
 }
 
-#mathylem1 {
-    border: 2px solid #BDC3C7;
-    border-radius: 5px;
-    min-height:60px;
-    padding: 10px;
-    box-shadow: 1px 1px 1px 0 lightgray inset;
-    cursor: text;
-    overflow: auto;
-    -webkit-touch-callout: none;
-    -webkit-user-select: none;
-    -khtml-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
-}
-
 #result {
     border: 1px solid black;
     padding: 10px;

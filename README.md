@@ -23,14 +23,15 @@ A stripped-down version of the demo page would look like:
 <html>
   <head>
     <link rel="stylesheet" href="build/mathylem.min.css">
+    <link rel="stylesheet" href="style/mathylem.css">
     <script type="text/javascript" src="build/mathylem.min.js"></script>
   </head>
   <body>
-    <div id="mathylem_div" style="width:400px;height:100px;"></div>
+    <div id="mathylem_div"></div>
     
     <script>
-        new MathYlem("mathylem_div");
         MathYlem.init_symbols(["sym/symbols.json"]);
+        new MathYlem("mathylem_div");
     </script>
     <button onclick="alert(MathYlem.instances.mathylem_div.get_content('xml'))">See XML</button>
     <button onclick="alert(MathYlem.instances.mathylem_div.get_content('latex'))">See LaTeX</button>
@@ -41,10 +42,10 @@ A stripped-down version of the demo page would look like:
 
 ## Installation and deployment
 
-* Download the `build` and `sym` folders.
+* Download the `build`, `style` and `sym` folders.
 
-* Include the `build/mathylem.min.js` and `build/mathylem.min.css` files in
-  your page.
+* Include the `build/mathylem.min.js`, `build/mathylem.min.css`,
+  `style/mathylem.css` files in your page.
 
 * Pass a list of paths to various symbol definition files (several of
   which are in `sym/`) as well as the string `"builtins"` (if you want
