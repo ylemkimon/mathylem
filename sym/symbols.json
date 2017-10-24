@@ -219,5 +219,5 @@
     ],
 
     "_literal":[{"group":"greek",
-		"symbols":["alpha","beta","gamma","delta","epsilon","zeta","theta","iota","kappa","lambda","mu","nu","xi","omicron","pi","rho","sigma","tau","upsilon","phi","chi","psi","omega","Gamma","Delta","Theta","Lambda","Xi","Pi","Sigma","Phi","Psi","Omega"]}]
+		"symbols":["alpha","beta","gamma","delta","epsilon","zeta","theta","iota","kappa","lambda","mu","nu","xi","omicron","pi","rho","sigma","tau","upsilon","phi","chi","psi","omega","Gamma","Delta","Theta","Lambda","Xi","Pi","Sigma","Phi","Psi","Omega","eta"]}]
 }
