@@ -484,7 +484,7 @@ MathYlem.kb.k_syms = {
   '>': 'greater',
   '_': 'sub',
   '|': 'abs',
-  '!': 'factorial',
+  '!': 'fact',
   'shift+up': 'power',
   'shift+down': 'sub'
 };
