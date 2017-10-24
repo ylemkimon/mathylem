@@ -1,11 +1,11 @@
 require('wicked-good-xpath').install();
 
-var GuppyDoc = function (doc) {
+var MathYlemDoc = function (doc) {
   doc = doc || '<m><e></e></m>';
   this.set_content(doc);
 };
 
-GuppyDoc.prototype.is_small = function (nn) {
+MathYlemDoc.prototype.is_small = function (nn) {
   var n = nn.parentNode;
   while (n != null && n.nodeName != 'm') {
     if (n.getAttribute('small') == 'yes') { return true }
@@ -15,44 +15,44 @@ GuppyDoc.prototype.is_small = function (nn) {
   return false;
 };
 
-GuppyDoc.prototype.ensure_text_nodes = function () {
+MathYlemDoc.prototype.ensure_text_nodes = function () {
   var l = this.base.getElementsByTagName('e');
   for (var i = 0; i < l.length; i++) {
     if (!(l[i].firstChild)) { l[i].appendChild(this.base.createTextNode('')) }
   }
 };
 
-GuppyDoc.prototype.is_blank = function () {
+MathYlemDoc.prototype.is_blank = function () {
   if (this.base.getElementsByTagName('f').length > 0) { return false }
   var l = this.base.getElementsByTagName('e');
   if (l.length == 1 && (!(l[0].firstChild) || l[0].firstChild.textContent == '')) { return true }
   return false;
 };
 
-GuppyDoc.prototype.root = function () {
+MathYlemDoc.prototype.root = function () {
   return this.base.documentElement;
 };
 
-GuppyDoc.prototype.get_content = function (t, r) {
+MathYlemDoc.prototype.get_content = function (t, r) {
   if (t != 'xml') { return this.manual_render(t, this.root(), r) } else { return (new XMLSerializer()).serializeToString(this.base) }
 };
 
-GuppyDoc.prototype.xpath_node = function (xpath, node) {
+MathYlemDoc.prototype.xpath_node = function (xpath, node) {
   node = node || this.root();
   return this.base.evaluate(xpath, node, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
 };
 
-GuppyDoc.prototype.xpath_list = function (xpath, node) {
+MathYlemDoc.prototype.xpath_list = function (xpath, node) {
   node = node || this.root();
   return this.base.evaluate(xpath, node, null, XPathResult.ORDERED_NODE_ITERATOR_TYPE, null);
 };
 
-GuppyDoc.prototype.set_content = function (xml_data) {
+MathYlemDoc.prototype.set_content = function (xml_data) {
   this.base = (new window.DOMParser()).parseFromString(xml_data, 'text/xml');
   this.ensure_text_nodes();
 };
 
-GuppyDoc.bracket_xpath = "(count(./*) != 1 and not \
+MathYlemDoc.bracket_xpath = "(count(./*) != 1 and not \
                   ( \
                             count(./e)=2 and \
                 count(./f)=1 and \
@@ -88,13 +88,13 @@ GuppyDoc.bracket_xpath = "(count(./*) != 1 and not \
               ./e/@temp = 'yes' \
             )";
 
-GuppyDoc.prototype.manual_render = function (t, n, r) {
+MathYlemDoc.prototype.manual_render = function (t, n, r) {
   var ans = '';
   if (n.nodeName == 'e') {
     if (t == 'latex' && r) {
       ans = n.getAttribute('render');
     } else if (t == 'text') {
-      ans = GuppyUtils.get_value(n);
+      ans = MathYlemUtils.get_value(n);
       if (n.previousSibling && n.nextSibling && ans == '') { ans = ' * ' } else {
         ans = ans.replace(/(.)([^a-zA-Z0-9.])(.)/g, '$1 $2 $3');
         ans = ans.replace(/([a-zA-Z])(?=\.)/g, '$1 * ');
@@ -106,7 +106,7 @@ GuppyDoc.prototype.manual_render = function (t, n, r) {
         ans = ' ' + ans + ' ';
       }
     } else {
-      ans = GuppyUtils.get_value(n);
+      ans = MathYlemUtils.get_value(n);
     }
   } else if (n.nodeName == 'f') {
     var real_type = (t == 'latex' && this.is_small(n)) ? 'small_latex' : t;
@@ -143,7 +143,7 @@ GuppyDoc.prototype.manual_render = function (t, n, r) {
     for (var nn = n.firstChild; nn != null; nn = nn.nextSibling) { ans += this.manual_render(t, nn, r) }
     if (t == 'latex' &&
                 n.getAttribute('bracket') == 'yes' &&
-                this.base.evaluate(GuppyDoc.bracket_xpath, n, null,
+                this.base.evaluate(MathYlemDoc.bracket_xpath, n, null,
                   XPathResult.BOOLEAN_TYPE, null).booleanValue) {
       ans = '\\left(' + ans + '\\right)';
     }
@@ -151,9 +151,9 @@ GuppyDoc.prototype.manual_render = function (t, n, r) {
   return ans;
 };
 
-GuppyDoc.prototype.path_to = function (n) {
+MathYlemDoc.prototype.path_to = function (n) {
   var name = n.nodeName;
-  if (name == 'm') { return 'guppy_loc_m' }
+  if (name == 'm') { return 'mathylem_loc_m' }
   var ns = 0;
   for (var nn = n; nn != null; nn = nn.previousSibling) {
     if (nn.nodeType == 1 && nn.nodeName == name) { ns++ }
@@ -161,4 +161,4 @@ GuppyDoc.prototype.path_to = function (n) {
   return this.path_to(n.parentNode) + '_' + name + '' + ns;
 };
 
-module.exports = GuppyDoc;
+module.exports = MathYlemDoc;

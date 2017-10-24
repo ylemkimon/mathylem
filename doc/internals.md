@@ -1,6 +1,6 @@
 ## Internals
 
-The majority of the code in Guppy is implementing the logic involved
+The majority of the code in MathYlem is implementing the logic involved
 with modifying the XML tree (described above) via an editor which
 displays a kind of flattened version of this tree to the user.
 Specifically, the functions that contribute many of the lines are
@@ -13,7 +13,7 @@ discuss a few examples of each:
 
 ### Cursor functions
 
-In Guppy, the cursor is only allowed to be inside `<e>` nodes.  Since
+In MathYlem, the cursor is only allowed to be inside `<e>` nodes.  Since
 these only contain text, we can describe the cursor position by a
 reference to an `<e>` node within the tree, (`this.current` in the
 code), and a numerical offset indicating where the cursor sits within

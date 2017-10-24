@@ -352,7 +352,7 @@ var tests = [
 	"type":"text",
 	"expected":"!z",
 	"run":function(g){
-	    test_guppy.backend.problem("!z");
+	    test_mathylem.backend.problem("!z");
 	}
     },
     {
@@ -360,7 +360,7 @@ var tests = [
 	"type":"text",
 	"expected":" tan^(2)(x)",
 	"run":function(g){
-	    test_guppy.backend.add_symbols("pta",{
+	    test_mathylem.backend.add_symbols("pta",{
 		"output":{
 		    "latex":"\\tan^{{$1}}({$2})",
 		    "text":" tan^({$1})({$2})"
@@ -378,7 +378,7 @@ var tests = [
 	"type":"text",
 	"expected":"tanx",
 	"run":function(g){
-	    test_guppy.backend.remove_symbol("tan");
+	    test_mathylem.backend.remove_symbol("tan");
 	    do_keys(['t','a','n','x']);
 	}
     },
@@ -387,7 +387,7 @@ var tests = [
 	"type":"text",
 	"expected":" Re(i)",
 	"run":function(g){
-	    test_guppy.backend.add_symbol_func("Re","test");
+	    test_mathylem.backend.add_symbol_func("Re","test");
 	    do_keys(['shift+r','e','i']);
 	}
     },
@@ -396,7 +396,7 @@ var tests = [
 	"type":"text",
 	"expected":"ASDA",
 	"run":function(g){
-	    test_guppy.backend.add_symbol_raw("asda","ASDA","ASDA","test");
+	    test_mathylem.backend.add_symbol_raw("asda","ASDA","ASDA","test");
 	    do_keys(['a','s','d','a']);
 	}
     },
@@ -421,29 +421,29 @@ var tests = [
 ];
 
 function do_keys(chs){
-    test_guppy.activate();
+    test_mathylem.activate();
     for(var i = 0; i < chs.length; i++)
 	Mousetrap.trigger(chs[i]);
 }
 
 function do_mouse_move(path,x_frac,y_frac){
-    elts = test_guppy.editor.getElementsByClassName("guppy_loc_"+path);
+    elts = test_mathylem.editor.getElementsByClassName("mathylem_loc_"+path);
     var rect = elts[1].getBoundingClientRect();
     var x = rect.left + (rect.right - rect.left)*x_frac;
     var y = rect.top + (rect.bottom - rect.top)*y_frac;
-    Guppy.mouse_move({"target":test_guppy.editor,"clientX":x,"clientY":y,"preventDefault":function(){}});
+    MathYlem.mouse_move({"target":test_mathylem.editor,"clientX":x,"clientY":y,"preventDefault":function(){}});
 }
 
 function do_mouse_down(path,x_frac,y_frac, shift){
-    elts = test_guppy.editor.getElementsByClassName("guppy_loc_"+path);
+    elts = test_mathylem.editor.getElementsByClassName("mathylem_loc_"+path);
     var rect = elts[1].getBoundingClientRect();
     var x = rect.left + (rect.right - rect.left)*x_frac;
     var y = rect.top + (rect.bottom - rect.top)*y_frac;
-    Guppy.mouse_down({"target":test_guppy.editor,"clientX":x,"clientY":y,"preventDefault":function(){},"shiftKey":shift});
+    MathYlem.mouse_down({"target":test_mathylem.editor,"clientX":x,"clientY":y,"preventDefault":function(){},"shiftKey":shift});
 }
 
 function do_mouse_up(){
-    Guppy.mouse_up();
+    MathYlem.mouse_up();
 }
 
 function append_result(name, result, i){
@@ -453,7 +453,7 @@ function append_result(name, result, i){
     var rerun = document.createElement("a");
     rerun.appendChild(document.createTextNode(name));
     rerun.setAttribute("href","#");
-    rerun.setAttribute("onclick", "run_test("+i+", test_guppy)");
+    rerun.setAttribute("onclick", "run_test("+i+", test_mathylem)");
     d.appendChild(rerun);
     d.appendChild(document.createTextNode(": " + result));
     res.appendChild(d);
@@ -486,10 +486,10 @@ function track_coverage(g){
 	if(typeof f[props[i]] === 'function')
 	    function_functions[props[i]] = true;
     // get all functions of the various target objects
-    patch_object_functions("guppy.backend", g.backend, false, function_functions);
-    patch_object_functions("guppy", g, false, function_functions);
-    //patch_object_functions("GuppyBackend", GuppyBackend, true, function_functions);
-    //patch_object_functions("Guppy", Guppy, true, function_functions);
+    patch_object_functions("mathylem.backend", g.backend, false, function_functions);
+    patch_object_functions("mathylem", g, false, function_functions);
+    //patch_object_functions("MathYlemBackend", MathYlemBackend, true, function_functions);
+    //patch_object_functions("MathYlem", MathYlem, true, function_functions);
     display_coverage();
 }
 
@@ -516,7 +516,7 @@ function display_coverage(){
 }
 
 function start_tests(){
-    var g = test_guppy;
+    var g = test_mathylem;
     g.activate();
     track_coverage(g);
     var tot = 0, pass = 0;
@@ -531,19 +531,19 @@ function start_tests(){
 
 function run_test(i, g){
     var t = tests[i];
-    test_guppy.activate();
-    if(!t.content) test_guppy.backend.set_content("<m><e></e></m>");
-    else if(t.content != "none") test_guppy.backend.set_content(t.content);
-    test_guppy.render();
+    test_mathylem.activate();
+    if(!t.content) test_mathylem.backend.set_content("<m><e></e></m>");
+    else if(t.content != "none") test_mathylem.backend.set_content(t.content);
+    test_mathylem.render();
     var observed = ""
     try{
-	t.run(test_guppy);
-	test_guppy.render();
-	observed = test_guppy.backend.get_content(t.type);
+	t.run(test_mathylem);
+	test_mathylem.render();
+	observed = test_mathylem.backend.get_content(t.type);
     } catch(e) {
 	observed = e + "\n" + e.stack;
     }
-    test_guppy.deactivate();
+    test_mathylem.deactivate();
     if(t.expected == observed){
 	append_result(t.description,"PASS", i);
 	return true;

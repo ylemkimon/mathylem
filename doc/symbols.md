@@ -16,14 +16,14 @@ editor) and whose values are dictionaries with the following keys:
   * If the ith entry is intended to be an array, with commas rendered
     between elements of the array, then that entry should be
     represented by `{$i{,}}`.  See the `vec` symbol in
-    [/sym/extra_symbols.json](https://github.com/daniel3735928559/guppy/blob/master/sym/extra_symbols.json)
+    [/sym/extra_symbols.json](https://github.com/ylemkimon/mathylem/blob/master/sym/extra_symbols.json)
     for an example of this.
 
   * If the ith entry is intended to be a 2D array, with, say, commas
     separating elements of each row and semicolons separating columns,
     then that entry is represented by `{$i{,}{;}}`.  See the `mx`
     symbol in
-    [/sym/extra_symbols.json](https://github.com/daniel3735928559/guppy/blob/master/sym/extra_symbols.json)
+    [/sym/extra_symbols.json](https://github.com/ylemkimon/mathylem/blob/master/sym/extra_symbols.json)
     for an example of this.
 
 * `type`: A string name for the symbol (will appear in the XML and can
@@ -56,7 +56,7 @@ editor) and whose values are dictionaries with the following keys:
   `{"small":"yes"}`, then the first component will get a "small"
   attribute with value "yes".  You can include whatever attribute
   names you want, but the following names are treated specially in
-  Guppy if they are present:
+  MathYlem if they are present:
   
   * `mode`: This should be set to "text" for any components that
     should be rendered as text (rather than in math mode).  

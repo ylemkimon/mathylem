@@ -2,13 +2,13 @@
 <html>
 
 <head>
-    <title>Guppy</title>
+    <title>MathYlem</title>
 
-    <link rel="stylesheet" href="../build/guppy.min.css">
-    <script type="text/javascript" src="../build/guppy.min.js"></script>
+    <link rel="stylesheet" href="../build/mathylem.min.css">
+    <script type="text/javascript" src="../build/mathylem.min.js"></script>
     <script type="text/javascript">
      window.onload = function(){
-	 var g1 = new Guppy("guppy1", {
+	 var g1 = new MathYlem("mathylem1", {
 	     "events":{
 		 'done': function(event) { console.log(g1.backend.get_content('xml')); },
 		 'completion': console.log
@@ -18,13 +18,13 @@
 		 'empty_content': "\\color{gray}{\\text{Click here to start typing a mathematical expression}}"
 	     }
 	 });
-         Guppy.init_symbols(["../sym/symbols.json","../sym/extra_symbols.json"]);
+         MathYlem.init_symbols(["../sym/symbols.json","../sym/extra_symbols.json"]);
       }
     </script>
 </head>
 
 <body>
-    <div id="guppy1" style="width: 800px; border: 2px solid black; height: 100px; padding: 10px; box-shadow: 1px 1px 1px 0 lightgray inset; cursor: text;"></div>
+    <div id="mathylem1" style="width: 800px; border: 2px solid black; height: 100px; padding: 10px; box-shadow: 1px 1px 1px 0 lightgray inset; cursor: text;"></div>
 </body>
 
 </html>

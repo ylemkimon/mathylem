@@ -1,5 +1,5 @@
 @echo off
-.\node_modules\.bin\browserify.cmd src/guppy.js -o build/guppy.min.js --standalone Guppy -d
-.\node_modules\.bin\browserify.cmd src/guppy_render.js -o build/guppy_render.min.js --standalone guppy_render -d
-.\node_modules\.bin\browserify.cmd src/guppy_doc.js -o build/guppy_doc.min.js --standalone GuppyDoc -d
-.\node_modules\.bin\browserify.cmd src/guppy_backend.js -o build/guppy_backend.min.js --standalone GuppyBackend -d
+.\node_modules\.bin\browserify.cmd src/mathylem.js -o build/mathylem.min.js --standalone MathYlem -d
+.\node_modules\.bin\browserify.cmd src/mathylem_render.js -o build/mathylem_render.min.js --standalone mathylem_render -d
+.\node_modules\.bin\browserify.cmd src/mathylem_doc.js -o build/mathylem_doc.min.js --standalone MathYlemDoc -d
+.\node_modules\.bin\browserify.cmd src/mathylem_backend.js -o build/mathylem_backend.min.js --standalone MathYlemBackend -d

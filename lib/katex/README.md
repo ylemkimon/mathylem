@@ -1,4 +1,4 @@
-## Guppy-specific Modificiations: 
+## MathYlem-specific Modificiations: 
 
 This is a modified version of KaTeX with the \rule style slightly
 changed to get the desired cursor appearance.  Specifically, the

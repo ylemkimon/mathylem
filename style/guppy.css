@@ -1,16 +1,16 @@
-.guppy_active {
+.mathylem_active {
     background-color: #ffffff;
 }
 
-.guppy_inactive {
+.mathylem_inactive {
     background-color: #fafafa;
 }
 
-.guppy_text_current {
+.mathylem_text_current {
     border: 1px solid #ccc;
 }
 
-.guppy_active .main_cursor {
+.mathylem_active .main_cursor {
   animation: blink-animation 1s steps(2, start) infinite;
   -webkit-animation: blink-animation 1s steps(2, start) infinite;
 }

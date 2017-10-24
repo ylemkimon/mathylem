@@ -1,39 +1,39 @@
 Mousetrap = require('mousetrap');
 katex = require('../lib/katex/katex-modified.min.js');
-GuppyBackend = require('./guppy_backend.js');
-GuppyUtils = require('./guppy_utils.js');
-GuppySymbols = require('./guppy_symbols.js');
+MathYlemBackend = require('./mathylem_backend.js');
+MathYlemUtils = require('./mathylem_utils.js');
+MathYlemSymbols = require('./mathylem_symbols.js');
 debounce = require('throttle-debounce/debounce');
 
-var Guppy = function (guppy_div, config) {
+var MathYlem = function (mathylem_div, config) {
   var self = this;
   var config = config || {};
   var options = config['options'] || {};
 
-  if (typeof guppy_div == 'string' || guppy_div instanceof String) {
-    guppy_div = document.getElementById(guppy_div);
+  if (typeof mathylem_div == 'string' || mathylem_div instanceof String) {
+    mathylem_div = document.getElementById(mathylem_div);
   }
 
-  if (!(guppy_div.id)) {
-    var i = Guppy.max_uid || 0;
-    while (document.getElementById('guppy_uid_' + i)) i++;
-    Guppy.max_uid = i;
-    guppy_div.id = 'guppy_uid_' + i;
+  if (!(mathylem_div.id)) {
+    var i = MathYlem.max_uid || 0;
+    while (document.getElementById('mathylem_uid_' + i)) i++;
+    MathYlem.max_uid = i;
+    mathylem_div.id = 'mathylem_uid_' + i;
   }
-  var i = Guppy.max_tabIndex || 0;
-  guppy_div.tabIndex = i;
-  Guppy.max_tabIndex = i + 1;
+  var i = MathYlem.max_tabIndex || 0;
+  mathylem_div.tabIndex = i;
+  MathYlem.max_tabIndex = i + 1;
 
   this.editor_active = true;
   this.empty_content = options['empty_content'] || '\\red{[?]}';
-  this.editor = guppy_div;
+  this.editor = mathylem_div;
   this.blacklist = [];
   this.maintain_focus = false;
   this.processed_fake_input = 20;
   this.autoreplace = true;
   this.ready = false;
 
-  Guppy.instances[guppy_div.id] = this;
+  MathYlem.instances[mathylem_div.id] = this;
 
   config['parent'] = self;
 
@@ -41,16 +41,16 @@ var Guppy = function (guppy_div, config) {
     var fakeInput = document.createElement('textarea');
     this.fakeInput = fakeInput;
 
-    fakeInput.setAttribute('id', 'fakeInput_' + guppy_div.id);
+    fakeInput.setAttribute('id', 'fakeInput_' + mathylem_div.id);
     fakeInput.setAttribute('autocapitalize', 'none');
     fakeInput.setAttribute('autocomplete', 'off');
     fakeInput.setAttribute('autocorrect', 'off');
     fakeInput.setAttribute('spellcheck', 'false');
-    guppy_div.insertAdjacentElement('afterend', fakeInput);
+    mathylem_div.insertAdjacentElement('afterend', fakeInput);
 
     fakeInput.style.position = 'absolute';
-    fakeInput.style.top = guppy_div.offsetTop + 'px';
-    fakeInput.style.left = guppy_div.offsetLeft + 'px';
+    fakeInput.style.top = mathylem_div.offsetTop + 'px';
+    fakeInput.style.left = mathylem_div.offsetLeft + 'px';
     fakeInput.style.width = '1px';
     fakeInput.style.height = '1px';
     fakeInput.style.opacity = 0;
@@ -91,10 +91,10 @@ var Guppy = function (guppy_div, config) {
     fakeInput.value = '____________________';
   }
 
-  this.backend = new GuppyBackend(config);
+  this.backend = new MathYlemBackend(config);
   this.temp_cursor = {'node': null, 'caret': 0};
   this.editor.addEventListener('click', function () {
-    var g = Guppy.instances[this.id];
+    var g = MathYlem.instances[this.id];
     var b = g.backend;
     if (g.editor_active) { return }
     g.maintain_focus = true;
@@ -103,10 +103,10 @@ var Guppy = function (guppy_div, config) {
     }, 500);
     b.sel_clear();
     b.current = b.doc.root().lastChild;
-    b.caret = GuppyUtils.get_length(b.current);
+    b.caret = MathYlemUtils.get_length(b.current);
     g.activate(true);
   });
-  if (Guppy.ready && !this.ready) {
+  if (MathYlem.ready && !this.ready) {
     this.ready = true;
     this.backend.fire_event('ready');
     this.render(true);
@@ -115,44 +115,44 @@ var Guppy = function (guppy_div, config) {
   this.recompute_locations_paths();
 };
 
-Guppy.instances = {};
-Guppy.ready = false;
+MathYlem.instances = {};
+MathYlem.ready = false;
 
-Guppy.active_guppy = null;
+MathYlem.active_mathylem = null;
 
-Guppy.add_symbols = function (symbols) {
+MathYlem.add_symbols = function (symbols) {
   for (var s in symbols) {
-    var new_syms = GuppySymbols.add_symbols(s, symbols[s], GuppySymbols.symbols);
-    for (var s in new_syms) { GuppySymbols.symbols[s] = new_syms[s] }
+    var new_syms = MathYlemSymbols.add_symbols(s, symbols[s], MathYlemSymbols.symbols);
+    for (var s in new_syms) { MathYlemSymbols.symbols[s] = new_syms[s] }
   }
-  for (var i in Guppy.instances) {
+  for (var i in MathYlem.instances) {
     for (var s in symbols) {
-      Guppy.instances[i].backend.symbols[s] = JSON.parse(JSON.stringify(symbols[s]));
+      MathYlem.instances[i].backend.symbols[s] = JSON.parse(JSON.stringify(symbols[s]));
     }
   }
 };
 
-Guppy.set_global_symbols = function (symbols) {
-  GuppySymbols.symbols = {};
-  Guppy.add_symbols(symbols);
+MathYlem.set_global_symbols = function (symbols) {
+  MathYlemSymbols.symbols = {};
+  MathYlem.add_symbols(symbols);
 };
 
-Guppy.reset_global_symbols = function () {
-  for (var i in Guppy.instances) {
-    Guppy.instances[i].backend.symbols = JSON.parse(JSON.stringify(GuppySymbols.symbols));
+MathYlem.reset_global_symbols = function () {
+  for (var i in MathYlem.instances) {
+    MathYlem.instances[i].backend.symbols = JSON.parse(JSON.stringify(MathYlemSymbols.symbols));
   }
 };
 
-Guppy.init_symbols = function (symbols) {
+MathYlem.init_symbols = function (symbols) {
   var all_ready = function () {
-    Guppy.register_keyboard_handlers();
-    for (var i in Guppy.instances) {
-      Guppy.instances[i].ready = true;
-      Guppy.instances[i].render(true);
-      Guppy.instances[i].backend.symbols = JSON.parse(JSON.stringify(GuppySymbols.symbols));
-      Guppy.instances[i].backend.fire_event('ready');
+    MathYlem.register_keyboard_handlers();
+    for (var i in MathYlem.instances) {
+      MathYlem.instances[i].ready = true;
+      MathYlem.instances[i].render(true);
+      MathYlem.instances[i].backend.symbols = JSON.parse(JSON.stringify(MathYlemSymbols.symbols));
+      MathYlem.instances[i].backend.fire_event('ready');
     }
-    GuppyBackend.ready = true;
+    MathYlemBackend.ready = true;
   };
   if (!(Array.isArray(symbols))) {
     symbols = [symbols];
@@ -165,8 +165,8 @@ Guppy.init_symbols = function (symbols) {
         req.onload = function () {
           var syms = JSON.parse(this.responseText);
           for (var s in syms) {
-            var new_syms = GuppySymbols.add_symbols(s, syms[s], GuppySymbols.symbols);
-            for (var s in new_syms) { GuppySymbols.symbols[s] = new_syms[s] }
+            var new_syms = MathYlemSymbols.add_symbols(s, syms[s], MathYlemSymbols.symbols);
+            for (var s in new_syms) { MathYlemSymbols.symbols[s] = new_syms[s] }
           }
           callback();
         };
@@ -185,7 +185,7 @@ Guppy.init_symbols = function (symbols) {
   if (calls.length > 0) calls[0](cb);
 };
 
-Guppy.prototype.is_changed = function () {
+MathYlem.prototype.is_changed = function () {
   var bb = this.editor.getElementsByClassName('katex')[0];
   if (!bb) { return }
   var rect = bb.getBoundingClientRect();
@@ -194,7 +194,7 @@ Guppy.prototype.is_changed = function () {
   return ans;
 };
 
-Guppy.prototype.recompute_locations_paths = function () {
+MathYlem.prototype.recompute_locations_paths = function () {
   var ans = [];
   var bb = this.editor.getElementsByClassName('katex')[0];
   if (!bb) { return }
@@ -206,7 +206,7 @@ Guppy.prototype.recompute_locations_paths = function () {
     'left': rect.left,
     'right': rect.right
   });
-  var elts = this.editor.getElementsByClassName('guppy_elt');
+  var elts = this.editor.getElementsByClassName('mathylem_elt');
   for (var i = 0; i < elts.length; i++) {
     var elt = elts[i];
     if (elt.nodeName == 'mstyle') { continue }
@@ -214,7 +214,7 @@ Guppy.prototype.recompute_locations_paths = function () {
     if (rect.top == 0 && rect.bottom == 0 && rect.left == 0 && rect.right == 0) { continue }
     var cl = elt.className.split(/\s+/);
     for (var j = 0; j < cl.length; j++) {
-      if (cl[j].startsWith('guppy_loc')) {
+      if (cl[j].startsWith('mathylem_loc')) {
         ans.push({
           'path': cl[j],
           'top': rect.top,
@@ -223,7 +223,7 @@ Guppy.prototype.recompute_locations_paths = function () {
           'right': rect.right,
           'mid_x': (rect.left + rect.right) / 2,
           'mid_y': (rect.bottom + rect.top) / 2,
-          'blank': cl.indexOf('guppy_blank') >= 0
+          'blank': cl.indexOf('mathylem_blank') >= 0
         });
         break;
       }
@@ -232,14 +232,14 @@ Guppy.prototype.recompute_locations_paths = function () {
   this.boxes = ans;
 };
 
-Guppy.get_loc = function (x, y, current_node, current_caret) {
-  var g = Guppy.active_guppy;
+MathYlem.get_loc = function (x, y, current_node, current_caret) {
+  var g = MathYlem.active_mathylem;
   var min_dist = -1;
   var mid_dist = 0;
   var opt = null;
   // check if we go to first or last element
   if (current_node) {
-    var current_path = GuppyUtils.path_to(current_node);
+    var current_path = MathYlemUtils.path_to(current_node);
     var current_pos = parseInt(current_path.substring(current_path.lastIndexOf('e') + 1));
   }
 
@@ -262,7 +262,7 @@ Guppy.get_loc = function (x, y, current_node, current_caret) {
   for (var i = 0; i < boxes.length; i++) {
     var box = boxes[i];
     if (box.path == 'all') {
-      if (!opt) { opt = { 'path': 'guppy_loc_m_e1_0' } }
+      if (!opt) { opt = { 'path': 'mathylem_loc_m_e1_0' } }
       continue;
     }
     var xdist = Math.max(box.left - x, x - box.right, 0);
@@ -274,7 +274,7 @@ Guppy.get_loc = function (x, y, current_node, current_caret) {
       opt = box;
     }
   }
-  var loc = opt.path.substring('guppy_loc'.length);
+  var loc = opt.path.substring('mathylem_loc'.length);
   loc = loc.replace(/_/g, '/');
   loc = loc.replace(/([0-9]+)(?=.*?\/)/g, '[$1]');
   var cur = g.backend.doc.xpath_node(loc.substring(0, loc.lastIndexOf('/')), g.backend.doc.root());
@@ -295,19 +295,19 @@ Guppy.get_loc = function (x, y, current_node, current_caret) {
   return ans;
 };
 
-Guppy.mouse_up = function (e) {
-  Guppy.kb.is_mouse_down = false;
-  var g = Guppy.active_guppy;
+MathYlem.mouse_up = function (e) {
+  MathYlem.kb.is_mouse_down = false;
+  var g = MathYlem.active_mathylem;
   if (g) { g.render(true) }
 };
 
-Guppy.mouse_down = function (e) {
+MathYlem.mouse_down = function (e) {
   var n = e.target;
-  Guppy.kb.is_mouse_down = true;
+  MathYlem.kb.is_mouse_down = true;
   while (n != null) {
-    if (n.id in Guppy.instances) {
-      var g = Guppy.active_guppy;
-      if (Guppy.instances[n.id] == g) {
+    if (n.id in MathYlem.instances) {
+      var g = MathYlem.active_mathylem;
+      if (MathYlem.instances[n.id] == g) {
         g.maintain_focus = true;
         setTimeout(function () {
           g.maintain_focus = false;
@@ -315,12 +315,12 @@ Guppy.mouse_down = function (e) {
         if (e.shiftKey) {
           g.select_to(e.clientX, e.clientY, true);
         } else {
-          var loc = e.touches ? Guppy.get_loc(e.touches[0].clientX, e.touches[0].clientY) : Guppy.get_loc(e.clientX, e.clientY);
+          var loc = e.touches ? MathYlem.get_loc(e.touches[0].clientX, e.touches[0].clientY) : MathYlem.get_loc(e.clientX, e.clientY);
           if (!loc) { return }
           var b = g.backend;
           b.current = loc.current;
           b.caret = loc.caret;
-          b.sel_status = GuppyBackend.SEL_NONE;
+          b.sel_status = MathYlemBackend.SEL_NONE;
         }
         g.render(true);
       } else if (g) { g.deactivate(true) }
@@ -328,16 +328,16 @@ Guppy.mouse_down = function (e) {
     }
     n = n.parentNode;
   }
-  Guppy.active_guppy = null;
-  for (var i in Guppy.instances) {
-    Guppy.instances[i].deactivate(true);
+  MathYlem.active_mathylem = null;
+  for (var i in MathYlem.instances) {
+    MathYlem.instances[i].deactivate(true);
   }
 };
 
-Guppy.mouse_move = function (e) {
-  var g = Guppy.active_guppy;
+MathYlem.mouse_move = function (e) {
+  var g = MathYlem.active_mathylem;
   if (!g) { return }
-  if (!Guppy.kb.is_mouse_down) {
+  if (!MathYlem.kb.is_mouse_down) {
     var bb = g.editor;
     var rect = bb.getBoundingClientRect();
     if ((e.clientX < rect.left || e.clientX > rect.right) || (e.clientY > rect.bottom || e.clientY < rect.top)) {
@@ -346,7 +346,7 @@ Guppy.mouse_move = function (e) {
         'caret': 0
       };
     } else {
-      var loc = Guppy.get_loc(e.clientX, e.clientY);
+      var loc = MathYlem.get_loc(e.clientX, e.clientY);
       if (!loc) { return }
       g.temp_cursor = {
         'node': loc.current,
@@ -359,38 +359,38 @@ Guppy.mouse_move = function (e) {
   g.render(g.is_changed());
 };
 
-Guppy.touch_move = function (e) {
-  var g = Guppy.active_guppy;
+MathYlem.touch_move = function (e) {
+  var g = MathYlem.active_mathylem;
   if (!g) { return }
   g.select_to(e.touches[0].clientX, e.touches[0].clientY, true);
   g.render(g.is_changed());
 };
 
-Guppy.prototype.select_to = function (x, y, mouse) {
+MathYlem.prototype.select_to = function (x, y, mouse) {
   var sel_caret = this.backend.caret;
   var sel_cursor = this.backend.current;
-  if (this.backend.sel_status == GuppyBackend.SEL_CURSOR_AT_START) {
+  if (this.backend.sel_status == MathYlemBackend.SEL_CURSOR_AT_START) {
     sel_cursor = this.backend.sel_end.node;
     sel_caret = this.backend.sel_end.caret;
-  } else if (this.backend.sel_status == GuppyBackend.SEL_CURSOR_AT_END) {
+  } else if (this.backend.sel_status == MathYlemBackend.SEL_CURSOR_AT_END) {
     sel_cursor = this.backend.sel_start.node;
     sel_caret = this.backend.sel_start.caret;
   }
-  var loc = Guppy.get_loc(x, y, sel_cursor, sel_caret);
+  var loc = MathYlem.get_loc(x, y, sel_cursor, sel_caret);
   if (!loc) { return }
   this.backend.select_to(loc, sel_cursor, sel_caret, mouse);
 };
 
 if ('ontouchstart' in window) {
-  window.addEventListener('touchstart', Guppy.mouse_down, false);
-  window.addEventListener('touchmove', Guppy.touch_move, false);
+  window.addEventListener('touchstart', MathYlem.mouse_down, false);
+  window.addEventListener('touchmove', MathYlem.touch_move, false);
 } else {
-  window.addEventListener('mousedown', Guppy.mouse_down, false);
-  window.addEventListener('mouseup', Guppy.mouse_up, false);
-  window.addEventListener('mousemove', Guppy.mouse_move, false);
+  window.addEventListener('mousedown', MathYlem.mouse_down, false);
+  window.addEventListener('mouseup', MathYlem.mouse_up, false);
+  window.addEventListener('mousemove', MathYlem.mouse_move, false);
 }
 
-Guppy.prototype.render_node = function (t) {
+MathYlem.prototype.render_node = function (t) {
   // All the interesting work is done by transform.  This function just adds in the cursor and selection-start cursor
   var output = '';
   if (t == 'render') {
@@ -410,7 +410,7 @@ Guppy.prototype.render_node = function (t) {
   return output;
 };
 
-Guppy.prototype.render = function (updated) {
+MathYlem.prototype.render = function (updated) {
   if (!this.editor_active && this.backend.doc.is_blank()) {
     katex.render(this.empty_content, this.editor);
     return;
@@ -422,10 +422,10 @@ Guppy.prototype.render = function (updated) {
   }
 };
 
-Guppy.prototype.activate = function (focus) {
-  Guppy.active_guppy = this;
+MathYlem.prototype.activate = function (focus) {
+  MathYlem.active_mathylem = this;
   this.editor_active = true;
-  this.editor.className = this.editor.className.replace(new RegExp('(\\s|^)guppy_inactive(\\s|$)'), ' guppy_active ');
+  this.editor.className = this.editor.className.replace(new RegExp('(\\s|^)mathylem_inactive(\\s|$)'), ' mathylem_active ');
   if (focus) {
     if (this.fakeInput) {
       this.fakeInput.style.top = this.editor.offsetTop + 'px';
@@ -440,14 +440,14 @@ Guppy.prototype.activate = function (focus) {
   }
 };
 
-Guppy.prototype.deactivate = function (blur) {
+MathYlem.prototype.deactivate = function (blur) {
   this.editor_active = false;
-  var r1 = new RegExp('(?:\\s|^)guppy_active(?:\\s|$)');
-  var r2 = new RegExp('(?:\\s|^)guppy_inactive(?:\\s|$)');
+  var r1 = new RegExp('(?:\\s|^)mathylem_active(?:\\s|$)');
+  var r2 = new RegExp('(?:\\s|^)mathylem_inactive(?:\\s|$)');
   if (this.editor.className.match(r1)) {
-    this.editor.className = this.editor.className.replace(r1, ' guppy_inactive ');
+    this.editor.className = this.editor.className.replace(r1, ' mathylem_inactive ');
   } else if (!this.editor.className.match(r2)) {
-    this.editor.className += ' guppy_inactive ';
+    this.editor.className += ' mathylem_inactive ';
   }
   if (blur && this.fakeInput) { this.fakeInput.blur() }
   if (this.ready) {
@@ -458,14 +458,14 @@ Guppy.prototype.deactivate = function (blur) {
 
 // Keyboard stuff
 
-Guppy.kb = {};
+MathYlem.kb = {};
 
-Guppy.kb.is_mouse_down = false;
+MathYlem.kb.is_mouse_down = false;
 
 /* keyboard behaviour definitions */
 
 // keys aside from 0-9,a-z,A-Z
-Guppy.kb.k_chars = {
+MathYlem.kb.k_chars = {
   '=': '=',
   '+': '+',
   '-': '-',
@@ -475,7 +475,7 @@ Guppy.kb.k_chars = {
   'shift+/': '/',
   'shift+=': '+'
 };
-Guppy.kb.k_syms = {
+MathYlem.kb.k_syms = {
   '/': 'frac',
   '^': 'power',
   '(': 'paren',
@@ -487,7 +487,7 @@ Guppy.kb.k_syms = {
   'shift+up': 'power',
   'shift+down': 'sub'
 };
-Guppy.kb.k_controls = {
+MathYlem.kb.k_controls = {
   'up': 'up',
   'down': 'down',
   'right': 'right',
@@ -528,50 +528,50 @@ Guppy.kb.k_controls = {
 // letters
 
 for (var i = 65; i <= 90; i++) {
-  Guppy.kb.k_chars[String.fromCharCode(i).toLowerCase()] = String.fromCharCode(i).toLowerCase();
-  Guppy.kb.k_chars['shift+' + String.fromCharCode(i).toLowerCase()] = String.fromCharCode(i).toUpperCase();
+  MathYlem.kb.k_chars[String.fromCharCode(i).toLowerCase()] = String.fromCharCode(i).toLowerCase();
+  MathYlem.kb.k_chars['shift+' + String.fromCharCode(i).toLowerCase()] = String.fromCharCode(i).toUpperCase();
 }
 
 // numbers
 
-for (var i = 48; i <= 57; i++) { Guppy.kb.k_chars[String.fromCharCode(i)] = String.fromCharCode(i) }
+for (var i = 48; i <= 57; i++) { MathYlem.kb.k_chars[String.fromCharCode(i)] = String.fromCharCode(i) }
 
-Guppy.register_keyboard_handlers = function () {
+MathYlem.register_keyboard_handlers = function () {
   Mousetrap.addKeycodes({173: '-'}); // Firefox's special minus (needed for _ = sub binding)
-  for (var i in Guppy.kb.k_chars) {
+  for (var i in MathYlem.kb.k_chars) {
     Mousetrap.bind(i, (function (i) {
       return function () {
-        if (!Guppy.active_guppy) return true;
-        Guppy.active_guppy.temp_cursor.node = null;
-        Guppy.active_guppy.backend.insert_string(Guppy.kb.k_chars[i]);
-        Guppy.active_guppy.render(true);
+        if (!MathYlem.active_mathylem) return true;
+        MathYlem.active_mathylem.temp_cursor.node = null;
+        MathYlem.active_mathylem.backend.insert_string(MathYlem.kb.k_chars[i]);
+        MathYlem.active_mathylem.render(true);
         return false;
       };
     }(i)));
   }
-  for (var i in Guppy.kb.k_syms) {
+  for (var i in MathYlem.kb.k_syms) {
     Mousetrap.bind(i, (function (i) {
       return function () {
-        if (!Guppy.active_guppy) return true;
-        Guppy.active_guppy.temp_cursor.node = null;
-        Guppy.active_guppy.backend.insert_symbol(Guppy.kb.k_syms[i]);
-        Guppy.active_guppy.render(true);
+        if (!MathYlem.active_mathylem) return true;
+        MathYlem.active_mathylem.temp_cursor.node = null;
+        MathYlem.active_mathylem.backend.insert_symbol(MathYlem.kb.k_syms[i]);
+        MathYlem.active_mathylem.render(true);
         return false;
       };
     }(i)));
   }
-  for (var i in Guppy.kb.k_controls) {
+  for (var i in MathYlem.kb.k_controls) {
     Mousetrap.bind(i, (function (i) {
       return function () {
-        if (!Guppy.active_guppy) return true;
-        Guppy.active_guppy.backend[Guppy.kb.k_controls[i]]();
-        Guppy.active_guppy.temp_cursor.node = null;
-        Guppy.active_guppy.render(['up', 'down', 'right', 'left', 'home', 'end', 'sel_left', 'sel_right'].indexOf(i) < 0);
-        Guppy.active_guppy.render(false);
+        if (!MathYlem.active_mathylem) return true;
+        MathYlem.active_mathylem.backend[MathYlem.kb.k_controls[i]]();
+        MathYlem.active_mathylem.temp_cursor.node = null;
+        MathYlem.active_mathylem.render(['up', 'down', 'right', 'left', 'home', 'end', 'sel_left', 'sel_right'].indexOf(i) < 0);
+        MathYlem.active_mathylem.render(false);
         return false;
       };
     }(i)));
   }
 };
 
-module.exports = Guppy;
+module.exports = MathYlem;

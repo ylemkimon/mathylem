@@ -1,6 +1,6 @@
 {
-  "name": "guppymath",
-  "version": "1.1.0",
+  "name": "mathylem",
+  "version": "1.0.0",
   "description": "WYSIWYG mathematics equation editor",
   "directories": {
     "doc": "doc",
@@ -12,7 +12,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/daniel3735928559/guppy.git"
+    "url": "git+https://github.com/ylemkimon/mathylem.git"
   },
   "keywords": [
     "math",
@@ -20,12 +20,11 @@
     "equation",
     "editor"
   ],
-  "author": "daniel3735928559",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/daniel3735928559/guppy/issues"
+    "url": "https://github.com/ylemkimon/mathylem/issues"
   },
-  "homepage": "https://github.com/daniel3735928559/guppy#readme",
+  "homepage": "https://github.com/ylemkimon/mathylem",
   "dependencies": {
     "mousetrap": "^1.6.0",
     "throttle-debounce": "^1.0.1",

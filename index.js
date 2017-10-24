@@ -1,5 +1,5 @@
 $('document').ready(function() {
-    GuppyRender.render_all();
+    MathYlemRender.render_all();
     $('#xml_btn').on('click', function() {
         createText('xml');
     });
@@ -13,8 +13,8 @@ $('document').ready(function() {
         $('#stuff')[0].innerHTML = '';
     });
 
-    Guppy.init_symbols(["sym/symbols.json","sym/extra_symbols.json"]);
-    var g1 = new Guppy("guppy1", {
+    MathYlem.init_symbols(["sym/symbols.json","sym/extra_symbols.json"]);
+    var g1 = new MathYlem("mathylem1", {
 	"events":{
 	    //'debug':10,
             'right_end': function() {},
@@ -44,5 +44,5 @@ function createText(texttype) {
     $('#stuff')[0].innerHTML = texttype.toUpperCase() + ": ";
     //display text
     $('#stuff')[0].appendChild(document.createElement('br'));
-    $('#stuff')[0].appendChild(document.createTextNode(Guppy.instances['guppy1'].backend.get_content(texttype)));
+    $('#stuff')[0].appendChild(document.createTextNode(MathYlem.instances['mathylem1'].backend.get_content(texttype)));
 }

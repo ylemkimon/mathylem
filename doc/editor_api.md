@@ -2,30 +2,30 @@
 
 There are two main classes used to control the editor:
 
-* `Guppy`: The editor--does rendering, handles keyboard events,
+* `MathYlem`: The editor--does rendering, handles keyboard events,
   interfaces with other classes in the simplest use-case.
 
-* `GuppyBackend`: The business logic of the editor.  Understands how
+* `MathYlemBackend`: The business logic of the editor.  Understands how
   to maneuver a cursor through an XML document.  An editor instance,
-  say `myGuppy`, has an instance of this class as `myGuppy.backend`.
+  say `myMathYlem`, has an instance of this class as `myMathYlem.backend`.
 
-### `Guppy`
+### `MathYlem`
 
 #### Constructor
 
-* `new Guppy(guppy_div, config)`: `guppy_div` is either the div ID or
-  the actual div object that you want turned into a Guppy editor
-  (e.g. either `"guppy_div_1"` or
-  `document.getElementById("guppy_div_1")` will work).  `config` is a
+* `new MathYlem(mathylem_div, config)`: `mathylem_div` is either the div ID or
+  the actual div object that you want turned into a MathYlem editor
+  (e.g. either `"mathylem_div_1"` or
+  `document.getElementById("mathylem_div_1")` will work).  `config` is a
   dictionary that can be null or empty, but may contain the following
   keys:
 
   * `events`: A dictionary of callbacks (omit any that you do not wish
     to handle) for various events.  These will be called with an
     `event` argument which will, at a minimum, contain a `target`
-    element which refers to the Guppy instance that triggered the
+    element which refers to the MathYlem instance that triggered the
     event.  The following are the events for which callbacks can be
-    registered through the Guppy constructor:
+    registered through the MathYlem constructor:
     
     * `ready`: Called when the instance is ready to render things.
       Argument will be null.
@@ -84,17 +84,17 @@ There are two main classes used to control the editor:
       editor.  Defaults to `[]` (nothing blacklisted).
     
   This function should be called for each div that you want to turn
-  into a Guppy instance.
+  into a MathYlem instance.
 
 #### Static methods
 
-* `Guppy.init_symbols(symbol_files, callback)`: `symbol_files` is a
+* `MathYlem.init_symbols(symbol_files, callback)`: `symbol_files` is a
   list of URLs of JSON files conaining further symbols that should be
-  accepted by Guppy.  The special string `"builtins"` may also be
-  included in the list to get Guppy's built-in symbol definitions
+  accepted by MathYlem.  The special string `"builtins"` may also be
+  included in the list to get MathYlem's built-in symbol definitions
   (Greek letters, etc.).
 
-  This function should only be called once per page, after all Guppy
+  This function should only be called once per page, after all MathYlem
   instances have been initialised.
 
   If the same symbol is defined in multiple files in the list, the
@@ -109,32 +109,32 @@ There are two main classes used to control the editor:
   the XML, LaTeX, or ASCII representation of the instance's content.
   
 * `set_content(xml_data)`: `xml_data` is a string
-  containing XML that describes a valid Guppy editor state (e.g. one
+  containing XML that describes a valid MathYlem editor state (e.g. one
   returned by `get_content("xml")`).  This resets the state of the
   editor.
   
-* `Guppy.prototype.activate()`: Gives the editor focus.
+* `MathYlem.prototype.activate()`: Gives the editor focus.
 
-* `Guppy.prototype.deactivate()`: Unfocuses the editor.
+* `MathYlem.prototype.deactivate()`: Unfocuses the editor.
 
-* `Guppy.instances`: This is a dictionary that contains all Guppy
+* `MathYlem.instances`: This is a dictionary that contains all MathYlem
   objects on the page , indexed by div ID.  So you can access the
-  Guppy object with `Guppy.instances.guppy_div_id`.  If the div did
-  not have an ID, the div will be given one by new Guppy() that is
+  MathYlem object with `MathYlem.instances.mathylem_div_id`.  If the div did
+  not have an ID, the div will be given one by new MathYlem() that is
   unique on the page, and will be accessible from that object by, for
-  example, `new Guppy(...).editor.id`.  
+  example, `new MathYlem(...).editor.id`.  
 
 There are other instance-level functions that may be of use in some
 circumstances (e.g. for creating a browser-button-based interface):
 
 #### Properties
 
-* `backend`: An instance of GuppyBackend that can be used for
+* `backend`: An instance of MathYlemBackend that can be used for
   programatically manipulating the editor
-  (e.g. `myGuppy.backend.left()` will move the cursor one spot to the
+  (e.g. `myMathYlem.backend.left()` will move the cursor one spot to the
   left).
 
-### `GuppyBackend`
+### `MathYlemBackend`
 
 #### Instance methods
 
@@ -185,7 +185,7 @@ circumstances (e.g. for creating a browser-button-based interface):
   cursor position.
   
 * `insert_symbol(sym_name)` will take the string name of a symbol
-  (from any of the files loaded by `Guppy.get_symbols`) and insert it
+  (from any of the files loaded by `MathYlem.get_symbols`) and insert it
   at the current cursor position.
 
 * `add_symbols(name, symbol)` will add the symbol from the `symbol`
