@@ -169,16 +169,17 @@
         
     "sum":
     {"output":{
-        "latex":"\\displaystyle\\sum_{{$1}}^{{$2}}{$3}",
-        "small_latex":"\\sum_{{$1}}^{{$2}}{$3}",
-	"text":"sum({$3},{$1},{$2})"},
+        "latex":"\\displaystyle\\sum_{{$1}={$2}}^{{$3}}{$4}",
+        "small_latex":"\\sum_{{$1}={$2}}^{{$3}}{$4}",
+	"text":"Sum({$4},({$1},{$2},{$3}))"},
      "current":0,
      "type":"summation",
      "group":"functions",
      "attrs":[
-	 {"down":"1","up":"2","small":"yes","name":"lower_limit"},
-	 {"down":"1","up":"2","small":"yes","name":"upper_limit"},
-	 {"down":"1","up":"2","delete":"3","bracket":"yes","name":"summand"}
+	 {"down":"1","up":"3","small":"yes","name":"index"},
+	 {"down":"1","up":"3","small":"yes","name":"lower_limit"},
+	 {"down":"1","up":"3","small":"yes","name":"upper_limit"},
+	 {"down":"1","up":"3","delete":"4","bracket":"yes","name":"summand"}
      ]
     },
 
