@@ -1,5 +1,5 @@
 $('document').ready(function() {
-    MathYlemRender.render_all();
+    MathYlem.static_render_all();
     $('#xml_btn').on('click', function() {
         createText('xml');
     });
