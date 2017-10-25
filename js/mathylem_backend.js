@@ -80,6 +80,18 @@ MathYlemBackend.prototype.get_content = function (t, r) {
   return this.doc.get_content(t, r);
 };
 
+MathYlemBackend.prototype.xml = function () {
+  return this.doc.get_content('xml');
+};
+
+MathYlemBackend.prototype.latex = function () {
+  return this.doc.get_content('latex');
+};
+
+MathYlemBackend.prototype.text = function () {
+  return this.doc.get_content('text');
+};
+
 MathYlemBackend.prototype.set_content = function (xml_data) {
   this.doc = new MathYlemDoc(xml_data);
   this.current = this.doc.root().lastChild;
