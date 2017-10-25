@@ -98,6 +98,14 @@ see the current state of the editor with all your modifications.  As
 you're making edits, be sure to run `./make` before refreshing in
 order to see your changes reflected in the page.
 
+---
+
+This project is tested using
+
+[<img src="https://bstacksupport.zendesk.com/attachments/token/eGJd0L8s6a53f55gVsGTPpTSX/?name=Logo-01.svg" width="250" />](https://www.browserstack.com/)
+
+which provides a wonderful cross-browser, cross-platform testing tool!
+
 ## Further documentation
 
 * [The Javascript API for controlling the editor](https://github.com/ylemkimon/mathylem/wiki/Editor-API-reference)
