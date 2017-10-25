@@ -35,6 +35,7 @@ var MathYlem = function (mathylem_div, config) {
   this.ready = false;
 
   MathYlem.instances[mathylem_div.id] = this;
+  mathylem_div.mathylem = this;
 
   config['parent'] = self;
 
@@ -95,7 +96,7 @@ var MathYlem = function (mathylem_div, config) {
   this.backend = new MathYlemBackend(config);
   this.temp_cursor = {'node': null, 'caret': 0};
   this.editor.addEventListener('click', function () {
-    var g = MathYlem.instances[this.id];
+    var g = this.mathylem;
     var b = g.backend;
     if (g.editor_active) { return }
     g.maintain_focus = true;
@@ -330,9 +331,9 @@ MathYlem.mouse_down = function (e) {
   var n = e.target;
   MathYlem.kb.is_mouse_down = true;
   while (n != null) {
-    if (n.id in MathYlem.instances) {
+    if (n.mathylem) {
       var g = MathYlem.active_mathylem;
-      if (MathYlem.instances[n.id] == g) {
+      if (n.mathylem == g) {
         g.maintain_focus = true;
         setTimeout(function () {
           g.maintain_focus = false;
