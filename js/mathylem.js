@@ -441,7 +441,12 @@ MathYlem.prototype.render = function (updated) {
     return;
   }
   var tex = this.render_node('render');
-  katex.render(tex, this.editor);
+  try {
+    katex.render(tex, this.editor);
+  } catch (e) {
+    this.backend.undo();
+    this.render(false);
+  }
   if (updated) {
     this.recompute_locations_paths();
   }
