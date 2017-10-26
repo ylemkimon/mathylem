@@ -1,11 +1,11 @@
 var MathYlemUtils = {};
 
-MathYlemUtils.CARET = '\\cursor[-0.2ex]{0.7em}';
-MathYlemUtils.TEMP_SMALL_CARET = '\\cursor[0em]{0.6em}';
-MathYlemUtils.TEMP_CARET = '\\cursor[-0.2ex]{0.7em}';
-MathYlemUtils.SMALL_CARET = '\\cursor[-0.05em]{0.5em}';
-MathYlemUtils.SEL_CARET = '\\cursor[-0.2ex]{0.7em}';
-MathYlemUtils.SMALL_SEL_CARET = '\\cursor[-0.05em]{0.5em}';
+MathYlemUtils.CARET = '\\cursor{-0.2ex}{0.7em}';
+MathYlemUtils.TEMP_SMALL_CARET = '\\cursor{0em}{0.6em}';
+MathYlemUtils.TEMP_CARET = '\\cursor{-0.2ex}{0.7em}';
+MathYlemUtils.SMALL_CARET = '\\cursor{-0.05em}{0.5em}';
+MathYlemUtils.SEL_CARET = '\\cursor{-0.2ex}{0.7em}';
+MathYlemUtils.SMALL_SEL_CARET = '\\cursor{-0.05em}{0.5em}';
 MathYlemUtils.SEL_COLOR = 'red';
 
 MathYlemUtils.is_blank = function (n) {

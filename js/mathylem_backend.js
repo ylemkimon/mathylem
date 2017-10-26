@@ -214,7 +214,7 @@ MathYlemBackend.prototype.add_classes_cursors = function (n, path) {
         //
         // Here, we add in a small element so that we can
         // use the mouse to select these areas
-        ans = '\\phantom{\\xmlClass{mathylem_elt mathylem_blank mathylem_loc_' + n.getAttribute('path') + '_0' + '}{\\cursor[0.1ex]{1ex}}}';
+        ans = '\\phantom{\\xmlClass{mathylem_elt mathylem_blank mathylem_loc_' + n.getAttribute('path') + '_0' + '}{\\cursor{0.1ex}{1ex}}}';
       }
     }
     for (var i = 0; i < text.length + 1; i++) {
