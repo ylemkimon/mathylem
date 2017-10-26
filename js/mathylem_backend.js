@@ -1,5 +1,5 @@
 Mousetrap = require('mousetrap');
-katex = require('../lib/katex/katex-modified.min.js');
+katex = require('../lib/katex/katex.js');
 MathYlemUtils = require('./mathylem_utils.js');
 MathYlemDoc = require('./mathylem_doc.js');
 MathYlemSymbols = require('./mathylem_symbols.js');
