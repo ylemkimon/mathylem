@@ -17,7 +17,7 @@ var MathYlemBackend = function (config) {
   this.events = {};
 
   var evts = ['ready', 'change', 'leftEnd', 'rightEnd', 'done', 'completion',
-    'error', 'focus'];
+    'focus'];
 
   for (var i = 0; i < evts.length; i++) {
     var e = evts[i];
@@ -350,10 +350,6 @@ MathYlemBackend.prototype.downFromFToBlank = function () {
   if (nn != null) {
     while (nn.nodeName === 'l') {
       nn = nn.firstChild;
-    }
-    if (nn.nodeName !== 'c' || nn.firstChild.nodeName !== 'e') {
-      this.problem('dfftb');
-      return;
     }
     this.current = nn.firstChild;
   } else {
@@ -915,13 +911,9 @@ MathYlemBackend.prototype.extendList = function (direction, copy) {
     var toModify = [];
     var iterator = this.doc.XPathList('./l/c[position()=' + pos + ']',
       n.parentNode.parentNode);
-    try {
-      for (var nn = iterator.iterateNext(); nn != null; nn =
-          iterator.iterateNext()) {
-        toModify.push(nn);
-      }
-    } catch (e) {
-      this.fireEvent('error', { 'message': 'XML modified during iteration? ' + e });
+    for (var nn = iterator.iterateNext(); nn != null; nn =
+        iterator.iterateNext()) {
+      toModify.push(nn);
     }
     for (var j = 0; j < toModify.length; j++) {
       var node = toModify[j];
@@ -1000,12 +992,8 @@ MathYlemBackend.prototype.removeListColumn = function () {
   var toModify = [];
   var iterator = this.doc.XPathList('./l/c[position()=' + pos + ']',
     n.parentNode.parentNode);
-  try {
-    for (var nn = iterator.iterateNext(); nn != null; nn = iterator.iterateNext()) {
-      toModify.push(nn);
-    }
-  } catch (e) {
-    this.fireEvent('error', { 'message': 'XML modified during iteration? ' + e });
+  for (var nn = iterator.iterateNext(); nn != null; nn = iterator.iterateNext()) {
+    toModify.push(nn);
   }
   for (var j = 0; j < toModify.length; j++) {
     var node = toModify[j];
@@ -1359,10 +1347,6 @@ MathYlemBackend.prototype.completeSymbol = function () {
   this.current = this.current.parentNode.parentNode;
   this.deleteFromF();
   this.insertSymbol(name);
-};
-
-MathYlemBackend.prototype.problem = function (message) {
-  this.fireEvent('error', { 'message': message });
 };
 
 MathYlemBackend.prototype.isBlacklisted = function (type) {
