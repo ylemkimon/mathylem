@@ -1,0 +1,19 @@
+{
+  "extends": "standard",
+
+  "rules": {
+    "brace-style": ["error", "1tbs"],
+    "curly": ["error", "all"],
+    "camelcase": ["error", { "properties": "always" }],
+    "max-statements-per-line": ["error", { "max": 1 }],
+    "max-len": ["error", 84, 4, { "ignoreUrls": true, "ignorePattern": "eslint-disable" }],
+    "no-alert": "error",
+    "no-console": "error",
+    "no-multi-str": "off",
+    "no-extra-semi": "error",
+    "semi": ["error", "always"]
+  },
+  "env": {
+    "browser": 1
+  }
+}
