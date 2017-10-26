@@ -1,41 +1,46 @@
-Mousetrap = require('mousetrap');
-katex = require('../lib/katex/katex.js');
-MathYlemBackend = require('./mathylem_backend.js');
-MathYlemUtils = require('./mathylem_utils.js');
-MathYlemSymbols = require('./mathylem_symbols.js');
-debounce = require('throttle-debounce/debounce');
+var Mousetrap = require('mousetrap');
+var katex = require('../lib/katex/katex.js');
+var MathYlemBackend = require('./mathylem_backend.js');
+var MathYlemUtils = require('./mathylem_utils.js');
+var MathYlemSymbols = require('./mathylem_symbols.js');
+var MathYlemDoc = require('./mathylem_doc.js');
+var debounce = require('throttle-debounce/debounce');
 
-var MathYlem = function (mathylem_div, config) {
+var MathYlem = function (el, config) {
   var self = this;
-  var config = config || {};
+  config = config || {};
   var options = config['options'] || {};
 
-  if (typeof mathylem_div == 'string' || mathylem_div instanceof String) {
-    mathylem_div = document.getElementById(mathylem_div);
+  if (typeof el === 'string' || el instanceof String) {
+    el = document.getElementById(el);
   }
 
-  if (!(mathylem_div.id)) {
-    var i = MathYlem.max_uid || 0;
-    while (document.getElementById('mathylem_uid_' + i)) i++;
-    MathYlem.max_uid = i;
-    mathylem_div.id = 'mathylem_uid_' + i;
+  if (!el) {
+    throw new Error('Invalid element.');
+  } else if (el.mathylem) {
+    throw new Error('MathYlem already attached.');
   }
-  mathylem_div.className += " mathylem";
-  var i = MathYlem.max_tabIndex || 0;
-  mathylem_div.tabIndex = i;
-  MathYlem.max_tabIndex = i + 1;
 
-  this.editor_active = true;
-  this.empty_content = options['empty_content'] || '\\red{[?]}';
-  this.editor = mathylem_div;
-  this.blacklist = [];
-  this.maintain_focus = false;
-  this.processed_fake_input = 20;
-  this.autoreplace = true;
+  if (!el.id) {
+    var i = MathYlem.maxUid;
+    while (document.getElementById('mathylem_' + i)) {
+      i++;
+    }
+    MathYlem.maxUid = i;
+    el.id = 'mathylem_' + i;
+  }
+  el.className += ' mathylem';
+  el.tabIndex = MathYlem.maxTabIndex++;
+
+  this.active = true;
+  this.emptyContent = options['emptyContent'] || '\\red{[?]}';
+  this.editor = el;
+  this._focus = false;
+  this._processedFakeInput = 20;
   this.ready = false;
 
-  MathYlem.instances[mathylem_div.id] = this;
-  mathylem_div.mathylem = this;
+  MathYlem.instances[el.id] = this;
+  el.mathylem = this;
 
   config['parent'] = self;
 
@@ -43,16 +48,15 @@ var MathYlem = function (mathylem_div, config) {
     var fakeInput = document.createElement('textarea');
     this.fakeInput = fakeInput;
 
-    fakeInput.setAttribute('id', 'fakeInput_' + mathylem_div.id);
     fakeInput.setAttribute('autocapitalize', 'none');
     fakeInput.setAttribute('autocomplete', 'off');
     fakeInput.setAttribute('autocorrect', 'off');
     fakeInput.setAttribute('spellcheck', 'false');
-    mathylem_div.insertAdjacentElement('afterend', fakeInput);
+    el.insertAdjacentElement('afterend', fakeInput);
 
     fakeInput.style.position = 'absolute';
-    fakeInput.style.top = mathylem_div.offsetTop + 'px';
-    fakeInput.style.left = mathylem_div.offsetLeft + 'px';
+    fakeInput.style.top = el.offsetTop + 'px';
+    fakeInput.style.left = el.offsetLeft + 'px';
     fakeInput.style.width = '1px';
     fakeInput.style.height = '1px';
     fakeInput.style.opacity = 0;
@@ -60,23 +64,31 @@ var MathYlem = function (mathylem_div, config) {
     fakeInput.style.margin = 0;
     fakeInput.style.border = 0;
     fakeInput.addEventListener('input', debounce(100, function () {
-      for (; self.processed_fake_input > self.fakeInput.value.length; self.processed_fake_input--) {
+      for (; self._processedFakeInput >
+          self.fakeInput.value.length; self._processedFakeInput--) {
         Mousetrap.trigger('backspace');
       }
-      if (self.fakeInput.value.length == 0) {
-        self.processed_fake_input = 20;
+      if (self.fakeInput.value.length === 0) {
+        self._processedFakeInput = 20;
         self.fakeInput.value = '____________________';
       }
-      for (; self.processed_fake_input < self.fakeInput.value.length; self.processed_fake_input++) {
-        var c = self.fakeInput.value[self.processed_fake_input];
-        if (c != c.toLowerCase()) { Mousetrap.trigger('shift+' + c.toLowerCase()) } else if (c == ' ') { Mousetrap.trigger('space') } else { Mousetrap.trigger(c) }
+      for (; self._processedFakeInput <
+          self.fakeInput.value.length; self._processedFakeInput++) {
+        var c = self.fakeInput.value[self._processedFakeInput];
+        if (c !== c.toLowerCase()) {
+          Mousetrap.trigger('shift+' + c.toLowerCase());
+        } else if (c === ' ') {
+          Mousetrap.trigger('space');
+        } else {
+          Mousetrap.trigger(c);
+        }
       }
     }));
     fakeInput.addEventListener('keydown', function (e) {
-      if (e.keycode == 8) {
+      if (e.keycode === 8) {
         Mousetrap.trigger('backspace');
         e.preventDefault();
-      } else if (e.keycode == 13) {
+      } else if (e.keycode === 13) {
         Mousetrap.trigger('enter');
         e.preventDefault();
       }
@@ -85,78 +97,90 @@ var MathYlem = function (mathylem_div, config) {
       self.activate(false);
     });
     fakeInput.addEventListener('blur', function () {
-      if (self.maintain_focus) {
-        self.maintain_focus = false;
+      if (self._focus) {
+        self._focus = false;
         this.focus();
-      } else { self.deactivate(false) }
+      } else {
+        self.deactivate(false);
+      }
     });
     fakeInput.value = '____________________';
   }
 
   this.backend = new MathYlemBackend(config);
-  this.temp_cursor = {'node': null, 'caret': 0};
+  this.tempCursor = { 'node': null, 'caret': 0 };
   this.editor.addEventListener('click', function () {
     var g = this.mathylem;
     var b = g.backend;
-    if (g.editor_active) { return }
-    g.maintain_focus = true;
+    if (g.active) {
+      return;
+    }
+    g._focus = true;
     setTimeout(function () {
-      g.maintain_focus = false;
+      g._focus = false;
     }, 500);
-    b.sel_clear();
+    b.clearSelection();
     b.current = b.doc.root().lastChild;
-    b.caret = MathYlemUtils.get_length(b.current);
+    b.caret = MathYlemUtils.getLength(b.current);
     g.activate(true);
   });
-  if (MathYlem.ready && !this.ready) {
+  if (MathYlemBackend.ready) {
     this.ready = true;
-    this.backend.fire_event('ready');
+    this.backend.fireEvent('ready');
     this.render(true);
   }
   this.deactivate(true);
-  this.recompute_locations_paths();
+  this.computeLocations();
 };
 
+MathYlem.maxUid = 0;
+MathYlem.maxTabIndex = 0;
+
 MathYlem.instances = {};
-MathYlem.ready = false;
 
-MathYlem.active_mathylem = null;
+MathYlem.activeMathYlem = null;
 
-MathYlem.add_symbols = function (symbols) {
+MathYlem.addSymbols = function (symbols) {
   for (var s in symbols) {
-    var new_syms = MathYlemSymbols.add_symbols(s, symbols[s], MathYlemSymbols.symbols);
-    for (var s in new_syms) { MathYlemSymbols.symbols[s] = new_syms[s] }
+    var newSymbols = MathYlemSymbols.addSymbols(s, symbols[s],
+      MathYlemSymbols.symbols);
+    for (var s in newSymbols) {
+      MathYlemSymbols.symbols[s] = newSymbols[s];
+    }
   }
   for (var i in MathYlem.instances) {
     for (var s in symbols) {
-      MathYlem.instances[i].backend.symbols[s] = JSON.parse(JSON.stringify(symbols[s]));
+      MathYlem.instances[i].backend.symbols[s] =
+        JSON.parse(JSON.stringify(symbols[s]));
     }
   }
 };
 
-MathYlem.set_global_symbols = function (symbols) {
+MathYlem.setGlobalSymbols = function (symbols) {
   MathYlemSymbols.symbols = {};
-  MathYlem.add_symbols(symbols);
+  MathYlem.addSymbols(symbols);
 };
 
-MathYlem.reset_global_symbols = function () {
+MathYlem.resetGlobalSymbols = function () {
   for (var i in MathYlem.instances) {
-    MathYlem.instances[i].backend.symbols = JSON.parse(JSON.stringify(MathYlemSymbols.symbols));
+    MathYlem.instances[i].backend.symbols =
+      JSON.parse(JSON.stringify(MathYlemSymbols.symbols));
   }
 };
 
-MathYlem.init_symbols = function (symbols) {
-  var all_ready = function () {
-    MathYlem.register_keyboard_handlers();
+MathYlem.initialize = function (symbols) {
+  var allReady = function () {
+    MathYlem.registerKeyboardHandlers();
     for (var i in MathYlem.instances) {
       MathYlem.instances[i].ready = true;
       MathYlem.instances[i].render(true);
-      MathYlem.instances[i].backend.symbols = JSON.parse(JSON.stringify(MathYlemSymbols.symbols));
-      MathYlem.instances[i].backend.fire_event('ready');
+      MathYlem.instances[i].backend.symbols =
+        JSON.parse(JSON.stringify(MathYlemSymbols.symbols));
+      MathYlem.instances[i].backend.fireEvent('ready');
     }
     MathYlemBackend.ready = true;
   };
-  if (!(Array.isArray(symbols))) {
+  if (!Array.isArray(symbols)) {
     symbols = [symbols];
   }
   var calls = [];
@@ -167,8 +191,11 @@ MathYlem.init_symbols = function (symbols) {
         req.onload = function () {
           var syms = JSON.parse(this.responseText);
           for (var s in syms) {
-            var new_syms = MathYlemSymbols.add_symbols(s, syms[s], MathYlemSymbols.symbols);
-            for (var s in new_syms) { MathYlemSymbols.symbols[s] = new_syms[s] }
+            var newSymbols = MathYlemSymbols.addSymbols(s, syms[s],
+              MathYlemSymbols.symbols);
+            for (var s in newSymbols) {
+              MathYlemSymbols.symbols[s] = newSymbols[s];
+            }
           }
           callback();
         };
@@ -178,52 +205,62 @@ MathYlem.init_symbols = function (symbols) {
     }(i));
     calls.push(x);
   }
-  calls.push(all_ready);
+  calls.push(allReady);
   var j = 0;
   var cb = function () {
     j += 1;
-    if (j < calls.length) calls[j](cb);
+    if (j < calls.length) {
+      calls[j](cb);
+    }
   };
-  if (calls.length > 0) calls[0](cb);
+  if (calls.length > 0) {
+    calls[0](cb);
+  }
 };
 
-MathYlem.static_render_all = function () {
+MathYlem.staticRenderAll = function () {
   var l = document.getElementsByTagName('script');
   var ans = [];
   for (var i = 0; i < l.length; i++) {
-    if (l[i].getAttribute('type') == 'text/mathylem_xml') {
+    if (l[i].getAttribute('type') === 'text/mathylem_xml') {
       var n = l[i];
       var d = new MathYlemDoc(n.innerHTML);
       var s = document.createElement('span');
       s.setAttribute('id', 'eqn1_render');
-      katex.render(d.get_content('latex'), s);
+      katex.render(d.getContent('latex'), s);
       n.parentNode.insertBefore(s, n);
-      ans.push({'container': s, 'doc': d});
+      ans.push({ 'container': s, 'doc': d });
     }
   }
   return ans;
 };
 
-MathYlem.static_render = function (doc, target_id) {
+MathYlem.staticRender = function (doc, id) {
   var d = new MathYlemDoc(doc);
-  var target = document.getElementById(target_id);
-  katex.render(d.get_content('latex'), target);
-  return {'container': target, 'doc': d};
+  var target = document.getElementById(id);
+  katex.render(d.getContent('latex'), target);
+  return { 'container': target, 'doc': d };
 };
 
-MathYlem.prototype.is_changed = function () {
+MathYlem.prototype.isChanged = function () {
   var bb = this.editor.getElementsByClassName('katex')[0];
-  if (!bb) { return }
+  if (!bb) {
+    return;
+  }
   var rect = bb.getBoundingClientRect();
-  var ans = !this.bounding_box || this.bounding_box.top != rect.top || this.bounding_box.bottom != rect.bottom || this.bounding_box.right != rect.right || this.bounding_box.left != rect.left;
-  this.bounding_box = rect;
+  var ans = !this.boundingBox || this.boundingBox.top !== rect.top ||
+    this.boundingBox.bottom !== rect.bottom || this.boundingBox.right !==
+    rect.right || this.boundingBox.left !== rect.left;
+  this.boundingBox = rect;
   return ans;
 };
 
-MathYlem.prototype.recompute_locations_paths = function () {
+MathYlem.prototype.computeLocations = function () {
   var ans = [];
   var bb = this.editor.getElementsByClassName('katex')[0];
-  if (!bb) { return }
+  if (!bb) {
+    return;
+  }
   var rect = bb.getBoundingClientRect();
   ans.push({
     'path': 'all',
@@ -235,20 +272,25 @@ MathYlem.prototype.recompute_locations_paths = function () {
   var elts = this.editor.getElementsByClassName('mathylem_elt');
   for (var i = 0; i < elts.length; i++) {
     var elt = elts[i];
-    if (elt.nodeName == 'mstyle') { continue }
-    var rect = elt.getBoundingClientRect();
-    if (rect.top == 0 && rect.bottom == 0 && rect.left == 0 && rect.right == 0) { continue }
+    if (elt.nodeName === 'mstyle') {
+      continue;
+    }
+    rect = elt.getBoundingClientRect();
+    if (rect.top === 0 && rect.bottom === 0 &&
+        rect.left === 0 && rect.right === 0) {
+      continue;
+    }
     var cl = elt.className.split(/\s+/);
     for (var j = 0; j < cl.length; j++) {
-      if (cl[j].startsWith('mathylem_loc')) {
+      if (cl[j].substr(0, 12) === 'mathylem_loc') {
         ans.push({
           'path': cl[j],
           'top': rect.top,
           'bottom': rect.bottom,
           'left': rect.left,
           'right': rect.right,
-          'mid_x': (rect.left + rect.right) / 2,
-          'mid_y': (rect.bottom + rect.top) / 2,
+          'midX': (rect.left + rect.right) / 2,
+          'midY': (rect.bottom + rect.top) / 2,
           'blank': cl.indexOf('mathylem_blank') >= 0
         });
         break;
@@ -258,55 +300,65 @@ MathYlem.prototype.recompute_locations_paths = function () {
   this.boxes = ans;
 };
 
-MathYlem.get_loc = function (x, y, current_node, current_caret) {
-  var g = MathYlem.active_mathylem;
-  var min_dist = -1;
-  var mid_dist = 0;
+MathYlem.getLocation = function (x, y, currentNode, currentCaret) {
+  var g = MathYlem.activeMathYlem;
+  var minDist = -1;
+  var midDist = 0;
   var opt = null;
   // check if we go to first or last element
-  if (current_node) {
-    var current_path = MathYlemUtils.path_to(current_node);
-    var current_pos = parseInt(current_path.substring(current_path.lastIndexOf('e') + 1));
+  if (currentNode) {
+    var currentPath = MathYlemUtils.getPath(currentNode);
+    var currentPos = parseInt(currentPath.substring(
+      currentPath.lastIndexOf('e') + 1));
   }
 
   var boxes = g.boxes;
-  if (!boxes) { return }
-  if (current_node) {
-    current_path = current_path.replace(/e[0-9]+$/, 'e');
+  if (!boxes) {
+    return;
+  }
+  if (currentNode) {
+    currentPath = currentPath.replace(/e[0-9]+$/, 'e');
     var boxes2 = [];
     for (var i = 0; i < boxes.length; i++) {
-      if (boxes[i].path == 'all') { continue }
-      var loc = boxes[i].path.substring(0, boxes[i].path.lastIndexOf('_'));
-      loc = loc.replace(/e[0-9]+$/, 'e');
-      if (loc == current_path) {
+      if (boxes[i].path === 'all') {
+        continue;
+      }
+      var path = boxes[i].path.substring(0, boxes[i].path.lastIndexOf('_'));
+      path = path.replace(/e[0-9]+$/, 'e');
+      if (path === currentPath) {
         boxes2.push(boxes[i]);
       }
     }
     boxes = boxes2;
   }
-  if (!boxes) { return }
-  for (var i = 0; i < boxes.length; i++) {
+  if (!boxes) {
+    return;
+  }
+  for (var i = 0; i < boxes.length; i++) { // eslint-disable-line no-redeclare
     var box = boxes[i];
-    if (box.path == 'all') {
-      if (!opt) { opt = { 'path': 'mathylem_loc_m_e1_0' } }
+    if (box.path === 'all') {
+      if (!opt) {
+        opt = { 'path': 'mathylem_loc_m_e1_0' };
+      }
       continue;
     }
     var xdist = Math.max(box.left - x, x - box.right, 0);
     var ydist = Math.max(box.top - y, y - box.bottom, 0);
     var dist = Math.sqrt(xdist * xdist + ydist * ydist);
-    if (min_dist == -1 || dist < min_dist) {
-      min_dist = dist;
-      mid_dist = x - box.mid_x;
+    if (minDist === -1 || dist < minDist) {
+      minDist = dist;
+      midDist = x - box.midX;
       opt = box;
     }
   }
   var loc = opt.path.substring('mathylem_loc'.length);
   loc = loc.replace(/_/g, '/');
   loc = loc.replace(/([0-9]+)(?=.*?\/)/g, '[$1]');
-  var cur = g.backend.doc.xpath_node(loc.substring(0, loc.lastIndexOf('/')), g.backend.doc.root());
+  var cur = g.backend.doc.XPathNode(loc.substring(0, loc.lastIndexOf('/')),
+    g.backend.doc.root());
   var car = parseInt(loc.substring(loc.lastIndexOf('/') + 1));
   // Check if we want the cursor before or after the element
-  if (mid_dist > 0 && !(opt.blank)) {
+  if (midDist > 0 && !opt.blank) {
     car++;
   }
   var ans = {
@@ -314,134 +366,162 @@ MathYlem.get_loc = function (x, y, current_node, current_caret) {
     'caret': car,
     'pos': 'none'
   };
-  if (current_node && opt) {
-    var opt_pos = parseInt(opt.path.substring(opt.path.lastIndexOf('e') + 1, opt.path.lastIndexOf('_')));
-    if (opt_pos < current_pos) { ans['pos'] = 'left' } else if (opt_pos > current_pos) { ans['pos'] = 'right' } else if (car < current_caret) { ans['pos'] = 'left' } else if (car > current_caret) { ans['pos'] = 'right' }
+  if (currentNode && opt) {
+    var optPos = parseInt(opt.path.substring(opt.path.lastIndexOf('e') + 1,
+      opt.path.lastIndexOf('_')));
+    if (optPos < currentPos) {
+      ans['pos'] = 'left';
+    } else if (optPos > currentPos) {
+      ans['pos'] = 'right';
+    } else if (car < currentCaret) {
+      ans['pos'] = 'left';
+    } else if (car > currentCaret) {
+      ans['pos'] = 'right';
+    }
   }
   return ans;
 };
 
-MathYlem.mouse_up = function (e) {
-  MathYlem.kb.is_mouse_down = false;
-  var g = MathYlem.active_mathylem;
-  if (g) { g.render(true) }
+MathYlem.mouseUp = function (e) {
+  MathYlem.kb.isMouseDown = false;
+  var g = MathYlem.activeMathYlem;
+  if (g) {
+    g.render(true);
+  }
 };
 
-MathYlem.mouse_down = function (e) {
+MathYlem.mouseDown = function (e) {
   var n = e.target;
-  MathYlem.kb.is_mouse_down = true;
+  MathYlem.kb.isMouseDown = true;
   while (n != null) {
     if (n.mathylem) {
-      var g = MathYlem.active_mathylem;
-      if (n.mathylem == g) {
-        g.maintain_focus = true;
+      var g = MathYlem.activeMathYlem;
+      if (n.mathylem === g) {
+        g._focus = true;
         setTimeout(function () {
-          g.maintain_focus = false;
+          g._focus = false;
         }, 500);
         if (e.shiftKey) {
-          g.select_to(e.clientX, e.clientY, true);
+          g.selectTo(e.clientX, e.clientY, true);
         } else {
-          var loc = e.touches ? MathYlem.get_loc(e.touches[0].clientX, e.touches[0].clientY) : MathYlem.get_loc(e.clientX, e.clientY);
-          if (!loc) { return }
+          var loc = e.touches ? MathYlem.getLocation(e.touches[0].clientX,
+            e.touches[0].clientY) : MathYlem.getLocation(e.clientX, e.clientY);
+          if (!loc) {
+            return;
+          }
           var b = g.backend;
           b.current = loc.current;
           b.caret = loc.caret;
-          b.sel_status = MathYlemBackend.SEL_NONE;
+          b.selStatus = MathYlemBackend.SEL_NONE;
         }
         g.render(true);
-      } else if (g) { g.deactivate(true) }
+      } else if (g) {
+        g.deactivate(true);
+      }
       return;
     }
     n = n.parentNode;
   }
-  MathYlem.active_mathylem = null;
+  MathYlem.activeMathYlem = null;
   for (var i in MathYlem.instances) {
     MathYlem.instances[i].deactivate(true);
   }
 };
 
-MathYlem.mouse_move = function (e) {
-  var g = MathYlem.active_mathylem;
-  if (!g) { return }
-  if (!MathYlem.kb.is_mouse_down) {
+MathYlem.mouseMove = function (e) {
+  var g = MathYlem.activeMathYlem;
+  if (!g) {
+    return;
+  }
+  if (!MathYlem.kb.isMouseDown) {
     var bb = g.editor;
     var rect = bb.getBoundingClientRect();
-    if ((e.clientX < rect.left || e.clientX > rect.right) || (e.clientY > rect.bottom || e.clientY < rect.top)) {
-      g.temp_cursor = {
+    if (e.clientX < rect.left || e.clientX > rect.right ||
+        e.clientY > rect.bottom || e.clientY < rect.top) {
+      g.tempCursor = {
         'node': null,
         'caret': 0
       };
     } else {
-      var loc = MathYlem.get_loc(e.clientX, e.clientY);
-      if (!loc) { return }
-      g.temp_cursor = {
+      var loc = MathYlem.getLocation(e.clientX, e.clientY);
+      if (!loc) {
+        return;
+      }
+      g.tempCursor = {
         'node': loc.current,
         'caret': loc.caret
       };
     }
   } else {
-    g.select_to(e.clientX, e.clientY, true);
+    g.selectTo(e.clientX, e.clientY, true);
   }
-  g.render(g.is_changed());
+  g.render(g.isChanged());
 };
 
-MathYlem.touch_move = function (e) {
-  var g = MathYlem.active_mathylem;
-  if (!g) { return }
-  g.select_to(e.touches[0].clientX, e.touches[0].clientY, true);
-  g.render(g.is_changed());
+MathYlem.touchMove = function (e) {
+  var g = MathYlem.activeMathYlem;
+  if (!g) {
+    return;
+  }
+  g.selectTo(e.touches[0].clientX, e.touches[0].clientY, true);
+  g.render(g.isChanged());
 };
 
-MathYlem.prototype.select_to = function (x, y, mouse) {
-  var sel_caret = this.backend.caret;
-  var sel_cursor = this.backend.current;
-  if (this.backend.sel_status == MathYlemBackend.SEL_CURSOR_AT_START) {
-    sel_cursor = this.backend.sel_end.node;
-    sel_caret = this.backend.sel_end.caret;
-  } else if (this.backend.sel_status == MathYlemBackend.SEL_CURSOR_AT_END) {
-    sel_cursor = this.backend.sel_start.node;
-    sel_caret = this.backend.sel_start.caret;
+MathYlem.prototype.selectTo = function (x, y, mouse) {
+  var selCaret = this.backend.caret;
+  var selCursor = this.backend.current;
+  if (this.backend.selStatus === MathYlemBackend.SEL_CURSOR_AT_START) {
+    selCursor = this.backend.selEnd.node;
+    selCaret = this.backend.selEnd.caret;
+  } else if (this.backend.selStatus === MathYlemBackend.SEL_CURSOR_AT_END) {
+    selCursor = this.backend.selStart.node;
+    selCaret = this.backend.selStart.caret;
   }
-  var loc = MathYlem.get_loc(x, y, sel_cursor, sel_caret);
-  if (!loc) { return }
-  this.backend.select_to(loc, sel_cursor, sel_caret, mouse);
+  var loc = MathYlem.getLocation(x, y, selCursor, selCaret);
+  if (!loc) {
+    return;
+  }
+  this.backend.selectTo(loc, selCursor, selCaret, mouse);
 };
 
 if ('ontouchstart' in window) {
-  window.addEventListener('touchstart', MathYlem.mouse_down, false);
-  window.addEventListener('touchmove', MathYlem.touch_move, false);
+  window.addEventListener('touchstart', MathYlem.mouseDown, false);
+  window.addEventListener('touchmove', MathYlem.touchMove, false);
 } else {
-  window.addEventListener('mousedown', MathYlem.mouse_down, false);
-  window.addEventListener('mouseup', MathYlem.mouse_up, false);
-  window.addEventListener('mousemove', MathYlem.mouse_move, false);
+  window.addEventListener('mousedown', MathYlem.mouseDown, false);
+  window.addEventListener('mouseup', MathYlem.mouseUp, false);
+  window.addEventListener('mousemove', MathYlem.mouseMove, false);
 }
 
-MathYlem.prototype.render_node = function (t) {
-  // All the interesting work is done by transform.  This function just adds in the cursor and selection-start cursor
+MathYlem.prototype.renderNode = function (t) {
+  // All the interesting work is done by transform.
+  // This function just adds in the cursor and selection-start cursor
   var output = '';
-  if (t == 'render') {
+  if (t === 'render') {
     var root = this.backend.doc.root();
-    this.backend.add_paths(root, 'm');
-    this.backend.temp_cursor = this.temp_cursor;
-    this.backend.add_classes_cursors(root);
+    this.backend.addPaths(root, 'm');
+    this.backend.tempCursor = this.tempCursor;
+    this.backend.addCursorClasses(root);
     this.backend.current.setAttribute('current', 'yes');
-    if (this.temp_cursor.node) this.temp_cursor.node.setAttribute('temp', 'yes');
-    output = this.backend.get_content('latex', true);
-    this.backend.remove_cursors_classes(root);
+    if (this.tempCursor.node) {
+      this.tempCursor.node.setAttribute('temp', 'yes');
+    }
+    output = this.backend.getContent('latex', true);
+    this.backend.removeCursorClasses(root);
     output = output.replace(new RegExp('&amp;', 'g'), '&');
     return output;
   } else {
-    output = this.backend.get_content(t);
+    output = this.backend.getContent(t);
   }
   return output;
 };
 
 MathYlem.prototype.render = function (updated) {
-  if (!this.editor_active && this.backend.doc.is_blank()) {
-    katex.render(this.empty_content, this.editor);
+  if (!this.active && this.backend.doc.isBlank()) {
+    katex.render(this.emptyContent, this.editor);
     return;
   }
-  var tex = this.render_node('render');
+  var tex = this.renderNode('render');
   try {
     katex.render(tex, this.editor);
   } catch (e) {
@@ -449,41 +529,48 @@ MathYlem.prototype.render = function (updated) {
     this.render(false);
   }
   if (updated) {
-    this.recompute_locations_paths();
+    this.computeLocations();
   }
 };
 
 MathYlem.prototype.activate = function (focus) {
-  MathYlem.active_mathylem = this;
-  this.editor_active = true;
-  this.editor.className = this.editor.className.replace(new RegExp('(\\s|^)mathylem_inactive(\\s|$)'), ' mathylem_active ');
+  MathYlem.activeMathYlem = this;
+  this.active = true;
+  this.editor.className = this.editor.className.replace(
+    new RegExp('(\\s|^)mathylem_inactive(\\s|$)'), ' mathylem_active ');
   if (focus) {
     if (this.fakeInput) {
       this.fakeInput.style.top = this.editor.offsetTop + 'px';
       this.fakeInput.style.left = this.editor.offsetLeft + 'px';
       this.fakeInput.focus();
-      this.fakeInput.setSelectionRange(this.fakeInput.value.length, this.fakeInput.value.length);
-    } else { this.editor.focus() }
+      this.fakeInput.setSelectionRange(this.fakeInput.value.length,
+        this.fakeInput.value.length);
+    } else {
+      this.editor.focus();
+    }
   }
   if (this.ready) {
     this.render(true);
-    this.backend.fire_event('focus', {'focused': true});
+    this.backend.fireEvent('focus', { 'focused': true });
   }
 };
 
 MathYlem.prototype.deactivate = function (blur) {
-  this.editor_active = false;
+  this.active = false;
   var r1 = new RegExp('(?:\\s|^)mathylem_active(?:\\s|$)');
   var r2 = new RegExp('(?:\\s|^)mathylem_inactive(?:\\s|$)');
   if (this.editor.className.match(r1)) {
-    this.editor.className = this.editor.className.replace(r1, ' mathylem_inactive ');
+    this.editor.className = this.editor.className.replace(r1,
+      ' mathylem_inactive ');
   } else if (!this.editor.className.match(r2)) {
     this.editor.className += ' mathylem_inactive ';
   }
-  if (blur && this.fakeInput) { this.fakeInput.blur() }
+  if (blur && this.fakeInput) {
+    this.fakeInput.blur();
+  }
   if (this.ready) {
     this.render();
-    this.backend.fire_event('focus', {'focused': false});
+    this.backend.fireEvent('focus', { 'focused': false });
   }
 };
 
@@ -491,12 +578,12 @@ MathYlem.prototype.deactivate = function (blur) {
 
 MathYlem.kb = {};
 
-MathYlem.kb.is_mouse_down = false;
+MathYlem.kb.isMouseDown = false;
 
 /* keyboard behaviour definitions */
 
 // keys aside from 0-9,a-z,A-Z
-MathYlem.kb.k_chars = {
+MathYlem.kb.chars = {
   '=': '=',
   '+': '+',
   '-': '-',
@@ -506,7 +593,7 @@ MathYlem.kb.k_chars = {
   'shift+/': '/',
   'shift+=': '+'
 };
-MathYlem.kb.k_syms = {
+MathYlem.kb.symbols = {
   '/': 'frac',
   '%': 'mod',
   '^': 'power',
@@ -519,7 +606,7 @@ MathYlem.kb.k_syms = {
   'shift+up': 'power',
   'shift+down': 'sub'
 };
-MathYlem.kb.k_controls = {
+MathYlem.kb.controls = {
   'up': 'up',
   'down': 'down',
   'right': 'right',
@@ -532,74 +619,84 @@ MathYlem.kb.k_controls = {
   'home': 'home',
   'end': 'end',
   'backspace': 'backspace',
-  'del': 'delete_key',
-  'mod+a': 'sel_all',
-  'mod+c': 'sel_copy',
-  'mod+x': 'sel_cut',
-  'mod+v': 'sel_paste',
+  'del': 'deleteKey',
+  'mod+a': 'selectAll',
+  'mod+c': 'copySelection',
+  'mod+x': 'cutSelection',
+  'mod+v': 'paste',
   'mod+z': 'undo',
   'mod+y': 'redo',
   'enter': 'done',
-  'mod+shift+right': 'list_extend_copy_right',
-  'mod+shift+left': 'list_extend_copy_left',
-  'mod+right': 'list_extend_right',
-  'mod+left': 'list_extend_left',
-  'mod+up': 'list_extend_up',
-  'mod+down': 'list_extend_down',
-  'mod+shift+up': 'list_extend_copy_up',
-  'mod+shift+down': 'list_extend_copy_down',
-  'mod+backspace': 'list_remove',
-  'mod+shift+backspace': 'list_remove_row',
-  'shift+left': 'sel_left',
-  'shift+right': 'sel_right',
-  ')': 'right_paren',
+  'mod+shift+right': 'copyExtendListRight',
+  'mod+shift+left': 'copyExtendListLeft',
+  'mod+right': 'extendListRight',
+  'mod+left': 'extendListLeft',
+  'mod+up': 'extendListUp',
+  'mod+down': 'extendListDown',
+  'mod+shift+up': 'copyExtendListUp',
+  'mod+shift+down': 'copyExtendListDown',
+  'mod+backspace': 'removeListItem',
+  'mod+shift+backspace': 'removeListRow',
+  'shift+left': 'selectLeft',
+  'shift+right': 'selectRight',
+  ')': 'rightParen',
   '\\': 'backslash',
   'tab': 'tab'
 };
 
 // letters
-
 for (var i = 65; i <= 90; i++) {
-  MathYlem.kb.k_chars[String.fromCharCode(i).toLowerCase()] = String.fromCharCode(i).toLowerCase();
-  MathYlem.kb.k_chars['shift+' + String.fromCharCode(i).toLowerCase()] = String.fromCharCode(i).toUpperCase();
+  MathYlem.kb.chars[String.fromCharCode(i).toLowerCase()] =
+    String.fromCharCode(i).toLowerCase();
+  MathYlem.kb.chars['shift+' + String.fromCharCode(i).toLowerCase()] =
+    String.fromCharCode(i).toUpperCase();
 }
 
 // numbers
+for (var i = 48; i <= 57; i++) { // eslint-disable-line no-redeclare
+  MathYlem.kb.chars[String.fromCharCode(i)] = String.fromCharCode(i);
+}
 
-for (var i = 48; i <= 57; i++) { MathYlem.kb.k_chars[String.fromCharCode(i)] = String.fromCharCode(i) }
-
-MathYlem.register_keyboard_handlers = function () {
-  Mousetrap.addKeycodes({173: '-'}); // Firefox's special minus (needed for _ = sub binding)
-  for (var i in MathYlem.kb.k_chars) {
+MathYlem.registerKeyboardHandlers = function () {
+  // Firefox's special minus (needed for _ = sub binding)
+  Mousetrap.addKeycodes({ 173: '-' });
+  for (var i in MathYlem.kb.chars) { // eslint-disable-line no-redeclare
     Mousetrap.bind(i, (function (i) {
       return function () {
-        if (!MathYlem.active_mathylem) return true;
-        MathYlem.active_mathylem.temp_cursor.node = null;
-        MathYlem.active_mathylem.backend.insert_string(MathYlem.kb.k_chars[i]);
-        MathYlem.active_mathylem.render(true);
+        if (!MathYlem.activeMathYlem) {
+          return true;
+        }
+        MathYlem.activeMathYlem.tempCursor.node = null;
+        MathYlem.activeMathYlem.backend.insertString(MathYlem.kb.chars[i]);
+        MathYlem.activeMathYlem.render(true);
         return false;
       };
     }(i)));
   }
-  for (var i in MathYlem.kb.k_syms) {
+  for (var i in MathYlem.kb.symbols) { // eslint-disable-line no-redeclare
     Mousetrap.bind(i, (function (i) {
       return function () {
-        if (!MathYlem.active_mathylem) return true;
-        MathYlem.active_mathylem.temp_cursor.node = null;
-        MathYlem.active_mathylem.backend.insert_symbol(MathYlem.kb.k_syms[i]);
-        MathYlem.active_mathylem.render(true);
+        if (!MathYlem.activeMathYlem) {
+          return true;
+        }
+        MathYlem.activeMathYlem.tempCursor.node = null;
+        MathYlem.activeMathYlem.backend.insertSymbol(MathYlem.kb.symbols[i]);
+        MathYlem.activeMathYlem.render(true);
         return false;
       };
     }(i)));
   }
-  for (var i in MathYlem.kb.k_controls) {
+  for (var i in MathYlem.kb.controls) { // eslint-disable-line no-redeclare
     Mousetrap.bind(i, (function (i) {
       return function () {
-        if (!MathYlem.active_mathylem) return true;
-        MathYlem.active_mathylem.backend[MathYlem.kb.k_controls[i]]();
-        MathYlem.active_mathylem.temp_cursor.node = null;
-        MathYlem.active_mathylem.render(['up', 'down', 'right', 'left', 'home', 'end', 'sel_left', 'sel_right'].indexOf(i) < 0);
-        MathYlem.active_mathylem.render(false);
+        if (!MathYlem.activeMathYlem) {
+          return true;
+        }
+        MathYlem.activeMathYlem.backend[MathYlem.kb.controls[i]]();
+        MathYlem.activeMathYlem.tempCursor.node = null;
+        MathYlem.activeMathYlem.render(['up', 'down', 'right', 'left', 'home',
+          'end', 'selectLeft', 'selectRight'].indexOf(i) < 0);
+        MathYlem.activeMathYlem.render(false);
         return false;
       };
     }(i)));

@@ -2,7 +2,7 @@
 <html>
   <head>
     <title>MathYlem</title>
-    <link rel="stylesheet" href="../build/mathylem.katex.min.css">
+    <link rel="stylesheet" href="../build/mathylem.min.css">
     <script type="text/javascript" src="../build/mathylem.min.js"></script>
     <script type="text/javascript" src="test.js"></script>
   </head>
@@ -11,16 +11,16 @@
     <div id="results" style="width:40%;float:left;border:1px solid black;padding:10px;">Test results: <b><span id="pass_rate"></span></b></div>
     <div id="coverage" style="width:40%;float:left;border:1px solid black;padding:10px;">Test coverage: </div>
     <script>
-      MathYlem.init_symbols(["../build/symbols.json"]);
+      MathYlem.initialize(["../build/symbols.json"]);
       var test_mathylem = new MathYlem("mathylem1",
       {"events":{
-      "error":function(g){test_mathylem.backend.set_content("<m><e>"+g.message+"</e></m>");},
-      "left_end":function(g){test_mathylem.backend.set_content("<m><e>!left</e></m>");},
-      "right_end":function(g){test_mathylem.backend.set_content("<m><e>!right</e></m>");},
+      "error":function(g){test_mathylem.backend.setContent("<m><e>"+g.message+"</e></m>");},
+      "left_end":function(g){test_mathylem.backend.setContent("<m><e>!left</e></m>");},
+      "right_end":function(g){test_mathylem.backend.setContent("<m><e>!right</e></m>");},
       "change":function(g){console.log("CHANGE",g.old,g.new)},
       "ready":function(g){
           console.log("testing");
-          test_mathylem.backend.set_content("<m><e>!ready</e></m>");
+          test_mathylem.backend.setContent("<m><e>!ready</e></m>");
           setTimeout(start_tests,2000);
       }
       }});

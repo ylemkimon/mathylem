@@ -360,7 +360,7 @@ var tests = [
 	"type":"text",
 	"expected":" tan^(2)(x)",
 	"run":function(g){
-	    test_mathylem.backend.add_symbols("pta",{
+	    test_mathylem.backend.addSymbols("pta",{
 		"output":{
 		    "latex":"\\tan^{{$1}}({$2})",
 		    "text":" tan^({$1})({$2})"
@@ -378,7 +378,7 @@ var tests = [
 	"type":"text",
 	"expected":"tanx",
 	"run":function(g){
-	    test_mathylem.backend.remove_symbol("tan");
+	    test_mathylem.backend.removeSymbol("tan");
 	    do_keys(['t','a','n','x']);
 	}
     },
@@ -387,7 +387,7 @@ var tests = [
 	"type":"text",
 	"expected":" Re(i)",
 	"run":function(g){
-	    test_mathylem.backend.add_symbol_func("Re","test");
+	    test_mathylem.backend.addFuncSymbol("Re","test");
 	    do_keys(['shift+r','e','i']);
 	}
     },
@@ -396,7 +396,7 @@ var tests = [
 	"type":"text",
 	"expected":"ASDA",
 	"run":function(g){
-	    test_mathylem.backend.add_symbol_raw("asda","ASDA","ASDA","test");
+	    test_mathylem.backend.addRawSymbol("asda","ASDA","ASDA","test");
 	    do_keys(['a','s','d','a']);
 	}
     },
@@ -431,7 +431,7 @@ function do_mouse_move(path,x_frac,y_frac){
     var rect = elts[1].getBoundingClientRect();
     var x = rect.left + (rect.right - rect.left)*x_frac;
     var y = rect.top + (rect.bottom - rect.top)*y_frac;
-    MathYlem.mouse_move({"target":test_mathylem.editor,"clientX":x,"clientY":y,"preventDefault":function(){}});
+    MathYlem.mouseMove({"target":test_mathylem.editor,"clientX":x,"clientY":y,"preventDefault":function(){}});
 }
 
 function do_mouse_down(path,x_frac,y_frac, shift){
@@ -439,11 +439,11 @@ function do_mouse_down(path,x_frac,y_frac, shift){
     var rect = elts[1].getBoundingClientRect();
     var x = rect.left + (rect.right - rect.left)*x_frac;
     var y = rect.top + (rect.bottom - rect.top)*y_frac;
-    MathYlem.mouse_down({"target":test_mathylem.editor,"clientX":x,"clientY":y,"preventDefault":function(){},"shiftKey":shift});
+    MathYlem.mouseDown({"target":test_mathylem.editor,"clientX":x,"clientY":y,"preventDefault":function(){},"shiftKey":shift});
 }
 
 function do_mouse_up(){
-    MathYlem.mouse_up();
+    MathYlem.mouseUp();
 }
 
 function append_result(name, result, i){
@@ -532,14 +532,14 @@ function start_tests(){
 function run_test(i, g){
     var t = tests[i];
     test_mathylem.activate();
-    if(!t.content) test_mathylem.backend.set_content("<m><e></e></m>");
-    else if(t.content != "none") test_mathylem.backend.set_content(t.content);
+    if(!t.content) test_mathylem.backend.setContent("<m><e></e></m>");
+    else if(t.content != "none") test_mathylem.backend.setContent(t.content);
     test_mathylem.render();
     var observed = ""
     try{
 	t.run(test_mathylem);
 	test_mathylem.render();
-	observed = test_mathylem.backend.get_content(t.type);
+	observed = test_mathylem.backend.getContent(t.type);
     } catch(e) {
 	observed = e + "\n" + e.stack;
     }

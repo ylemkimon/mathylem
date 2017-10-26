@@ -1,62 +1,71 @@
-MathYlemSymbols = {'symbols': {}};
+var MathYlemSymbols = { 'symbols': {} };
 
-MathYlemSymbols.symb_raw = function (symb_name, latex_symb, text_symb, group) {
-  return {'output': {'latex': latex_symb,
-    'text': text_symb},
-  'group': group,
-  'char': true,
-  'type': symb_name};
-};
-
-MathYlemSymbols.symb_func = function (func_name, group) {
-  return {'output': {'latex': '\\' + func_name + '\\left({$1}\\right)',
-    'text': ' ' + func_name + '({$1})'},
-  'type': func_name,
-  'group': group,
-  'attrs': [
-    {'delete': '1'}
-  ]
+MathYlemSymbols.makeRawSymbol = function (name, latex, text, group) {
+  return {
+    'output': { 'latex': latex, 'text': text },
+    'group': group,
+    'char': true,
+    'type': name
   };
 };
 
-MathYlemSymbols.symb_func_nonlatex = function (func_name, group) {
-  return {'output': {'latex': '\\mathrm{' + func_name + '}\\left({$1}\\right)',
-    'text': ' ' + func_name + '({$1})'},
-  'type': func_name,
-  'group': group,
-  'attrs': [
-    {'delete': '1'}
-  ]
+MathYlemSymbols.makeFunctionSymbol = function (name, group) {
+  return {
+    'output': {
+      'latex': '\\' + name + '\\left({$1}\\right)',
+      'text': ' ' + name + '({$1})'
+    },
+    'type': name,
+    'group': group,
+    'attrs': [{ 'delete': '1' }]
   };
 };
 
-MathYlemSymbols.add_symbols = function (name, sym) {
+MathYlemSymbols.makeNonLaTeXFunctionSymbol = function (name, group) {
+  return {
+    'output': {
+      'latex': '\\mathrm{' + name + '}\\left({$1}\\right)',
+      'text': ' ' + name + '({$1})' },
+    'type': name,
+    'group': group,
+    'attrs': [{ 'delete': '1' }]
+  };
+};
+
+MathYlemSymbols.addSymbols = function (name, sym) {
   var symbols = {};
-  if (name == '_raw') {
+  if (name === '_raw') {
     for (var i = 0; i < sym.length; i++) {
       for (var t in sym[i]['symbols']) {
-        symbols[t] = MathYlemSymbols.symb_raw(t, sym[i]['symbols'][t]['latex'], sym[i]['symbols'][t]['text'], sym[i]['group']);
+        symbols[t] = MathYlemSymbols.makeRawSymbol(t, sym[i]['symbols'][t]['latex'],
+          sym[i]['symbols'][t]['text'], sym[i]['group']);
       }
     }
-  } else if (name == '_literal') {
+  } else if (name === '_literal') {
     for (var j = 0; j < sym.length; j++) {
-      for (var i = 0; i < sym[j]['symbols'].length; i++) {
-        symbols[sym[j]['symbols'][i]] = MathYlemSymbols.symb_raw(sym[j]['symbols'][i], '\\' + sym[j]['symbols'][i], ' $' + sym[j]['symbols'][i] + ' ', sym[j]['group']);
+      for (var i = 0; i < sym[j]['symbols'].length; i++) { // eslint-disable-line no-redeclare
+        symbols[sym[j]['symbols'][i]] = MathYlemSymbols.makeRawSymbol(
+          sym[j]['symbols'][i], '\\' + sym[j]['symbols'][i],
+          ' $' + sym[j]['symbols'][i] + ' ', sym[j]['group']);
       }
     }
-  } else if (name == '_func') {
-    for (var j = 0; j < sym.length; j++) {
-      for (var i = 0; i < sym[j]['symbols'].length; i++) {
-        symbols[sym[j]['symbols'][i]] = MathYlemSymbols.symb_func(sym[j]['symbols'][i], sym[j]['group']);
+  } else if (name === '_func') {
+    for (var j = 0; j < sym.length; j++) { // eslint-disable-line no-redeclare
+      for (var i = 0; i < sym[j]['symbols'].length; i++) { // eslint-disable-line no-redeclare
+        symbols[sym[j]['symbols'][i]] = MathYlemSymbols.makeFunctionSymbol(
+          sym[j]['symbols'][i], sym[j]['group']);
       }
     }
-  } else if (name == '_func_nonlatex') {
-    for (var j = 0; j < sym.length; j++) {
-      for (var i = 0; i < sym[j]['symbols'].length; i++) {
-        symbols[sym[j]['symbols'][i]] = MathYlemSymbols.symb_func_nonlatex(sym[j]['symbols'][i], sym[j]['group']);
+  } else if (name === '_func_nonlatex') {
+    for (var j = 0; j < sym.length; j++) { // eslint-disable-line no-redeclare
+      for (var i = 0; i < sym[j]['symbols'].length; i++) { // eslint-disable-line no-redeclare
+        symbols[sym[j]['symbols'][i]] = MathYlemSymbols.makeNonLaTeXFunctionSymbol(
+          sym[j]['symbols'][i], sym[j]['group']);
       }
     }
-  } else symbols[name] = sym;
+  } else {
+    symbols[name] = sym;
+  }
   return symbols;
 };
 

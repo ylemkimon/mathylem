@@ -1,5 +1,5 @@
 $('document').ready(function() {
-    MathYlem.static_render_all();
+    MathYlem.staticRenderAll();
     $('#xml_btn').on('click', function() {
         createText('xml');
     });
@@ -13,7 +13,7 @@ $('document').ready(function() {
         $('#stuff')[0].innerHTML = '';
     });
 
-    MathYlem.init_symbols(["build/symbols.json"]);
+    MathYlem.initialize(["build/symbols.json"]);
     var g1 = new MathYlem("mathylem1", {
 	"events":{
 	    //'debug':10,
@@ -26,7 +26,7 @@ $('document').ready(function() {
 	{
             //'blank_caret': "[?]",
 	    //'autoreplace':true,
-            'empty_content': "\\gray{\\text{Click here to start typing a mathematical expression}}"
+            'emptyContent': "\\gray{\\text{Click here to start typing a mathematical expression}}"
 	}
     });
 });
@@ -44,5 +44,5 @@ function createText(texttype) {
     $('#stuff')[0].innerHTML = texttype.toUpperCase() + ": ";
     //display text
     $('#stuff')[0].appendChild(document.createElement('br'));
-    $('#stuff')[0].appendChild(document.createTextNode(MathYlem.instances['mathylem1'].backend.get_content(texttype)));
+    $('#stuff')[0].appendChild(document.createTextNode(MathYlem.instances['mathylem1'].backend.getContent(texttype)));
 }

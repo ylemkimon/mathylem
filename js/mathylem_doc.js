@@ -1,31 +1,42 @@
+var MathYlemUtils = require('./mathylem_utils.js');
 require('wicked-good-xpath').install();
 
 var MathYlemDoc = function (doc) {
   doc = doc || '<m><e></e></m>';
-  this.set_content(doc);
+  this.setContent(doc);
 };
 
-MathYlemDoc.prototype.is_small = function (nn) {
+MathYlemDoc.prototype.isSmall = function (nn) {
   var n = nn.parentNode;
-  while (n != null && n.nodeName != 'm') {
-    if (n.getAttribute('small') == 'yes') { return true }
+  while (n != null && n.nodeName !== 'm') {
+    if (n.getAttribute('small') === 'yes') {
+      return true;
+    }
     n = n.parentNode;
-    while (n != null && n.nodeName != 'c') { n = n.parentNode }
+    while (n != null && n.nodeName !== 'c') {
+      n = n.parentNode;
+    }
   }
   return false;
 };
 
-MathYlemDoc.prototype.ensure_text_nodes = function () {
+MathYlemDoc.prototype.ensureTextNodes = function () {
   var l = this.base.getElementsByTagName('e');
   for (var i = 0; i < l.length; i++) {
-    if (!(l[i].firstChild)) { l[i].appendChild(this.base.createTextNode('')) }
+    if (!l[i].firstChild) {
+      l[i].appendChild(this.base.createTextNode(''));
+    }
   }
 };
 
-MathYlemDoc.prototype.is_blank = function () {
-  if (this.base.getElementsByTagName('f').length > 0) { return false }
+MathYlemDoc.prototype.isBlank = function () {
+  if (this.base.getElementsByTagName('f').length > 0) {
+    return false;
+  }
   var l = this.base.getElementsByTagName('e');
-  if (l.length == 1 && (!(l[0].firstChild) || l[0].firstChild.textContent == '')) { return true }
+  if (l.length === 1 && (!l[0].firstChild || l[0].firstChild.textContent === '')) {
+    return true;
+  }
   return false;
 };
 
@@ -33,26 +44,32 @@ MathYlemDoc.prototype.root = function () {
   return this.base.documentElement;
 };
 
-MathYlemDoc.prototype.get_content = function (t, r) {
-  if (t != 'xml') { return this.manual_render(t, this.root(), r) } else { return (new XMLSerializer()).serializeToString(this.base) }
+MathYlemDoc.prototype.getContent = function (t, r) {
+  if (t !== 'xml') {
+    return this.render(t, this.root(), r);
+  } else {
+    return (new XMLSerializer()).serializeToString(this.base);
+  }
 };
 
-MathYlemDoc.prototype.xpath_node = function (xpath, node) {
+MathYlemDoc.prototype.XPathNode = function (xpath, node) {
   node = node || this.root();
-  return this.base.evaluate(xpath, node, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+  return this.base.evaluate(xpath, node, null,
+    XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
 };
 
-MathYlemDoc.prototype.xpath_list = function (xpath, node) {
+MathYlemDoc.prototype.XPathList = function (xpath, node) {
   node = node || this.root();
-  return this.base.evaluate(xpath, node, null, XPathResult.ORDERED_NODE_ITERATOR_TYPE, null);
+  return this.base.evaluate(xpath, node, null,
+    XPathResult.ORDERED_NODE_ITERATOR_TYPE, null);
 };
 
-MathYlemDoc.prototype.set_content = function (xml_data) {
-  this.base = (new window.DOMParser()).parseFromString(xml_data, 'text/xml');
-  this.ensure_text_nodes();
+MathYlemDoc.prototype.setContent = function (data) {
+  this.base = (new DOMParser()).parseFromString(data, 'text/xml');
+  this.ensureTextNodes();
 };
 
-MathYlemDoc.bracket_xpath = "(count(./*) != 1 and not \
+var BRACKET_XPATH = "(count(./*) != 1 and not \
                   ( \
                             count(./e)=2 and \
                 count(./f)=1 and \
@@ -88,62 +105,82 @@ MathYlemDoc.bracket_xpath = "(count(./*) != 1 and not \
               ./e/@temp = 'yes' \
             )";
 
-MathYlemDoc.prototype.manual_render = function (t, n, r) {
+MathYlemDoc.prototype.render = function (t, n, r) {
   var ans = '';
-  if (n.nodeName == 'e') {
-    if (t == 'latex' && r) {
+  if (n.nodeName === 'e') {
+    if (t === 'latex' && r) {
       ans = n.getAttribute('render');
-    } else if (t == 'text') {
-      ans = MathYlemUtils.get_value(n);
-      if (n.previousSibling && n.nextSibling && ans == '') { ans = ' * ' } else {
+    } else if (t === 'text') {
+      ans = MathYlemUtils.getValue(n);
+      if (n.previousSibling && n.nextSibling && ans === '') {
+        ans = ' * ';
+      } else {
         ans = ans.replace(/(.)([^a-zA-Z0-9.])(.)/g, '$1 $2 $3');
         ans = ans.replace(/([a-zA-Z])(?=\.)/g, '$1 * ');
         ans = ans.replace(/(\.)(?=[a-zA-Z])/g, '$1 * ');
         ans = ans.replace(/([a-zA-Z])(?=[a-zA-Z0-9])/g, '$1 * ');
         ans = ans.replace(/([a-zA-Z0-9])(?=[a-zA-Z])/g, '$1 * ');
-        if (n.previousSibling && n.previousSibling.getAttribute('group') != 'operations') { ans = ans.replace(/^([a-zA-Z0-9])/g, ' * $1') }
-        if (n.nextSibling && n.nextSibling.getAttribute('group') != 'operations') { ans = ans.replace(/([a-zA-Z0-9])$/g, '$1 * ') }
+        if (n.previousSibling &&
+            n.previousSibling.getAttribute('group') !== 'operations') {
+          ans = ans.replace(/^([a-zA-Z0-9])/g, ' * $1');
+        }
+        if (n.nextSibling && n.nextSibling.getAttribute('group') !== 'operations') {
+          ans = ans.replace(/([a-zA-Z0-9])$/g, '$1 * ');
+        }
         ans = ' ' + ans + ' ';
       }
     } else {
-      ans = MathYlemUtils.get_value(n);
+      ans = MathYlemUtils.getValue(n);
     }
-  } else if (n.nodeName == 'f') {
-    var real_type = (t == 'latex' && this.is_small(n)) ? 'small_latex' : t;
-    var nn = this.xpath_node("./b[@p='" + real_type + "']", n) || this.xpath_node("./b[@p='" + t + "']", n);
-    if (nn) { ans = this.manual_render(t, nn, r) }
-  } else if (n.nodeName == 'b') {
+  } else if (n.nodeName === 'f') {
+    var type = (t === 'latex' && this.isSmall(n)) ? 'small_latex' : t;
+    var nn = this.XPathNode("./b[@p='" + type + "']", n) ||
+      this.XPathNode("./b[@p='" + t + "']", n);
+    if (nn) {
+      ans = this.render(t, nn, r);
+    }
+  } else if (n.nodeName === 'b') {
     var cs = [];
     var i = 1;
     var par = n.parentNode;
-    for (var nn = par.firstChild; nn != null; nn = nn.nextSibling) {
-      if (nn.nodeName == 'c' || nn.nodeName == 'l') { cs[i++] = this.manual_render(t, nn, r) }
+    for (var nn = par.firstChild; nn != null; nn = nn.nextSibling) { // eslint-disable-line no-redeclare
+      if (nn.nodeName === 'c' || nn.nodeName === 'l') {
+        cs[i++] = this.render(t, nn, r);
+      }
     }
-    for (var nn = n.firstChild; nn != null; nn = nn.nextSibling) {
-      if (nn.nodeType == 3) { ans += nn.textContent } else if (nn.nodeType == 1) {
+    for (var nn = n.firstChild; nn != null; nn = nn.nextSibling) { // eslint-disable-line no-redeclare
+      if (nn.nodeType === 3) {
+        ans += nn.textContent;
+      } else if (nn.nodeType === 1) {
         if (nn.hasAttribute('d')) {
           var dim = parseInt(nn.getAttribute('d'));
           var joiner = function (d, l) {
             if (d > 1) {
-              for (var k = 0; k < l.length; k++) { l[k] = joiner(d - 1, l[k]) }
+              for (var k = 0; k < l.length; k++) {
+                l[k] = joiner(d - 1, l[k]);
+              }
             }
             return l.join(nn.getAttribute('sep' + (d - 1)));
           };
           ans += joiner(dim, cs[parseInt(nn.getAttribute('ref'))]);
-        } else { ans += cs[parseInt(nn.getAttribute('ref'))] }
+        } else {
+          ans += cs[parseInt(nn.getAttribute('ref'))];
+        }
       }
     }
-  } else if (n.nodeName == 'l') {
+  } else if (n.nodeName === 'l') {
     ans = [];
-    var i = 0;
-    for (var nn = n.firstChild; nn != null; nn = nn.nextSibling) {
-      ans[i++] = this.manual_render(t, nn, r);
+    var i = 0; // eslint-disable-line no-redeclare
+    for (var nn = n.firstChild; nn != null; nn = nn.nextSibling) { // eslint-disable-line no-redeclare
+      ans[i++] = this.render(t, nn, r);
     }
-  } else if (n.nodeName == 'c' || n.nodeName == 'm') {
-    for (var nn = n.firstChild; nn != null; nn = nn.nextSibling) { ans += this.manual_render(t, nn, r) }
-    if (t == 'latex' &&
-                n.getAttribute('bracket') == 'yes' &&
-                this.base.evaluate(MathYlemDoc.bracket_xpath, n, null,
+  } else if (n.nodeName === 'c' || n.nodeName === 'm') {
+    for (var nn = n.firstChild; nn != null; nn = nn.nextSibling) { // eslint-disable-line no-redeclare
+      ans += this.render(t, nn, r);
+    }
+    if (t === 'latex' &&
+                n.getAttribute('bracket') === 'yes' &&
+                this.base.evaluate(BRACKET_XPATH, n, null,
                   XPathResult.BOOLEAN_TYPE, null).booleanValue) {
       ans = '\\left(' + ans + '\\right)';
     }
@@ -151,14 +188,18 @@ MathYlemDoc.prototype.manual_render = function (t, n, r) {
   return ans;
 };
 
-MathYlemDoc.prototype.path_to = function (n) {
+MathYlemDoc.prototype.getPath = function (n) {
   var name = n.nodeName;
-  if (name == 'm') { return 'mathylem_loc_m' }
+  if (name === 'm') {
+    return 'mathylem_loc_m';
+  }
   var ns = 0;
   for (var nn = n; nn != null; nn = nn.previousSibling) {
-    if (nn.nodeType == 1 && nn.nodeName == name) { ns++ }
+    if (nn.nodeType === 1 && nn.nodeName === name) {
+      ns++;
+    }
   }
-  return this.path_to(n.parentNode) + '_' + name + '' + ns;
+  return this.getPath(n.parentNode) + '_' + name + '' + ns;
 };
 
 module.exports = MathYlemDoc;
