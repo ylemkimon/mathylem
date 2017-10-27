@@ -112,22 +112,22 @@ MathYlemDoc.prototype.render = function (t, n, r) {
       ans = n.getAttribute('render');
     } else if (t === 'text') {
       ans = MathYlemUtils.getValue(n);
-      if (n.previousSibling && n.nextSibling && ans === '') {
-        ans = ' * ';
+      if (n.previousSibling && n.nextSibling && ans === '' &&
+          n.previousSibling.getAttribute('group') !== 'operators' &&
+          n.nextSibling.getAttribute('group') !== 'operators') {
+        ans = '*';
       } else {
-        ans = ans.replace(/(.)([^a-zA-Z0-9.])(.)/g, '$1 $2 $3');
-        ans = ans.replace(/([a-zA-Z])(?=\.)/g, '$1 * ');
-        ans = ans.replace(/(\.)(?=[a-zA-Z])/g, '$1 * ');
-        ans = ans.replace(/([a-zA-Z])(?=[a-zA-Z0-9])/g, '$1 * ');
-        ans = ans.replace(/([a-zA-Z0-9])(?=[a-zA-Z])/g, '$1 * ');
+        ans = ans.replace(/([a-zA-Z])(?=\.)/g, '$1*');
+        ans = ans.replace(/(\.)(?=[a-zA-Z])/g, '$1*');
+        ans = ans.replace(/([a-zA-Z])(?=[a-zA-Z0-9])/g, '$1*');
+        ans = ans.replace(/([a-zA-Z0-9])(?=[a-zA-Z])/g, '$1*');
         if (n.previousSibling &&
-            n.previousSibling.getAttribute('group') !== 'operations') {
-          ans = ans.replace(/^([a-zA-Z0-9])/g, ' * $1');
+            n.previousSibling.getAttribute('group') !== 'operators') {
+          ans = ans.replace(/^([a-zA-Z0-9])/g, '*$1');
         }
-        if (n.nextSibling && n.nextSibling.getAttribute('group') !== 'operations') {
-          ans = ans.replace(/([a-zA-Z0-9])$/g, '$1 * ');
+        if (n.nextSibling && n.nextSibling.getAttribute('group') !== 'operators') {
+          ans = ans.replace(/([a-zA-Z0-9])$/g, '$1*');
         }
-        ans = ' ' + ans + ' ';
       }
     } else {
       ans = MathYlemUtils.getValue(n);
