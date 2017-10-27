@@ -1,8 +1,8 @@
-var MathYlemUtils = require('./mathylem_utils.js');
-var MathYlemDoc = require('./mathylem_doc.js');
-var MathYlemSymbols = require('./mathylem_symbols.js');
+var Utils = require('./mathylem_utils.js');
+var Doc = require('./mathylem_doc.js');
+var Symbols = require('./mathylem_symbols.js');
 
-var MathYlemBackend = function (config) {
+var Backend = function (config) {
   config = config || {};
   var events = config['events'] || {};
   var options = config['options'] || {};
@@ -35,7 +35,7 @@ var MathYlemBackend = function (config) {
     }
   }
 
-  this.doc = new MathYlemDoc(options['xmlContent']);
+  this.doc = new Doc(options['xmlContent']);
 
   this.current = this.doc.root().firstChild;
   this.caret = 0;
@@ -43,45 +43,45 @@ var MathYlemBackend = function (config) {
   this.selEnd = null;
   this.undoData = [];
   this.undoCurrent = -1;
-  this.selStatus = MathYlemBackend.SEL_NONE;
+  this.selStatus = Backend.SEL_NONE;
   this.checkpoint();
 };
 
-MathYlemBackend.SEL_NONE = 0;
-MathYlemBackend.SEL_CURSOR_AT_START = 1;
-MathYlemBackend.SEL_CURSOR_AT_END = 2;
+Backend.SEL_NONE = 0;
+Backend.SEL_CURSOR_AT_START = 1;
+Backend.SEL_CURSOR_AT_END = 2;
 
-MathYlemBackend.Clipboard = null;
+Backend.Clipboard = null;
 
-MathYlemBackend.prototype.getContent = function (t, r) {
+Backend.prototype.getContent = function (t, r) {
   return this.doc.getContent(t, r);
 };
 
-MathYlemBackend.prototype.xml = function () {
+Backend.prototype.xml = function () {
   return this.doc.getContent('xml');
 };
 
-MathYlemBackend.prototype.latex = function () {
+Backend.prototype.latex = function () {
   return this.doc.getContent('latex');
 };
 
-MathYlemBackend.prototype.text = function () {
+Backend.prototype.text = function () {
   return this.doc.getContent('text');
 };
 
-MathYlemBackend.prototype.setContent = function (xmlData) {
-  this.doc = new MathYlemDoc(xmlData);
+Backend.prototype.setContent = function (xmlData) {
+  this.doc = new Doc(xmlData);
   this.current = this.doc.root().lastChild;
-  this.caret = MathYlemUtils.getLength(this.current);
+  this.caret = Utils.getLength(this.current);
   this.selStart = null;
   this.selEnd = null;
   this.undoData = [];
   this.undoCurrent = -1;
-  this.selStatus = MathYlemBackend.SEL_NONE;
+  this.selStatus = Backend.SEL_NONE;
   this.checkpoint();
 };
 
-MathYlemBackend.prototype.fireEvent = function (event, args) {
+Backend.prototype.fireEvent = function (event, args) {
   args = args || {};
   args.target = this.parent;
   if (this.events[event]) {
@@ -89,35 +89,35 @@ MathYlemBackend.prototype.fireEvent = function (event, args) {
   }
 };
 
-MathYlemBackend.prototype.selectTo = function (loc, selCursor, selCaret, mouse) {
+Backend.prototype.selectTo = function (loc, selCursor, selCaret, mouse) {
   if (loc.current === selCursor && loc.caret === selCaret) {
-    this.selStatus = MathYlemBackend.SEL_NONE;
+    this.selStatus = Backend.SEL_NONE;
   } else if (loc.pos === 'left') {
     this.selEnd = {
       'node': selCursor,
       'caret': selCaret
     };
-    this.setSelection(MathYlemBackend.SEL_CURSOR_AT_START, mouse);
+    this.setSelection(Backend.SEL_CURSOR_AT_START, mouse);
   } else if (loc.pos === 'right') {
     this.selStart = {
       'node': selCursor,
       'caret': selCaret
     };
-    this.setSelection(MathYlemBackend.SEL_CURSOR_AT_END, mouse);
+    this.setSelection(Backend.SEL_CURSOR_AT_END, mouse);
   }
   this.current = loc.current;
   this.caret = loc.caret;
 };
 
-MathYlemBackend.prototype.setSelStart = function () {
+Backend.prototype.setSelStart = function () {
   this.selStart = { 'node': this.current, 'caret': this.caret };
 };
 
-MathYlemBackend.prototype.setSelEnd = function () {
+Backend.prototype.setSelEnd = function () {
   this.selEnd = { 'node': this.current, 'caret': this.caret };
 };
 
-MathYlemBackend.prototype.addPaths = function (n, path) {
+Backend.prototype.addPaths = function (n, path) {
   if (n.nodeName === 'e') {
     n.setAttribute('path', path);
   } else {
@@ -143,32 +143,32 @@ MathYlemBackend.prototype.addPaths = function (n, path) {
   }
 };
 
-MathYlemBackend.prototype.addCursorClasses = function (n, path) {
+Backend.prototype.addCursorClasses = function (n, path) {
   if (n.nodeName === 'e') {
-    var text = MathYlemUtils.getValue(n);
+    var text = Utils.getValue(n);
     var ans = '';
     var selCursor;
-    var isTextNode = MathYlemUtils.isText(n);
-    if (this.selStatus === MathYlemBackend.SEL_CURSOR_AT_START) {
+    var isTextNode = Utils.isText(n);
+    if (this.selStatus === Backend.SEL_CURSOR_AT_START) {
       selCursor = this.selEnd;
     }
-    if (this.selStatus === MathYlemBackend.SEL_CURSOR_AT_END) {
+    if (this.selStatus === Backend.SEL_CURSOR_AT_END) {
       selCursor = this.selStart;
     }
-    if (this.selStatus !== MathYlemBackend.SEL_NONE) {
-      var selCaretText = MathYlemUtils.isSmall(selCursor.node)
-        ? MathYlemUtils.SMALL_SEL_CARET : MathYlemUtils.SEL_CARET;
+    if (this.selStatus !== Backend.SEL_NONE) {
+      var selCaretText = Utils.isSmall(selCursor.node)
+        ? Utils.SMALL_SEL_CARET : Utils.SEL_CARET;
       if (!isTextNode && text.length === 0 && n.parentNode.childElementCount > 1) {
         selCaretText = '\\blue{\\xmlClass{mathylem_elt mathylem_blank ' +
           'mathylem_loc_' + n.getAttribute('path') + '_0}{' + selCaretText + '}}';
       } else {
         selCaretText = '\\blue{' + selCaretText + '}';
       }
-      if (this.selStatus === MathYlemBackend.SEL_CURSOR_AT_END) {
+      if (this.selStatus === Backend.SEL_CURSOR_AT_END) {
         selCaretText = isTextNode ? '[' : selCaretText + '\\' +
-          MathYlemUtils.SEL_COLOR + '{';
+          Utils.SEL_COLOR + '{';
       }
-      if (this.selStatus === MathYlemBackend.SEL_CURSOR_AT_START) {
+      if (this.selStatus === Backend.SEL_CURSOR_AT_START) {
         selCaretText = isTextNode ? ']' : '}' + selCaretText;
       }
     }
@@ -179,8 +179,8 @@ MathYlemBackend.prototype.addCursorClasses = function (n, path) {
         caretText = '\\_';
       } else if (n.parentNode.childElementCount === 1) {
         if (this.current === n) {
-          var blankCaret = this.blankCaret || (MathYlemUtils.isSmall(this.current)
-            ? MathYlemUtils.SMALL_CARET : MathYlemUtils.CARET);
+          var blankCaret = this.blankCaret || (Utils.isSmall(this.current)
+            ? Utils.SMALL_CARET : Utils.CARET);
           ans = '\\red{\\xmlClass{main_cursor mathylem_elt mathylem_blank ' +
             'mathylem_loc_' + n.getAttribute('path') + '_0}{' + blankCaret + '}}';
         } else if (this.tempCursor.node === n) {
@@ -206,32 +206,31 @@ MathYlemBackend.prototype.addCursorClasses = function (n, path) {
       if (n === this.current && i === this.caret &&
           (text.length > 0 || n.parentNode.childElementCount > 1)) {
         if (isTextNode) {
-          if (this.selStatus === MathYlemBackend.SEL_CURSOR_AT_START) {
+          if (this.selStatus === Backend.SEL_CURSOR_AT_START) {
             caretText = '[';
-          } else if (this.selStatus === MathYlemBackend.SEL_CURSOR_AT_END) {
+          } else if (this.selStatus === Backend.SEL_CURSOR_AT_END) {
             caretText = ']';
           } else {
             caretText = '\\_';
           }
         } else {
-          caretText = MathYlemUtils.isSmall(this.current)
-            ? MathYlemUtils.SMALL_CARET : MathYlemUtils.CARET;
+          caretText = Utils.isSmall(this.current) ? Utils.SMALL_CARET : Utils.CARET;
           if (text.length === 0) {
             caretText = '\\red{\\xmlClass{main_cursor mathylem_elt mathylem_blank' +
               ' mathylem_loc_' + n.getAttribute('path') + '_0}{' + caretText + '}}';
           } else {
             caretText = '\\red{\\xmlClass{main_cursor}{' + caretText + '}}';
           }
-          if (this.selStatus === MathYlemBackend.SEL_CURSOR_AT_START) {
-            caretText = caretText + '\\' + MathYlemUtils.SEL_COLOR + '{';
-          } else if (this.selStatus === MathYlemBackend.SEL_CURSOR_AT_END) {
+          if (this.selStatus === Backend.SEL_CURSOR_AT_START) {
+            caretText = caretText + '\\' + Utils.SEL_COLOR + '{';
+          } else if (this.selStatus === Backend.SEL_CURSOR_AT_END) {
             caretText = '}' + caretText;
           }
         }
         ans += caretText;
       } else if (n === this.current && i === this.caret && isTextNode) {
         ans += caretText;
-      } else if (this.selStatus !== MathYlemBackend.SEL_NONE &&
+      } else if (this.selStatus !== Backend.SEL_NONE &&
           selCursor.node === n && i === selCursor.caret) {
         ans += selCaretText;
       } else if (this.tempCursor.node === n && i === this.tempCursor.caret &&
@@ -239,8 +238,8 @@ MathYlemBackend.prototype.addCursorClasses = function (n, path) {
         if (isTextNode) {
           tempCaretText = '.';
         } else {
-          tempCaretText = MathYlemUtils.isSmall(this.current)
-            ? MathYlemUtils.TEMP_SMALL_CARET : MathYlemUtils.TEMP_CARET;
+          tempCaretText = Utils.isSmall(this.current)
+            ? Utils.TEMP_SMALL_CARET : Utils.TEMP_CARET;
           if (text.length === 0) {
             tempCaretText = '\\gray{\\xmlClass{mathylem_elt mathylem_blank math' +
               'ylem_loc_' + n.getAttribute('path') + '_0}{' + tempCaretText + '}}';
@@ -270,7 +269,7 @@ MathYlemBackend.prototype.addCursorClasses = function (n, path) {
   }
 };
 
-MathYlemBackend.prototype.removeCursorClasses = function (n) {
+Backend.prototype.removeCursorClasses = function (n) {
   if (n.nodeName === 'e') {
     n.removeAttribute('path');
     n.removeAttribute('render');
@@ -285,7 +284,7 @@ MathYlemBackend.prototype.removeCursorClasses = function (n) {
   }
 };
 
-MathYlemBackend.prototype.downFromF = function () {
+Backend.prototype.downFromF = function () {
   var nn = this.current.firstChild;
   while (nn != null && nn.nodeName !== 'c' && nn.nodeName !== 'l') {
     nn = nn.nextSibling;
@@ -298,10 +297,10 @@ MathYlemBackend.prototype.downFromF = function () {
   }
 };
 
-MathYlemBackend.prototype.downFromFToBlank = function () {
+Backend.prototype.downFromFToBlank = function () {
   var nn = this.current.firstChild;
   while (nn != null && !(nn.nodeName === 'c' && nn.childNodes.length === 1 &&
-      MathYlemUtils.isBlank(nn.firstChild))) {
+      Utils.isBlank(nn.firstChild))) {
     nn = nn.nextSibling;
   }
   if (nn != null) {
@@ -314,25 +313,24 @@ MathYlemBackend.prototype.downFromFToBlank = function () {
   }
 };
 
-MathYlemBackend.prototype.deleteFromF = function (toInsert) {
+Backend.prototype.deleteFromF = function (toInsert) {
   var n = this.current;
   var p = n.parentNode;
   var prev = n.previousSibling;
   var next = n.nextSibling;
   var middle = toInsert || '';
-  var newNode = this.makeE(MathYlemUtils.getValue(prev) + middle +
-    MathYlemUtils.getValue(next));
+  var newNode = this.makeE(Utils.getValue(prev) + middle + Utils.getValue(next));
   this.current = newNode;
-  this.caret = MathYlemUtils.getLength(prev);
+  this.caret = Utils.getLength(prev);
   p.insertBefore(newNode, prev);
   p.removeChild(prev);
   p.removeChild(n);
   p.removeChild(next);
 };
 
-MathYlemBackend.prototype.symbolToNode = function (name, content) {
+Backend.prototype.symbolToNode = function (name, content) {
   var base = this.doc.base;
-  var s = MathYlemSymbols.symbols[name];
+  var s = Symbols.symbols[name];
   var f = base.createElement('f');
   f.setAttribute('type', name);
   if ('group' in s) {
@@ -430,7 +428,7 @@ MathYlemBackend.prototype.symbolToNode = function (name, content) {
   return { 'f': f, 'first': first };
 };
 
-MathYlemBackend.prototype.insertSymbol = function (name) {
+Backend.prototype.insertSymbol = function (name) {
   if (this.isBlacklisted(name)) {
     return false;
   }
@@ -440,7 +438,7 @@ MathYlemBackend.prototype.insertSymbol = function (name) {
     this.current = this.current.parentNode.parentNode.nextSibling;
   }
 
-  var s = MathYlemSymbols.symbols[name];
+  var s = Symbols.symbols[name];
   var content = {};
   var leftPiece, rightPiece;
   var cur = s['current'] == null ? 0 : parseInt(s['current']);
@@ -450,12 +448,12 @@ MathYlemBackend.prototype.insertSymbol = function (name) {
 
   if (cur > 0) {
     cur--;
-    if (this.selStatus !== MathYlemBackend.SEL_NONE) {
+    if (this.selStatus !== Backend.SEL_NONE) {
       var sel = this.getSelection();
       toRemove = sel.involved;
-      leftPiece = this.makeE(MathYlemUtils.getValue(sel.remnant)
+      leftPiece = this.makeE(Utils.getValue(sel.remnant)
         .slice(0, this.selStart.caret));
-      rightPiece = this.makeE(MathYlemUtils.getValue(sel.remnant)
+      rightPiece = this.makeE(Utils.getValue(sel.remnant)
         .slice(this.selStart.caret));
       content[cur] = sel.nodeList;
     } else if (s['current_type'] === 'token') {
@@ -468,24 +466,21 @@ MathYlemBackend.prototype.insertSymbol = function (name) {
       } else {
         // look for [0-9.]+|[a-zA-Z] immediately preceeding the caret and
         // use that as token
-        var prev = MathYlemUtils.getValue(this.current).substring(0, this.caret);
+        var prev = Utils.getValue(this.current).substring(0, this.caret);
         var token = prev.match(/[0-9.]+$|[a-zA-Z]$/);
         if (token != null && token.length > 0) {
           token = token[0];
-          leftPiece = this.makeE(MathYlemUtils.getValue(this.current)
+          leftPiece = this.makeE(Utils.getValue(this.current)
             .slice(0, this.caret - token.length));
-          rightPiece = this.makeE(MathYlemUtils.getValue(this.current)
-            .slice(this.caret));
+          rightPiece = this.makeE(Utils.getValue(this.current).slice(this.caret));
           content[cur] = [this.makeE(token)];
         }
       }
     }
   }
   if (!replace && (leftPiece == null || rightPiece == null)) {
-    leftPiece = this.makeE(MathYlemUtils.getValue(this.current)
-      .slice(0, this.caret));
-    rightPiece = this.makeE(MathYlemUtils.getValue(this.current)
-      .slice(this.caret));
+    leftPiece = this.makeE(Utils.getValue(this.current).slice(0, this.caret));
+    rightPiece = this.makeE(Utils.getValue(this.current).slice(this.caret));
     toRemove = [this.current];
   }
 
@@ -539,8 +534,8 @@ MathYlemBackend.prototype.insertSymbol = function (name) {
   return true;
 };
 
-MathYlemBackend.prototype.getSelection = function () {
-  if (this.selStatus === MathYlemBackend.SEL_NONE) {
+Backend.prototype.getSelection = function () {
+  if (this.selStatus === Backend.SEL_NONE) {
     return null;
   }
   var involved = [];
@@ -549,29 +544,28 @@ MathYlemBackend.prototype.getSelection = function () {
 
   if (this.selStart.node === this.selEnd.node) {
     return {
-      'nodeList': [this.makeE(MathYlemUtils.getValue(this.selStart.node)
+      'nodeList': [this.makeE(Utils.getValue(this.selStart.node)
         .substring(this.selStart.caret, this.selEnd.caret))],
-      'remnant': this.makeE(MathYlemUtils.getValue(this.selStart.node)
-        .substring(0, this.selStart.caret) + MathYlemUtils.getValue(
+      'remnant': this.makeE(Utils.getValue(this.selStart.node)
+        .substring(0, this.selStart.caret) + Utils.getValue(
           this.selEnd.node).substring(this.selEnd.caret)),
       'involved': [this.selStart.node]
     };
   }
 
-  nodeList.push(this.makeE(MathYlemUtils.getValue(this.selStart.node)
+  nodeList.push(this.makeE(Utils.getValue(this.selStart.node)
     .substring(this.selStart.caret)));
   involved.push(this.selStart.node);
   involved.push(this.selEnd.node);
-  remnant = this.makeE(MathYlemUtils.getValue(this.selStart.node)
-    .substring(0, this.selStart.caret) + MathYlemUtils.getValue(this.selEnd.node)
-      .substring(this.selEnd.caret));
+  remnant = this.makeE(Utils.getValue(this.selStart.node).substring(0, this.selStart
+    .caret) + Utils.getValue(this.selEnd.node).substring(this.selEnd.caret));
   var n = this.selStart.node.nextSibling;
   while (n != null && n !== this.selEnd.node) {
     involved.push(n);
     nodeList.push(n);
     n = n.nextSibling;
   }
-  nodeList.push(this.makeE(MathYlemUtils.getValue(this.selEnd.node)
+  nodeList.push(this.makeE(Utils.getValue(this.selEnd.node)
     .substring(0, this.selEnd.caret)));
   return { 'nodeList': nodeList,
     'remnant': remnant,
@@ -579,15 +573,15 @@ MathYlemBackend.prototype.getSelection = function () {
     'cursor': 0 };
 };
 
-MathYlemBackend.prototype.makeE = function (text) {
+Backend.prototype.makeE = function (text) {
   var base = this.doc.base;
   var newNode = base.createElement('e');
   newNode.appendChild(base.createTextNode(text));
   return newNode;
 };
 
-MathYlemBackend.prototype.insertString = function (s) {
-  if (this.selStatus !== MathYlemBackend.SEL_NONE) {
+Backend.prototype.insertString = function (s) {
+  if (this.selStatus !== Backend.SEL_NONE) {
     this.deleteSelection();
     this.clearSelection();
   }
@@ -608,32 +602,32 @@ MathYlemBackend.prototype.insertString = function (s) {
   }
 };
 
-MathYlemBackend.prototype.copySelection = function () {
+Backend.prototype.copySelection = function () {
   var sel = this.getSelection();
   if (!sel) {
     return;
   }
-  MathYlemBackend.Clipboard = [];
+  Backend.Clipboard = [];
   for (var i = 0; i < sel.nodeList.length; i++) {
-    MathYlemBackend.Clipboard.push(sel.nodeList[i].cloneNode(true));
+    Backend.Clipboard.push(sel.nodeList[i].cloneNode(true));
   }
   this.clearSelection();
 };
 
-MathYlemBackend.prototype.cutSelection = function () {
+Backend.prototype.cutSelection = function () {
   var nodeList = this.deleteSelection();
   if (!nodeList) {
     return;
   }
-  MathYlemBackend.Clipboard = [];
+  Backend.Clipboard = [];
   for (var i = 0; i < nodeList.length; i++) {
-    MathYlemBackend.Clipboard.push(nodeList[i].cloneNode(true));
+    Backend.Clipboard.push(nodeList[i].cloneNode(true));
   }
   this.clearSelection();
   this.checkpoint();
 };
 
-MathYlemBackend.prototype.insertNodes = function (nodeList, moveCursor) {
+Backend.prototype.insertNodes = function (nodeList, moveCursor) {
   var clipboard = [];
   for (var i = 0; i < nodeList.length; i++) {
     clipboard.push(nodeList[i].cloneNode(true));
@@ -652,10 +646,10 @@ MathYlemBackend.prototype.insertNodes = function (nodeList, moveCursor) {
       }
     }
   } else {
-    var nn = this.makeE(MathYlemUtils.getValue(clipboard[clipboard.length - 1]) +
+    var nn = this.makeE(Utils.getValue(clipboard[clipboard.length - 1]) +
       this.current.firstChild.nodeValue.substring(this.caret));
     this.current.firstChild.nodeValue = this.current.firstChild.nodeValue
-      .substring(0, this.caret) + MathYlemUtils.getValue(clipboard[0]);
+      .substring(0, this.caret) + Utils.getValue(clipboard[0]);
     if (this.current.nextSibling == null) {
       this.current.parentNode.appendChild(nn);
     } else {
@@ -666,28 +660,28 @@ MathYlemBackend.prototype.insertNodes = function (nodeList, moveCursor) {
     }
     if (moveCursor) {
       this.current = nn;
-      this.caret = MathYlemUtils.getLength(clipboard[clipboard.length - 1]);
+      this.caret = Utils.getLength(clipboard[clipboard.length - 1]);
     }
   }
 };
 
-MathYlemBackend.prototype.paste = function () {
+Backend.prototype.paste = function () {
   this.deleteSelection();
   this.clearSelection();
-  if (!MathYlemBackend.Clipboard || MathYlemBackend.Clipboard.length === 0) {
+  if (!Backend.Clipboard || Backend.Clipboard.length === 0) {
     return;
   }
-  this.insertNodes(MathYlemBackend.Clipboard, true);
+  this.insertNodes(Backend.Clipboard, true);
   this.checkpoint();
 };
 
-MathYlemBackend.prototype.clearSelection = function () {
+Backend.prototype.clearSelection = function () {
   this.selStart = null;
   this.selEnd = null;
-  this.selStatus = MathYlemBackend.SEL_NONE;
+  this.selStatus = Backend.SEL_NONE;
 };
 
-MathYlemBackend.prototype.deleteSelection = function () {
+Backend.prototype.deleteSelection = function () {
   var sel = this.getSelection();
   if (!sel) {
     return null;
@@ -716,102 +710,102 @@ MathYlemBackend.prototype.deleteSelection = function () {
   return sel.nodeList;
 };
 
-MathYlemBackend.prototype.selectAll = function () {
+Backend.prototype.selectAll = function () {
   this.home();
   this.setSelStart();
   this.end();
   this.setSelEnd();
   if (this.selStart.node !== this.selEnd.node ||
       this.selStart.caret !== this.selEnd.caret) {
-    this.selStatus = MathYlemBackend.SEL_CURSOR_AT_END;
+    this.selStatus = Backend.SEL_CURSOR_AT_END;
   }
 };
 
-MathYlemBackend.prototype.selectRight = function () {
-  if (this.selStatus === MathYlemBackend.SEL_NONE) {
+Backend.prototype.selectRight = function () {
+  if (this.selStatus === Backend.SEL_NONE) {
     this.setSelStart();
-    this.selStatus = MathYlemBackend.SEL_CURSOR_AT_END;
+    this.selStatus = Backend.SEL_CURSOR_AT_END;
   }
-  if (this.caret >= MathYlemUtils.getLength(this.current)) {
+  if (this.caret >= Utils.getLength(this.current)) {
     var nn = this.current.nextSibling;
     if (nn != null) {
       this.current = nn.nextSibling;
       this.caret = 0;
-      this.setSelection(MathYlemBackend.SEL_CURSOR_AT_END);
+      this.setSelection(Backend.SEL_CURSOR_AT_END);
     } else {
-      this.setSelection(MathYlemBackend.SEL_CURSOR_AT_END);
+      this.setSelection(Backend.SEL_CURSOR_AT_END);
     }
   } else {
     this.caret += 1;
-    this.setSelection(MathYlemBackend.SEL_CURSOR_AT_END);
+    this.setSelection(Backend.SEL_CURSOR_AT_END);
   }
   if (this.selStart.node === this.selEnd.node &&
       this.selStart.caret === this.selEnd.caret) {
-    this.selStatus = MathYlemBackend.SEL_NONE;
+    this.selStatus = Backend.SEL_NONE;
   }
 };
 
-MathYlemBackend.prototype.setSelection = function (sstatus, mouse) {
-  if (this.selStatus === MathYlemBackend.SEL_NONE || mouse) {
+Backend.prototype.setSelection = function (sstatus, mouse) {
+  if (this.selStatus === Backend.SEL_NONE || mouse) {
     this.selStatus = sstatus;
   }
-  if (this.selStatus === MathYlemBackend.SEL_CURSOR_AT_START) {
+  if (this.selStatus === Backend.SEL_CURSOR_AT_START) {
     this.setSelStart();
-  } else if (this.selStatus === MathYlemBackend.SEL_CURSOR_AT_END) {
+  } else if (this.selStatus === Backend.SEL_CURSOR_AT_END) {
     this.setSelEnd();
   }
 };
 
-MathYlemBackend.prototype.selectLeft = function () {
-  if (this.selStatus === MathYlemBackend.SEL_NONE) {
+Backend.prototype.selectLeft = function () {
+  if (this.selStatus === Backend.SEL_NONE) {
     this.setSelEnd();
-    this.selStatus = MathYlemBackend.SEL_CURSOR_AT_START;
+    this.selStatus = Backend.SEL_CURSOR_AT_START;
   }
   if (this.caret <= 0) {
     var nn = this.current.previousSibling;
     if (nn != null) {
       this.current = nn.previousSibling;
-      this.caret = MathYlemUtils.getLength(this.current);
-      this.setSelection(MathYlemBackend.SEL_CURSOR_AT_START);
+      this.caret = Utils.getLength(this.current);
+      this.setSelection(Backend.SEL_CURSOR_AT_START);
     } else {
-      this.setSelection(MathYlemBackend.SEL_CURSOR_AT_START);
+      this.setSelection(Backend.SEL_CURSOR_AT_START);
     }
   } else {
     this.caret -= 1;
-    this.setSelection(MathYlemBackend.SEL_CURSOR_AT_START);
+    this.setSelection(Backend.SEL_CURSOR_AT_START);
   }
   if (this.selStart.node === this.selEnd.node &&
       this.selStart.caret === this.selEnd.caret) {
-    this.selStatus = MathYlemBackend.SEL_NONE;
+    this.selStatus = Backend.SEL_NONE;
   }
 };
 
-MathYlemBackend.prototype.copyExtendListRight = function () {
+Backend.prototype.copyExtendListRight = function () {
   this.extendList('right', true);
 };
-MathYlemBackend.prototype.copyExtendListLeft = function () {
+Backend.prototype.copyExtendListLeft = function () {
   this.extendList('left', true);
 };
-MathYlemBackend.prototype.extendListRight = function () {
+Backend.prototype.extendListRight = function () {
   this.extendList('right', false);
 };
-MathYlemBackend.prototype.extendListLeft = function () {
+Backend.prototype.extendListLeft = function () {
   this.extendList('left', false);
 };
-MathYlemBackend.prototype.extendListUp = function () {
+Backend.prototype.extendListUp = function () {
   this.extendList('up', false);
 };
-MathYlemBackend.prototype.extendListDown = function () {
+Backend.prototype.extendListDown = function () {
   this.extendList('down', false);
 };
-MathYlemBackend.prototype.copyExtendListUp = function () {
+Backend.prototype.copyExtendListUp = function () {
   this.extendList('up', true);
 };
-MathYlemBackend.prototype.copyExtendListDown = function () {
+Backend.prototype.copyExtendListDown = function () {
   this.extendList('down', true);
 };
 
-MathYlemBackend.prototype.moveVerticalList = function (down) {
+Backend.prototype.moveVerticalList = function (down) {
   var n = this.current;
   while (n.parentNode && n.parentNode.parentNode && !(n.nodeName === 'c' &&
       n.parentNode.nodeName === 'l' && n.parentNode.parentNode.nodeName === 'l')) {
@@ -837,10 +831,10 @@ MathYlemBackend.prototype.moveVerticalList = function (down) {
     nn = nn.nextSibling;
   }
   this.current = nn.firstChild;
-  this.caret = down ? 0 : MathYlemUtils.getLength(this.current);
+  this.caret = down ? 0 : Utils.getLength(this.current);
 };
 
-MathYlemBackend.prototype.extendList = function (direction, copy) {
+Backend.prototype.extendList = function (direction, copy) {
   var base = this.doc.base;
   var vertical = direction === 'up' || direction === 'down';
   var before = direction === 'up' || direction === 'left';
@@ -884,7 +878,7 @@ MathYlemBackend.prototype.extendList = function (direction, copy) {
         parseInt(node.parentNode.getAttribute('s')) + 1);
     }
     this.current = before ? n.previousSibling.lastChild : n.nextSibling.firstChild;
-    this.caret = MathYlemUtils.getLength(this.current);
+    this.caret = Utils.getLength(this.current);
     this.checkpoint();
     return;
   }
@@ -916,7 +910,7 @@ MathYlemBackend.prototype.extendList = function (direction, copy) {
   this.checkpoint();
 };
 
-MathYlemBackend.prototype.removeListColumn = function () {
+Backend.prototype.removeListColumn = function () {
   var n = this.current;
   while (n.parentNode && n.parentNode.parentNode && !(n.nodeName === 'c' &&
       n.parentNode.nodeName === 'l' && n.parentNode.parentNode.nodeName === 'l')) {
@@ -929,7 +923,7 @@ MathYlemBackend.prototype.removeListColumn = function () {
   // Don't remove if there is only a single column:
   if (n.previousSibling != null) {
     this.current = n.previousSibling.lastChild;
-    this.caret = MathYlemUtils.getLength(this.current);
+    this.caret = Utils.getLength(this.current);
   } else if (n.nextSibling != null) {
     this.current = n.nextSibling.firstChild;
     this.caret = 0;
@@ -959,7 +953,7 @@ MathYlemBackend.prototype.removeListColumn = function () {
   }
 };
 
-MathYlemBackend.prototype.removeListRow = function () {
+Backend.prototype.removeListRow = function () {
   var n = this.current;
   while (n.parentNode && !(n.nodeName === 'l' && n.parentNode.nodeName === 'l')) {
     n = n.parentNode;
@@ -970,7 +964,7 @@ MathYlemBackend.prototype.removeListRow = function () {
   // Don't remove if there is only a single row:
   if (n.previousSibling != null) {
     this.current = n.previousSibling.lastChild.lastChild;
-    this.caret = MathYlemUtils.getLength(this.current);
+    this.caret = Utils.getLength(this.current);
   } else if (n.nextSibling != null) {
     this.current = n.nextSibling.firstChild.firstChild;
     this.caret = 0;
@@ -982,7 +976,7 @@ MathYlemBackend.prototype.removeListRow = function () {
   n.parentNode.removeChild(n);
 };
 
-MathYlemBackend.prototype.removeListItem = function () {
+Backend.prototype.removeListItem = function () {
   var n = this.current;
   while (n.parentNode && !(n.nodeName === 'c' && n.parentNode.nodeName === 'l')) {
     n = n.parentNode;
@@ -996,7 +990,7 @@ MathYlemBackend.prototype.removeListItem = function () {
   }
   if (n.previousSibling != null) {
     this.current = n.previousSibling.lastChild;
-    this.caret = MathYlemUtils.getLength(this.current);
+    this.caret = Utils.getLength(this.current);
   } else if (n.nextSibling != null) {
     this.current = n.nextSibling.firstChild;
     this.caret = 0;
@@ -1007,9 +1001,9 @@ MathYlemBackend.prototype.removeListItem = function () {
   n.parentNode.removeChild(n);
 };
 
-MathYlemBackend.prototype.right = function () {
+Backend.prototype.right = function () {
   this.clearSelection();
-  if (this.caret >= MathYlemUtils.getLength(this.current)) {
+  if (this.caret >= Utils.getLength(this.current)) {
     var nn = this.doc.XPathNode('following::e[1]', this.current);
     if (nn != null) {
       this.current = nn;
@@ -1022,19 +1016,19 @@ MathYlemBackend.prototype.right = function () {
   }
 };
 
-MathYlemBackend.prototype.spacebar = function () {
-  if (MathYlemUtils.isText(this.current)) {
+Backend.prototype.spacebar = function () {
+  if (Utils.isText(this.current)) {
     this.insertString(' ');
   }
 };
 
-MathYlemBackend.prototype.left = function () {
+Backend.prototype.left = function () {
   this.clearSelection();
   if (this.caret <= 0) {
     var pn = this.doc.XPathNode('preceding::e[1]', this.current);
     if (pn != null) {
       this.current = pn;
-      this.caret = MathYlemUtils.getLength(this.current);
+      this.caret = Utils.getLength(this.current);
     } else {
       this.fireEvent('leftEnd');
     }
@@ -1043,7 +1037,7 @@ MathYlemBackend.prototype.left = function () {
   }
 };
 
-MathYlemBackend.prototype.deleteFromC = function () {
+Backend.prototype.deleteFromC = function () {
   var pos = 0;
   var c = this.current.parentNode;
   while (c && c.nodeName === 'c') {
@@ -1062,7 +1056,7 @@ MathYlemBackend.prototype.deleteFromC = function () {
   this.insertNodes(remaining, pos > idx);
 };
 
-MathYlemBackend.prototype.deleteFromE = function () {
+Backend.prototype.deleteFromE = function () {
   // return false if we deleted something, and true otherwise.
   if (this.caret > 0) {
     var value = this.current.firstChild.nodeValue;
@@ -1115,7 +1109,7 @@ MathYlemBackend.prototype.deleteFromE = function () {
   return true;
 };
 
-MathYlemBackend.prototype.deleteForwardFromE = function () {
+Backend.prototype.deleteForwardFromE = function () {
   // return false if we deleted something, and true otherwise.
   if (this.caret < this.current.firstChild.nodeValue.length) {
     var value = this.current.firstChild.nodeValue;
@@ -1135,41 +1129,40 @@ MathYlemBackend.prototype.deleteForwardFromE = function () {
   return true;
 };
 
-MathYlemBackend.prototype.backspace = function () {
-  if (this.selStatus !== MathYlemBackend.SEL_NONE) {
+Backend.prototype.backspace = function () {
+  if (this.selStatus !== Backend.SEL_NONE) {
     this.deleteSelection();
-    this.selStatus = MathYlemBackend.SEL_NONE;
+    this.selStatus = Backend.SEL_NONE;
     this.checkpoint();
   } else if (this.deleteFromE()) {
     this.checkpoint();
   }
 };
 
-MathYlemBackend.prototype.deleteKey = function () {
-  if (this.selStatus !== MathYlemBackend.SEL_NONE) {
+Backend.prototype.deleteKey = function () {
+  if (this.selStatus !== Backend.SEL_NONE) {
     this.deleteSelection();
-    this.selStatus = MathYlemBackend.SEL_NONE;
+    this.selStatus = Backend.SEL_NONE;
     this.checkpoint();
   } else if (this.deleteForwardFromE()) {
     this.checkpoint();
   }
 };
 
-MathYlemBackend.prototype.backslash = function () {
-  if (MathYlemUtils.isText(this.current)) {
-    return;
+Backend.prototype.backslash = function () {
+  if (!Utils.isText(this.current)) {
+    this.insertSymbol('sym_name');
   }
-  this.insertSymbol('sym_name');
 };
 
-MathYlemBackend.prototype.tab = function () {
-  if (!MathYlemUtils.isSymbol(this.current)) {
+Backend.prototype.tab = function () {
+  if (!Utils.isSymbol(this.current)) {
     this.checkForSymbol();
     return;
   }
   var name = this.current.firstChild.textContent;
   var candidates = [];
-  for (var n in MathYlemSymbols.symbols) {
+  for (var n in Symbols.symbols) {
     if (n.substr(0, name.length) === name) {
       candidates.push(n);
     }
@@ -1182,14 +1175,14 @@ MathYlemBackend.prototype.tab = function () {
   }
 };
 
-MathYlemBackend.prototype.rightParen = function () {
+Backend.prototype.rightParen = function () {
   if (this.current.nodeName !== 'e' ||
-      this.caret === MathYlemUtils.getLength(this.current)) {
+      this.caret === Utils.getLength(this.current)) {
     this.right();
   }
 };
 
-MathYlemBackend.prototype.up = function () {
+Backend.prototype.up = function () {
   this.clearSelection();
   if (this.current.parentNode.hasAttribute('up')) {
     var t = parseInt(this.current.parentNode.getAttribute('up'));
@@ -1204,13 +1197,13 @@ MathYlemBackend.prototype.up = function () {
       }
     }
     this.current = n.lastChild;
-    this.caret = MathYlemUtils.getLength(this.current);
+    this.caret = Utils.getLength(this.current);
   } else {
     this.moveVerticalList(false);
   }
 };
 
-MathYlemBackend.prototype.down = function () {
+Backend.prototype.down = function () {
   this.clearSelection();
   if (this.current.parentNode.hasAttribute('down')) {
     var t = parseInt(this.current.parentNode.getAttribute('down'));
@@ -1225,23 +1218,23 @@ MathYlemBackend.prototype.down = function () {
       }
     }
     this.current = n.lastChild;
-    this.caret = MathYlemUtils.getLength(this.current);
+    this.caret = Utils.getLength(this.current);
   } else {
     this.moveVerticalList(true);
   }
 };
 
-MathYlemBackend.prototype.home = function () {
+Backend.prototype.home = function () {
   this.current = this.doc.root().firstChild;
   this.caret = 0;
 };
 
-MathYlemBackend.prototype.end = function () {
+Backend.prototype.end = function () {
   this.current = this.doc.root().lastChild;
-  this.caret = MathYlemUtils.getLength(this.current);
+  this.caret = Utils.getLength(this.current);
 };
 
-MathYlemBackend.prototype.checkpoint = function () {
+Backend.prototype.checkpoint = function () {
   var base = this.doc.base;
   this.current.setAttribute('current', 'yes');
   this.current.setAttribute('caret', this.caret.toString());
@@ -1257,19 +1250,19 @@ MathYlemBackend.prototype.checkpoint = function () {
   }
 };
 
-MathYlemBackend.prototype.restore = function (t) {
+Backend.prototype.restore = function (t) {
   this.doc.base = this.undoData[t].cloneNode(true);
   this.findCurrent();
   this.current.removeAttribute('current');
   this.current.removeAttribute('caret');
 };
 
-MathYlemBackend.prototype.findCurrent = function () {
+Backend.prototype.findCurrent = function () {
   this.current = this.doc.XPathNode("//*[@current='yes']");
   this.caret = parseInt(this.current.getAttribute('caret'));
 };
 
-MathYlemBackend.prototype.undo = function () {
+Backend.prototype.undo = function () {
   this.clearSelection();
   if (this.undoCurrent <= 0) {
     return;
@@ -1278,7 +1271,7 @@ MathYlemBackend.prototype.undo = function () {
   this.restore(this.undoCurrent);
 };
 
-MathYlemBackend.prototype.redo = function () {
+Backend.prototype.redo = function () {
   this.clearSelection();
   if (this.undoCurrent >= this.undoData.length - 1) {
     return;
@@ -1287,17 +1280,17 @@ MathYlemBackend.prototype.redo = function () {
   this.restore(this.undoCurrent);
 };
 
-MathYlemBackend.prototype.done = function (s) {
-  if (MathYlemUtils.isSymbol(this.current)) {
+Backend.prototype.done = function (s) {
+  if (Utils.isSymbol(this.current)) {
     this.completeSymbol();
   } else {
     this.fireEvent('done');
   }
 };
 
-MathYlemBackend.prototype.completeSymbol = function () {
+Backend.prototype.completeSymbol = function () {
   var name = this.current.firstChild.textContent;
-  if (!MathYlemSymbols.symbols[name]) {
+  if (!Symbols.symbols[name]) {
     return;
   }
   this.current = this.current.parentNode.parentNode;
@@ -1305,7 +1298,7 @@ MathYlemBackend.prototype.completeSymbol = function () {
   this.insertSymbol(name);
 };
 
-MathYlemBackend.prototype.isBlacklisted = function (type) {
+Backend.prototype.isBlacklisted = function (type) {
   for (var i = 0; i < this.blacklist.length; i++) {
     if (type === this.blacklist[i]) {
       return true;
@@ -1314,8 +1307,8 @@ MathYlemBackend.prototype.isBlacklisted = function (type) {
   return false;
 };
 
-MathYlemBackend.prototype.replaceSymbol = function (node, name) {
-  var symbol = MathYlemSymbols.symbols[name];
+Backend.prototype.replaceSymbol = function (node, name) {
+  var symbol = Symbols.symbols[name];
   if (!symbol || this.isBlacklisted(name)) {
     return false;
   }
@@ -1330,7 +1323,7 @@ MathYlemBackend.prototype.replaceSymbol = function (node, name) {
   return true;
 };
 
-MathYlemBackend.prototype.checkForPower = function () {
+Backend.prototype.checkForPower = function () {
   if (this.autoreplace && this.caret === 0 && this.current.previousSibling &&
       this.current.previousSibling.nodeName === 'f' &&
       this.current.previousSibling.getAttribute('type') === '*') {
@@ -1342,7 +1335,7 @@ MathYlemBackend.prototype.checkForPower = function () {
   return false;
 };
 
-MathYlemBackend.prototype.checkForIneq = function () {
+Backend.prototype.checkForIneq = function () {
   if (this.autoreplace && this.caret === 0 && this.current.previousSibling &&
       this.current.previousSibling.nodeName === 'f' &&
       ['<', '>'].indexOf(this.current.previousSibling.getAttribute('type')) > -1) {
@@ -1352,8 +1345,8 @@ MathYlemBackend.prototype.checkForIneq = function () {
   return false;
 };
 
-MathYlemBackend.prototype.checkForSymbol = function () {
-  if (MathYlemUtils.isText(this.current)) {
+Backend.prototype.checkForSymbol = function () {
+  if (Utils.isText(this.current)) {
     return;
   }
   var value = this.current.firstChild.nodeValue;
@@ -1364,11 +1357,11 @@ MathYlemBackend.prototype.checkForSymbol = function () {
     this.replaceSymbol(n, n.getAttribute('type') + 'h');
     return;
   }
-  for (var s in MathYlemSymbols.symbols) {
+  for (var s in Symbols.symbols) {
     if (['psi', 'xi'].indexOf(s) > -1) {
       continue;
     }
-    if (this.current.nodeName === 'e' && !MathYlemUtils.isBlank(this.current) &&
+    if (this.current.nodeName === 'e' &&
         value.substring(this.caret - s.length, this.caret) === s) {
       var temp = value;
       var tempCaret = this.caret;
@@ -1385,4 +1378,4 @@ MathYlemBackend.prototype.checkForSymbol = function () {
   }
 };
 
-module.exports = MathYlemBackend;
+module.exports = Backend;

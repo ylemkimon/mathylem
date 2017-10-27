@@ -1,29 +1,29 @@
-var MathYlemUtils = {};
+var Utils = {};
 
-MathYlemUtils.CARET = '\\cursor{-0.2ex}{0.7em}';
-MathYlemUtils.TEMP_SMALL_CARET = '\\cursor{0em}{0.6em}';
-MathYlemUtils.TEMP_CARET = '\\cursor{-0.2ex}{0.7em}';
-MathYlemUtils.SMALL_CARET = '\\cursor{-0.05em}{0.5em}';
-MathYlemUtils.SEL_CARET = '\\cursor{-0.2ex}{0.7em}';
-MathYlemUtils.SMALL_SEL_CARET = '\\cursor{-0.05em}{0.5em}';
-MathYlemUtils.SEL_COLOR = 'red';
+Utils.CARET = '\\cursor{-0.2ex}{0.7em}';
+Utils.TEMP_SMALL_CARET = '\\cursor{0em}{0.6em}';
+Utils.TEMP_CARET = '\\cursor{-0.2ex}{0.7em}';
+Utils.SMALL_CARET = '\\cursor{-0.05em}{0.5em}';
+Utils.SEL_CARET = '\\cursor{-0.2ex}{0.7em}';
+Utils.SMALL_SEL_CARET = '\\cursor{-0.05em}{0.5em}';
+Utils.SEL_COLOR = 'red';
 
-MathYlemUtils.isBlank = function (n) {
+Utils.isBlank = function (n) {
   return n.firstChild == null || n.firstChild.nodeValue === '';
 };
 
-MathYlemUtils.getValue = function (n) {
+Utils.getValue = function (n) {
   return n.firstChild ? n.firstChild.nodeValue : '';
 };
 
-MathYlemUtils.getLength = function (n) {
-  if (MathYlemUtils.isBlank(n) || n.nodeName === 'f') {
+Utils.getLength = function (n) {
+  if (Utils.isBlank(n) || n.nodeName === 'f') {
     return 0;
   }
   return n.firstChild.nodeValue.length;
 };
 
-MathYlemUtils.getPath = function (n) {
+Utils.getPath = function (n) {
   var name = n.nodeName;
   if (name === 'm') {
     return 'mathylem_loc_m';
@@ -34,20 +34,20 @@ MathYlemUtils.getPath = function (n) {
       ns++;
     }
   }
-  return MathYlemUtils.getPath(n.parentNode) + '_' + name + '' + ns;
+  return Utils.getPath(n.parentNode) + '_' + name + '' + ns;
 };
 
-MathYlemUtils.isText = function (nn) {
+Utils.isText = function (nn) {
   return nn.parentNode.getAttribute('mode') && (nn.parentNode.getAttribute(
     'mode') === 'text' || nn.parentNode.getAttribute('mode') === 'symbol');
 };
 
-MathYlemUtils.isSymbol = function (nn) {
+Utils.isSymbol = function (nn) {
   return nn.parentNode.getAttribute('mode') &&
     nn.parentNode.getAttribute('mode') === 'symbol';
 };
 
-MathYlemUtils.isSmall = function (nn) {
+Utils.isSmall = function (nn) {
   var n = nn.parentNode;
   while (n != null && n.nodeName !== 'm') {
     if (n.getAttribute('small') === 'yes') {
@@ -61,4 +61,4 @@ MathYlemUtils.isSmall = function (nn) {
   return false;
 };
 
-module.exports = MathYlemUtils;
+module.exports = Utils;

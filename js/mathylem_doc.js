@@ -1,12 +1,12 @@
-var MathYlemUtils = require('./mathylem_utils.js');
+var Utils = require('./mathylem_utils.js');
 require('wicked-good-xpath').install();
 
-var MathYlemDoc = function (doc) {
+var Doc = function (doc) {
   doc = doc || '<m><e></e></m>';
   this.setContent(doc);
 };
 
-MathYlemDoc.prototype.isSmall = function (nn) {
+Doc.prototype.isSmall = function (nn) {
   var n = nn.parentNode;
   while (n != null && n.nodeName !== 'm') {
     if (n.getAttribute('small') === 'yes') {
@@ -20,7 +20,7 @@ MathYlemDoc.prototype.isSmall = function (nn) {
   return false;
 };
 
-MathYlemDoc.prototype.ensureTextNodes = function () {
+Doc.prototype.ensureTextNodes = function () {
   var l = this.base.getElementsByTagName('e');
   for (var i = 0; i < l.length; i++) {
     if (!l[i].firstChild) {
@@ -29,7 +29,7 @@ MathYlemDoc.prototype.ensureTextNodes = function () {
   }
 };
 
-MathYlemDoc.prototype.isBlank = function () {
+Doc.prototype.isBlank = function () {
   if (this.base.getElementsByTagName('f').length > 0) {
     return false;
   }
@@ -40,11 +40,11 @@ MathYlemDoc.prototype.isBlank = function () {
   return false;
 };
 
-MathYlemDoc.prototype.root = function () {
+Doc.prototype.root = function () {
   return this.base.documentElement;
 };
 
-MathYlemDoc.prototype.getContent = function (t, r) {
+Doc.prototype.getContent = function (t, r) {
   if (t !== 'xml') {
     return this.render(t, this.root(), r);
   } else {
@@ -52,19 +52,19 @@ MathYlemDoc.prototype.getContent = function (t, r) {
   }
 };
 
-MathYlemDoc.prototype.XPathNode = function (xpath, node) {
+Doc.prototype.XPathNode = function (xpath, node) {
   node = node || this.root();
   return this.base.evaluate(xpath, node, null,
     XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
 };
 
-MathYlemDoc.prototype.XPathList = function (xpath, node) {
+Doc.prototype.XPathList = function (xpath, node) {
   node = node || this.root();
   return this.base.evaluate(xpath, node, null,
     XPathResult.ORDERED_NODE_ITERATOR_TYPE, null);
 };
 
-MathYlemDoc.prototype.setContent = function (data) {
+Doc.prototype.setContent = function (data) {
   this.base = (new DOMParser()).parseFromString(data, 'text/xml');
   this.ensureTextNodes();
 };
@@ -105,13 +105,13 @@ var BRACKET_XPATH = "(count(./*) != 1 and not \
               ./e/@temp = 'yes' \
             )";
 
-MathYlemDoc.prototype.render = function (t, n, r) {
+Doc.prototype.render = function (t, n, r) {
   var ans = '';
   if (n.nodeName === 'e') {
     if (t === 'latex' && r) {
       ans = n.getAttribute('render');
     } else if (t === 'text') {
-      ans = MathYlemUtils.getValue(n);
+      ans = Utils.getValue(n);
       if (n.previousSibling && n.nextSibling && ans === '' &&
           n.previousSibling.getAttribute('group') !== 'operators' &&
           n.nextSibling.getAttribute('group') !== 'operators') {
@@ -130,7 +130,7 @@ MathYlemDoc.prototype.render = function (t, n, r) {
         }
       }
     } else {
-      ans = MathYlemUtils.getValue(n);
+      ans = Utils.getValue(n);
     }
   } else if (n.nodeName === 'f') {
     var type = (t === 'latex' && this.isSmall(n)) ? 'small_latex' : t;
@@ -188,7 +188,7 @@ MathYlemDoc.prototype.render = function (t, n, r) {
   return ans;
 };
 
-MathYlemDoc.prototype.getPath = function (n) {
+Doc.prototype.getPath = function (n) {
   var name = n.nodeName;
   if (name === 'm') {
     return 'mathylem_loc_m';
@@ -202,4 +202,4 @@ MathYlemDoc.prototype.getPath = function (n) {
   return this.getPath(n.parentNode) + '_' + name + '' + ns;
 };
 
-module.exports = MathYlemDoc;
+module.exports = Doc;

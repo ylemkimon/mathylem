@@ -1,9 +1,9 @@
 var Mousetrap = require('mousetrap');
 var katex = require('../lib/katex/katex.js');
-var MathYlemBackend = require('./mathylem_backend.js');
-var MathYlemUtils = require('./mathylem_utils.js');
-var MathYlemSymbols = require('./mathylem_symbols.js');
-var MathYlemDoc = require('./mathylem_doc.js');
+var Backend = require('./mathylem_backend.js');
+var Utils = require('./mathylem_utils.js');
+var Symbols = require('./mathylem_symbols.js');
+var Doc = require('./mathylem_doc.js');
 var debounce = require('throttle-debounce/debounce');
 
 var MathYlem = function (el, config) {
@@ -107,7 +107,7 @@ var MathYlem = function (el, config) {
     fakeInput.value = '____________________';
   }
 
-  this.backend = new MathYlemBackend(config);
+  this.backend = new Backend(config);
   this.tempCursor = { 'node': null, 'caret': 0 };
   this.editor.addEventListener('click', function () {
     var g = this.mathylem;
@@ -124,7 +124,7 @@ var MathYlem = function (el, config) {
     b.caret = MathYlemUtils.getLength(b.current);
     g.activate(true);
   });
-  if (MathYlemBackend.ready) {
+  if (Backend.ready) {
     this.ready = true;
     this.backend.fireEvent('ready');
     this.render(true);
@@ -148,7 +148,7 @@ MathYlem.initialize = function (symbols) {
       MathYlem.instances[i].render(true);
       MathYlem.instances[i].backend.fireEvent('ready');
     }
-    MathYlemBackend.ready = true;
+    Backend.ready = true;
   };
   if (!Array.isArray(symbols)) {
     symbols = [symbols];
@@ -159,7 +159,7 @@ MathYlem.initialize = function (symbols) {
       return function (callback) {
         var req = new XMLHttpRequest();
         req.onload = function () {
-          MathYlemSymbols.addSymbols(this.responseText);
+          Symbols.addSymbols(this.responseText);
           callback();
         };
         req.open('get', symbols[j], true);
@@ -183,7 +183,7 @@ MathYlem.staticRenderAll = function () {
   for (var i = 0; i < l.length; i++) {
     if (l[i].getAttribute('type') === 'text/mathylem_xml') {
       var n = l[i];
-      var d = new MathYlemDoc(n.innerHTML);
+      var d = new Doc(n.innerHTML);
       var s = document.createElement('span');
       s.setAttribute('id', 'eqn1_render');
       katex.render(d.getContent('latex'), s);
@@ -195,7 +195,7 @@ MathYlem.staticRenderAll = function () {
 };
 
 MathYlem.staticRender = function (doc, id) {
-  var d = new MathYlemDoc(doc);
+  var d = new Doc(doc);
   var target = document.getElementById(id);
   katex.render(d.getContent('latex'), target);
   return { 'container': target, 'doc': d };
@@ -266,7 +266,7 @@ MathYlem.getLocation = function (x, y, currentNode, currentCaret) {
   var opt = null;
   // check if we go to first or last element
   if (currentNode) {
-    var currentPath = MathYlemUtils.getPath(currentNode);
+    var currentPath = Utils.getPath(currentNode);
     var currentPos = parseInt(currentPath.substring(
       currentPath.lastIndexOf('e') + 1));
   }
@@ -371,7 +371,7 @@ MathYlem.mouseDown = function (e) {
           var b = g.backend;
           b.current = loc.current;
           b.caret = loc.caret;
-          b.selStatus = MathYlemBackend.SEL_NONE;
+          b.selStatus = Backend.SEL_NONE;
         }
         g.render(true);
       } else if (g) {
@@ -429,10 +429,10 @@ MathYlem.touchMove = function (e) {
 MathYlem.prototype.selectTo = function (x, y, mouse) {
   var selCaret = this.backend.caret;
   var selCursor = this.backend.current;
-  if (this.backend.selStatus === MathYlemBackend.SEL_CURSOR_AT_START) {
+  if (this.backend.selStatus === Backend.SEL_CURSOR_AT_START) {
     selCursor = this.backend.selEnd.node;
     selCaret = this.backend.selEnd.caret;
-  } else if (this.backend.selStatus === MathYlemBackend.SEL_CURSOR_AT_END) {
+  } else if (this.backend.selStatus === Backend.SEL_CURSOR_AT_END) {
     selCursor = this.backend.selStart.node;
     selCaret = this.backend.selStart.caret;
   }

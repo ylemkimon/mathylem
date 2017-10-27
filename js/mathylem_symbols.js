@@ -1,6 +1,6 @@
-var MathYlemSymbols = { 'symbols': {} };
+var Symbols = { 'symbols': {} };
 
-MathYlemSymbols.makeRawSymbol = function (name, latex, group) {
+Symbols.makeRawSymbol = function (name, latex, group) {
   return {
     'output': { 'latex': latex, 'text': name },
     'group': group,
@@ -8,7 +8,7 @@ MathYlemSymbols.makeRawSymbol = function (name, latex, group) {
   };
 };
 
-MathYlemSymbols.makeFunctionSymbol = function (name, group, nonLaTeX) {
+Symbols.makeFunctionSymbol = function (name, group, nonLaTeX) {
   return {
     'output': {
       'latex': '\\' + (!nonLaTeX ? name : 'mathrm{' + name + '}') +
@@ -20,7 +20,7 @@ MathYlemSymbols.makeFunctionSymbol = function (name, group, nonLaTeX) {
   };
 };
 
-MathYlemSymbols.addSymbols = function (symbols) {
+Symbols.addSymbols = function (symbols) {
   if (typeof symbols === 'string' || symbols instanceof String) {
     symbols = JSON.parse(symbols);
   }
@@ -30,25 +30,27 @@ MathYlemSymbols.addSymbols = function (symbols) {
     switch (name) {
       case '_operator':
         for (var t in symbol) {
-          MathYlemSymbols.symbols[t] = MathYlemSymbols.makeRawSymbol(t, symbol[t], 'operators');
+          Symbols.symbols[t] = Symbols.makeRawSymbol(t, symbol[t], 'operators');
         }
         break;
       case '_greek':
         for (var i = 0; i < symbol.length; i++) {
-          MathYlemSymbols.symbols[symbol[i]] = MathYlemSymbols.makeRawSymbol(symbol[i], '\\' + symbol[i], 'greek');
+          Symbols.symbols[symbol[i]] = Symbols.makeRawSymbol(symbol[i],
+            '\\' + symbol[i], 'greek');
         }
         break;
       case '_func':
       case '_func_nonlatex':
         for (var i = 0; i < symbol.length; i++) { // eslint-disable-line no-redeclare
-          MathYlemSymbols.symbols[symbol[i]] = MathYlemSymbols.makeFunctionSymbol(symbol[i], 'functions', name === '_func_nonlatex');
+          Symbols.symbols[symbol[i]] = Symbols.makeFunctionSymbol(symbol[i],
+            'functions', name === '_func_nonlatex');
         }
         break;
       default:
-        MathYlemSymbols.symbols[name] = symbol;
+        Symbols.symbols[name] = symbol;
         break;
     }
   }
 };
 
-module.exports = MathYlemSymbols;
+module.exports = Symbols;
