@@ -140,42 +140,12 @@ MathYlem.instances = {};
 
 MathYlem.activeMathYlem = null;
 
-MathYlem.addSymbols = function (symbols) {
-  for (var s in symbols) {
-    var newSymbols = MathYlemSymbols.addSymbols(s, symbols[s],
-      MathYlemSymbols.symbols);
-    for (var s in newSymbols) {
-      MathYlemSymbols.symbols[s] = newSymbols[s];
-    }
-  }
-  for (var i in MathYlem.instances) {
-    for (var s in symbols) {
-      MathYlem.instances[i].backend.symbols[s] =
-        JSON.parse(JSON.stringify(symbols[s]));
-    }
-  }
-};
-
-MathYlem.setGlobalSymbols = function (symbols) {
-  MathYlemSymbols.symbols = {};
-  MathYlem.addSymbols(symbols);
-};
-
-MathYlem.resetGlobalSymbols = function () {
-  for (var i in MathYlem.instances) {
-    MathYlem.instances[i].backend.symbols =
-      JSON.parse(JSON.stringify(MathYlemSymbols.symbols));
-  }
-};
-
 MathYlem.initialize = function (symbols) {
   var allReady = function () {
     MathYlem.registerKeyboardHandlers();
     for (var i in MathYlem.instances) {
       MathYlem.instances[i].ready = true;
       MathYlem.instances[i].render(true);
-      MathYlem.instances[i].backend.symbols =
-        JSON.parse(JSON.stringify(MathYlemSymbols.symbols));
       MathYlem.instances[i].backend.fireEvent('ready');
     }
     MathYlemBackend.ready = true;
@@ -189,14 +159,7 @@ MathYlem.initialize = function (symbols) {
       return function (callback) {
         var req = new XMLHttpRequest();
         req.onload = function () {
-          var syms = JSON.parse(this.responseText);
-          for (var s in syms) {
-            var newSymbols = MathYlemSymbols.addSymbols(s, syms[s],
-              MathYlemSymbols.symbols);
-            for (var s in newSymbols) {
-              MathYlemSymbols.symbols[s] = newSymbols[s];
-            }
-          }
+          MathYlemSymbols.addSymbols(this.responseText);
           callback();
         };
         req.open('get', symbols[j], true);
@@ -208,14 +171,10 @@ MathYlem.initialize = function (symbols) {
   calls.push(allReady);
   var j = 0;
   var cb = function () {
-    j += 1;
-    if (j < calls.length) {
-      calls[j](cb);
-    }
+    j++;
+    calls[j](cb);
   };
-  if (calls.length > 0) {
-    calls[0](cb);
-  }
+  calls[0](cb);
 };
 
 MathYlem.staticRenderAll = function () {
@@ -590,6 +549,8 @@ MathYlem.kb.chars = {
   '*': '*',
   '.': '.',
   ',': ',',
+  '<': '<',
+  '>': '>',
   'shift+/': '/',
   'shift+=': '+'
 };
@@ -598,8 +559,6 @@ MathYlem.kb.symbols = {
   '%': 'mod',
   '^': 'power',
   '(': 'paren',
-  '<': 'less',
-  '>': 'greater',
   '_': 'sub',
   '|': 'abs',
   '!': 'fact',

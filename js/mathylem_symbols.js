@@ -1,72 +1,54 @@
 var MathYlemSymbols = { 'symbols': {} };
 
-MathYlemSymbols.makeRawSymbol = function (name, latex, text, group) {
+MathYlemSymbols.makeRawSymbol = function (name, latex, group) {
   return {
-    'output': { 'latex': latex, 'text': text },
+    'output': { 'latex': latex, 'text': name },
     'group': group,
-    'char': true,
-    'type': name
+    'char': true
   };
 };
 
-MathYlemSymbols.makeFunctionSymbol = function (name, group) {
+MathYlemSymbols.makeFunctionSymbol = function (name, group, nonLaTeX) {
   return {
     'output': {
-      'latex': '\\' + name + '\\left({$1}\\right)',
-      'text': ' ' + name + '({$1})'
+      'latex': '\\' + (!nonLaTeX ? name : 'mathrm{' + name + '}') +
+        '\\left({$1}\\right)',
+      'text': name + '({$1})'
     },
-    'type': name,
-    'group': group,
+    'group': 'functions',
     'attrs': [{ 'delete': '1' }]
   };
 };
 
-MathYlemSymbols.makeNonLaTeXFunctionSymbol = function (name, group) {
-  return {
-    'output': {
-      'latex': '\\mathrm{' + name + '}\\left({$1}\\right)',
-      'text': ' ' + name + '({$1})' },
-    'type': name,
-    'group': group,
-    'attrs': [{ 'delete': '1' }]
-  };
-};
-
-MathYlemSymbols.addSymbols = function (name, sym) {
-  var symbols = {};
-  if (name === '_raw') {
-    for (var i = 0; i < sym.length; i++) {
-      for (var t in sym[i]['symbols']) {
-        symbols[t] = MathYlemSymbols.makeRawSymbol(t, sym[i]['symbols'][t]['latex'],
-          sym[i]['symbols'][t]['text'], sym[i]['group']);
-      }
-    }
-  } else if (name === '_literal') {
-    for (var j = 0; j < sym.length; j++) {
-      for (var i = 0; i < sym[j]['symbols'].length; i++) { // eslint-disable-line no-redeclare
-        symbols[sym[j]['symbols'][i]] = MathYlemSymbols.makeRawSymbol(
-          sym[j]['symbols'][i], '\\' + sym[j]['symbols'][i],
-          ' $' + sym[j]['symbols'][i] + ' ', sym[j]['group']);
-      }
-    }
-  } else if (name === '_func') {
-    for (var j = 0; j < sym.length; j++) { // eslint-disable-line no-redeclare
-      for (var i = 0; i < sym[j]['symbols'].length; i++) { // eslint-disable-line no-redeclare
-        symbols[sym[j]['symbols'][i]] = MathYlemSymbols.makeFunctionSymbol(
-          sym[j]['symbols'][i], sym[j]['group']);
-      }
-    }
-  } else if (name === '_func_nonlatex') {
-    for (var j = 0; j < sym.length; j++) { // eslint-disable-line no-redeclare
-      for (var i = 0; i < sym[j]['symbols'].length; i++) { // eslint-disable-line no-redeclare
-        symbols[sym[j]['symbols'][i]] = MathYlemSymbols.makeNonLaTeXFunctionSymbol(
-          sym[j]['symbols'][i], sym[j]['group']);
-      }
-    }
-  } else {
-    symbols[name] = sym;
+MathYlemSymbols.addSymbols = function (symbols) {
+  if (typeof symbols === 'string' || symbols instanceof String) {
+    symbols = JSON.parse(symbols);
   }
-  return symbols;
+
+  for (var name in symbols) {
+    var symbol = symbols[name];
+    switch (name) {
+      case '_operator':
+        for (var t in symbol) {
+          MathYlemSymbols.symbols[t] = MathYlemSymbols.makeRawSymbol(t, symbol[t], 'operators');
+        }
+        break;
+      case '_greek':
+        for (var i = 0; i < symbol.length; i++) {
+          MathYlemSymbols.symbols[symbol[i]] = MathYlemSymbols.makeRawSymbol(symbol[i], '\\' + symbol[i], 'greek');
+        }
+        break;
+      case '_func':
+      case '_func_nonlatex':
+        for (var i = 0; i < symbol.length; i++) { // eslint-disable-line no-redeclare
+          MathYlemSymbols.symbols[symbol[i]] = MathYlemSymbols.makeFunctionSymbol(symbol[i], 'functions', name === '_func_nonlatex');
+        }
+        break;
+      default:
+        MathYlemSymbols.symbols[name] = symbol;
+        break;
+    }
+  }
 };
 
 module.exports = MathYlemSymbols;

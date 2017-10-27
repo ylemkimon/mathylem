@@ -35,7 +35,6 @@ var MathYlemBackend = function (config) {
     }
   }
 
-  this.symbols = {};
   this.doc = new MathYlemDoc(options['xmlContent']);
 
   this.current = this.doc.root().firstChild;
@@ -46,9 +45,6 @@ var MathYlemBackend = function (config) {
   this.undoCurrent = -1;
   this.selStatus = MathYlemBackend.SEL_NONE;
   this.checkpoint();
-  if (MathYlemBackend.ready) {
-    this.symbols = JSON.parse(JSON.stringify(MathYlemSymbols.symbols));
-  }
 };
 
 MathYlemBackend.SEL_NONE = 0;
@@ -90,45 +86,6 @@ MathYlemBackend.prototype.fireEvent = function (event, args) {
   args.target = this.parent;
   if (this.events[event]) {
     this.events[event](args);
-  }
-};
-
-MathYlemBackend.prototype.removeSymbol = function (name) {
-  if (this.symbols[name]) {
-    delete this.symbols[name];
-  }
-};
-
-MathYlemBackend.prototype.addSymbols = function (name, symbol) {
-  var newSymbols = MathYlemSymbols.addSymbols(name, symbol);
-  for (var s in newSymbols) {
-    this.symbols[s] = newSymbols[s];
-  }
-};
-
-MathYlemBackend.prototype.addNonLaTeXFuncSymbol = function (name, group) {
-  var newSymbols = MathYlemSymbols.addSymbols('_func_nonlatex',
-    [{ 'group': group, 'symbols': [name] }]);
-  for (var s in newSymbols) {
-    this.symbols[s] = newSymbols[s];
-  }
-};
-
-MathYlemBackend.prototype.addFuncSymbol = function (name, group) {
-  var newSymbols = MathYlemSymbols.addSymbols('_func',
-    [{ 'group': group, 'symbols': [name] }]);
-  for (var s in newSymbols) {
-    this.symbols[s] = newSymbols[s];
-  }
-};
-
-MathYlemBackend.prototype.addRawSymbol = function (name, latex, text, group) {
-  var symbol = {};
-  symbol[name] = { 'latex': latex, 'text': text };
-  var newSymbols = MathYlemSymbols.addSymbols('_raw',
-    [{ 'group': group, 'symbols': symbol }]);
-  for (var s in newSymbols) {
-    this.symbols[s] = newSymbols[s];
   }
 };
 
@@ -375,11 +332,9 @@ MathYlemBackend.prototype.deleteFromF = function (toInsert) {
 
 MathYlemBackend.prototype.symbolToNode = function (name, content) {
   var base = this.doc.base;
-  var s = this.symbols[name];
+  var s = MathYlemSymbols.symbols[name];
   var f = base.createElement('f');
-  if ('type' in s) {
-    f.setAttribute('type', s['type']);
-  }
+  f.setAttribute('type', name);
   if ('group' in s) {
     f.setAttribute('group', s['group']);
   }
@@ -476,15 +431,16 @@ MathYlemBackend.prototype.symbolToNode = function (name, content) {
 };
 
 MathYlemBackend.prototype.insertSymbol = function (name) {
+  if (this.isBlacklisted(name)) {
+    return false;
+  }
+
   if (name === 'power' && this.caret === 0 && this.current.parentNode.parentNode
     .nodeName === 'f' && this.current.parentNode.childNodes.length === 1) {
     this.current = this.current.parentNode.parentNode.nextSibling;
   }
 
-  var s = this.symbols[name];
-  if (this.isBlacklisted(s['type'])) {
-    return false;
-  }
+  var s = MathYlemSymbols.symbols[name];
   var content = {};
   var leftPiece, rightPiece;
   var cur = s['current'] == null ? 0 : parseInt(s['current']);
@@ -635,7 +591,7 @@ MathYlemBackend.prototype.insertString = function (s) {
     this.deleteSelection();
     this.clearSelection();
   }
-  if (s === '*' && this.checkForPower()) {
+  if ((s === '*' && this.checkForPower()) || (s === '=' && this.checkForIneq())) {
     return;
   }
   if (this.current.firstChild) {
@@ -1213,7 +1169,7 @@ MathYlemBackend.prototype.tab = function () {
   }
   var name = this.current.firstChild.textContent;
   var candidates = [];
-  for (var n in this.symbols) {
+  for (var n in MathYlemSymbols.symbols) {
     if (n.substr(0, name.length) === name) {
       candidates.push(n);
     }
@@ -1341,7 +1297,7 @@ MathYlemBackend.prototype.done = function (s) {
 
 MathYlemBackend.prototype.completeSymbol = function () {
   var name = this.current.firstChild.textContent;
-  if (!this.symbols[name]) {
+  if (!MathYlemSymbols.symbols[name]) {
     return;
   }
   this.current = this.current.parentNode.parentNode;
@@ -1358,24 +1314,40 @@ MathYlemBackend.prototype.isBlacklisted = function (type) {
   return false;
 };
 
+MathYlemBackend.prototype.replaceSymbol = function (node, name) {
+  var symbol = MathYlemSymbols.symbols[name];
+  if (!symbol || this.isBlacklisted(name)) {
+    return false;
+  }
+  var f = this.symbolToNode(name, []).f;
+  node.parentNode.replaceChild(f, node);
+  if (!symbol['char']) {
+    this.caret = 0;
+    this.current = f;
+    this.downFromFToBlank();
+  }
+  this.checkpoint();
+  return true;
+};
+
 MathYlemBackend.prototype.checkForPower = function () {
   if (this.autoreplace && this.caret === 0 && this.current.previousSibling &&
       this.current.previousSibling.nodeName === 'f' &&
       this.current.previousSibling.getAttribute('type') === '*') {
-    var n = this.current.previousSibling;
-    var p = n.parentNode;
-    var prev = n.previousSibling;
-    var next = n.nextSibling;
-    var newNode = this.makeE(MathYlemUtils.getValue(prev) +
-      MathYlemUtils.getValue(next));
-    this.current = newNode;
-    this.caret = MathYlemUtils.getLength(prev);
-    p.insertBefore(newNode, prev);
-    p.removeChild(prev);
-    p.removeChild(n);
-    p.removeChild(next);
+    this.current = this.current.previousSibling;
+    this.deleteFromF();
     this.insertSymbol('power');
     return true;
+  }
+  return false;
+};
+
+MathYlemBackend.prototype.checkForIneq = function () {
+  if (this.autoreplace && this.caret === 0 && this.current.previousSibling &&
+      this.current.previousSibling.nodeName === 'f' &&
+      ['<', '>'].indexOf(this.current.previousSibling.getAttribute('type')) > -1) {
+    var n = this.current.previousSibling;
+    return this.replaceSymbol(n, n.getAttribute('type') + '=');
   }
   return false;
 };
@@ -1389,20 +1361,13 @@ MathYlemBackend.prototype.checkForSymbol = function () {
   if (this.current.parentNode.parentNode.nodeName === 'f' &&
       this.current.parentNode.childNodes.length === 1 && value === 'h') {
     var n = this.current.parentNode.parentNode;
-    var name = n.getAttribute('type') + 'h';
-    var symbol = this.symbols[name];
-    if (!symbol || this.isBlacklisted(symbol['type'])) {
-      return;
-    }
-    var f = this.symbolToNode(name, []).f;
-    n.parentNode.replaceChild(f, n);
-    this.caret = 0;
-    this.current = f;
-    this.downFromFToBlank();
-    this.checkpoint();
+    this.replaceSymbol(n, n.getAttribute('type') + 'h');
     return;
   }
-  for (var s in this.symbols) {
+  for (var s in MathYlemSymbols.symbols) {
+    if (['psi', 'xi'].indexOf(s) > -1) {
+      continue;
+    }
     if (this.current.nodeName === 'e' && !MathYlemUtils.isBlank(this.current) &&
         value.substring(this.caret - s.length, this.caret) === s) {
       var temp = value;
