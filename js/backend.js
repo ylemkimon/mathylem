@@ -1,5 +1,5 @@
-var Doc = require('./mathylem_doc.js');
-var Symbols = require('./mathylem_symbols.js');
+var Doc = require('./doc.js');
+var Symbols = require('./symbols.js');
 
 var Backend = function (config) {
   config = config || {};

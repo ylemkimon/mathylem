@@ -1,8 +1,8 @@
 var Mousetrap = require('mousetrap');
 var katex = require('../lib/katex/katex.js');
-var Backend = require('./mathylem_backend.js');
-var Symbols = require('./mathylem_symbols.js');
-var Doc = require('./mathylem_doc.js');
+var Backend = require('./backend.js');
+var Symbols = require('./symbols.js');
+var Doc = require('./doc.js');
 var debounce = require('throttle-debounce/debounce');
 
 var MathYlem = function (el, config) {
