@@ -1,4 +1,3 @@
-var Utils = require('./mathylem_utils.js');
 var Doc = require('./mathylem_doc.js');
 var Symbols = require('./mathylem_symbols.js');
 
@@ -47,6 +46,14 @@ var Backend = function (config) {
   this.checkpoint();
 };
 
+Backend.CARET = '\\cursor{-0.2ex}{0.7em}';
+Backend.TEMP_SMALL_CARET = '\\cursor{0em}{0.6em}';
+Backend.TEMP_CARET = '\\cursor{-0.2ex}{0.7em}';
+Backend.SMALL_CARET = '\\cursor{-0.05em}{0.5em}';
+Backend.SEL_CARET = '\\cursor{-0.2ex}{0.7em}';
+Backend.SMALL_SEL_CARET = '\\cursor{-0.05em}{0.5em}';
+Backend.SEL_COLOR = 'red';
+
 Backend.SEL_NONE = 0;
 Backend.SEL_CURSOR_AT_START = 1;
 Backend.SEL_CURSOR_AT_END = 2;
@@ -72,7 +79,7 @@ Backend.prototype.text = function () {
 Backend.prototype.setContent = function (xmlData) {
   this.doc = new Doc(xmlData);
   this.current = this.doc.root().lastChild;
-  this.caret = Utils.getLength(this.current);
+  this.caret = this.current.textContent.length;
   this.selStart = null;
   this.selEnd = null;
   this.undoData = [];
@@ -145,10 +152,11 @@ Backend.prototype.addPaths = function (n, path) {
 
 Backend.prototype.addCursorClasses = function (n, path) {
   if (n.nodeName === 'e') {
-    var text = Utils.getValue(n);
+    var text = n.textContent;
     var ans = '';
     var selCursor;
-    var isTextNode = Utils.isText(n);
+    var isTextNode = n.parentNode.getAttribute('mode') === 'text' ||
+      n.parentNode.getAttribute('mode') === 'symbol';
     if (this.selStatus === Backend.SEL_CURSOR_AT_START) {
       selCursor = this.selEnd;
     }
@@ -156,8 +164,8 @@ Backend.prototype.addCursorClasses = function (n, path) {
       selCursor = this.selStart;
     }
     if (this.selStatus !== Backend.SEL_NONE) {
-      var selCaretText = Utils.isSmall(selCursor.node)
-        ? Utils.SMALL_SEL_CARET : Utils.SEL_CARET;
+      var selCaretText = Doc.isSmall(selCursor.node)
+        ? Backend.SMALL_SEL_CARET : Backend.SEL_CARET;
       if (!isTextNode && text.length === 0 && n.parentNode.childElementCount > 1) {
         selCaretText = '\\blue{\\xmlClass{mathylem_elt mathylem_blank ' +
           'mathylem_loc_' + n.getAttribute('path') + '_0}{' + selCaretText + '}}';
@@ -166,7 +174,7 @@ Backend.prototype.addCursorClasses = function (n, path) {
       }
       if (this.selStatus === Backend.SEL_CURSOR_AT_END) {
         selCaretText = isTextNode ? '[' : selCaretText + '\\' +
-          Utils.SEL_COLOR + '{';
+          Backend.SEL_COLOR + '{';
       }
       if (this.selStatus === Backend.SEL_CURSOR_AT_START) {
         selCaretText = isTextNode ? ']' : '}' + selCaretText;
@@ -179,8 +187,8 @@ Backend.prototype.addCursorClasses = function (n, path) {
         caretText = '\\_';
       } else if (n.parentNode.childElementCount === 1) {
         if (this.current === n) {
-          var blankCaret = this.blankCaret || (Utils.isSmall(this.current)
-            ? Utils.SMALL_CARET : Utils.CARET);
+          var blankCaret = this.blankCaret || (Doc.isSmall(this.current)
+            ? Backend.SMALL_CARET : Backend.CARET);
           ans = '\\red{\\xmlClass{main_cursor mathylem_elt mathylem_blank ' +
             'mathylem_loc_' + n.getAttribute('path') + '_0}{' + blankCaret + '}}';
         } else if (this.tempCursor.node === n) {
@@ -214,7 +222,8 @@ Backend.prototype.addCursorClasses = function (n, path) {
             caretText = '\\_';
           }
         } else {
-          caretText = Utils.isSmall(this.current) ? Utils.SMALL_CARET : Utils.CARET;
+          caretText = Doc.isSmall(this.current) ? Backend.SMALL_CARET
+            : Backend.CARET;
           if (text.length === 0) {
             caretText = '\\red{\\xmlClass{main_cursor mathylem_elt mathylem_blank' +
               ' mathylem_loc_' + n.getAttribute('path') + '_0}{' + caretText + '}}';
@@ -222,7 +231,7 @@ Backend.prototype.addCursorClasses = function (n, path) {
             caretText = '\\red{\\xmlClass{main_cursor}{' + caretText + '}}';
           }
           if (this.selStatus === Backend.SEL_CURSOR_AT_START) {
-            caretText = caretText + '\\' + Utils.SEL_COLOR + '{';
+            caretText = caretText + '\\' + Backend.SEL_COLOR + '{';
           } else if (this.selStatus === Backend.SEL_CURSOR_AT_END) {
             caretText = '}' + caretText;
           }
@@ -238,8 +247,8 @@ Backend.prototype.addCursorClasses = function (n, path) {
         if (isTextNode) {
           tempCaretText = '.';
         } else {
-          tempCaretText = Utils.isSmall(this.current)
-            ? Utils.TEMP_SMALL_CARET : Utils.TEMP_CARET;
+          tempCaretText = Doc.isSmall(this.current)
+            ? Backend.TEMP_SMALL_CARET : Backend.TEMP_CARET;
           if (text.length === 0) {
             tempCaretText = '\\gray{\\xmlClass{mathylem_elt mathylem_blank math' +
               'ylem_loc_' + n.getAttribute('path') + '_0}{' + tempCaretText + '}}';
@@ -300,7 +309,7 @@ Backend.prototype.downFromF = function () {
 Backend.prototype.downFromFToBlank = function () {
   var nn = this.current.firstChild;
   while (nn != null && !(nn.nodeName === 'c' && nn.childNodes.length === 1 &&
-      Utils.isBlank(nn.firstChild))) {
+      nn.firstChild.textContent.length === 0)) {
     nn = nn.nextSibling;
   }
   if (nn != null) {
@@ -319,9 +328,9 @@ Backend.prototype.deleteFromF = function (toInsert) {
   var prev = n.previousSibling;
   var next = n.nextSibling;
   var middle = toInsert || '';
-  var newNode = this.makeE(Utils.getValue(prev) + middle + Utils.getValue(next));
+  var newNode = this.makeE(prev.textContent + middle + next.textContent);
   this.current = newNode;
-  this.caret = Utils.getLength(prev);
+  this.caret = prev.textContent.length;
   p.insertBefore(newNode, prev);
   p.removeChild(prev);
   p.removeChild(n);
@@ -451,10 +460,8 @@ Backend.prototype.insertSymbol = function (name) {
     if (this.selStatus !== Backend.SEL_NONE) {
       var sel = this.getSelection();
       toRemove = sel.involved;
-      leftPiece = this.makeE(Utils.getValue(sel.remnant)
-        .slice(0, this.selStart.caret));
-      rightPiece = this.makeE(Utils.getValue(sel.remnant)
-        .slice(this.selStart.caret));
+      leftPiece = this.makeE(sel.remnant.textContent.slice(0, this.selStart.caret));
+      rightPiece = this.makeE(sel.remnant.textContent.slice(this.selStart.caret));
       content[cur] = sel.nodeList;
     } else if (s['current_type'] === 'token') {
       // If we're at the beginning, then the token is the previous f node
@@ -466,21 +473,21 @@ Backend.prototype.insertSymbol = function (name) {
       } else {
         // look for [0-9.]+|[a-zA-Z] immediately preceeding the caret and
         // use that as token
-        var prev = Utils.getValue(this.current).substring(0, this.caret);
+        var prev = this.current.textContent.substring(0, this.caret);
         var token = prev.match(/[0-9.]+$|[a-zA-Z]$/);
         if (token != null && token.length > 0) {
           token = token[0];
-          leftPiece = this.makeE(Utils.getValue(this.current)
+          leftPiece = this.makeE(this.current.textContent
             .slice(0, this.caret - token.length));
-          rightPiece = this.makeE(Utils.getValue(this.current).slice(this.caret));
+          rightPiece = this.makeE(this.current.textContent.slice(this.caret));
           content[cur] = [this.makeE(token)];
         }
       }
     }
   }
   if (!replace && (leftPiece == null || rightPiece == null)) {
-    leftPiece = this.makeE(Utils.getValue(this.current).slice(0, this.caret));
-    rightPiece = this.makeE(Utils.getValue(this.current).slice(this.caret));
+    leftPiece = this.makeE(this.current.textContent.slice(0, this.caret));
+    rightPiece = this.makeE(this.current.textContent.slice(this.caret));
     toRemove = [this.current];
   }
 
@@ -544,28 +551,28 @@ Backend.prototype.getSelection = function () {
 
   if (this.selStart.node === this.selEnd.node) {
     return {
-      'nodeList': [this.makeE(Utils.getValue(this.selStart.node)
+      'nodeList': [this.makeE(this.selStart.node.textContent
         .substring(this.selStart.caret, this.selEnd.caret))],
-      'remnant': this.makeE(Utils.getValue(this.selStart.node)
-        .substring(0, this.selStart.caret) + Utils.getValue(
-          this.selEnd.node).substring(this.selEnd.caret)),
+      'remnant': this.makeE(this.selStart.node.textContent
+        .substring(0, this.selStart.caret) + this.selEnd.node.textContent
+          .substring(this.selEnd.caret)),
       'involved': [this.selStart.node]
     };
   }
 
-  nodeList.push(this.makeE(Utils.getValue(this.selStart.node)
+  nodeList.push(this.makeE(this.selStart.node.textContent
     .substring(this.selStart.caret)));
   involved.push(this.selStart.node);
   involved.push(this.selEnd.node);
-  remnant = this.makeE(Utils.getValue(this.selStart.node).substring(0, this.selStart
-    .caret) + Utils.getValue(this.selEnd.node).substring(this.selEnd.caret));
+  remnant = this.makeE(this.selStart.node.textContent.substring(0, this.selStart
+    .caret) + this.selEnd.node.textContent.substring(this.selEnd.caret));
   var n = this.selStart.node.nextSibling;
   while (n != null && n !== this.selEnd.node) {
     involved.push(n);
     nodeList.push(n);
     n = n.nextSibling;
   }
-  nodeList.push(this.makeE(Utils.getValue(this.selEnd.node)
+  nodeList.push(this.makeE(this.selEnd.node.textContent
     .substring(0, this.selEnd.caret)));
   return { 'nodeList': nodeList,
     'remnant': remnant,
@@ -589,9 +596,9 @@ Backend.prototype.insertString = function (s) {
     return;
   }
   if (this.current.firstChild) {
-    var value = this.current.firstChild.nodeValue;
-    this.current.firstChild.nodeValue = value.slice(0, this.caret) +
-      s + value.slice(this.caret);
+    var value = this.current.textContent;
+    this.current.textContent = value.slice(0, this.caret) + s +
+      value.slice(this.caret);
   } else {
     this.current.appendChild(this.doc.base.createTextNode(s));
   }
@@ -638,18 +645,17 @@ Backend.prototype.insertNodes = function (nodeList, moveCursor) {
   }
   if (clipboard.length === 1) {
     if (clipboard[0].firstChild) {
-      this.current.firstChild.nodeValue = this.current.firstChild.nodeValue
-        .substring(0, this.caret) + clipboard[0].firstChild.nodeValue +
-          this.current.firstChild.nodeValue.substring(this.caret);
+      this.current.textContent = this.current.textContent.substring(0, this.caret) +
+        clipboard[0].textContent + this.current.textContent.substring(this.caret);
       if (moveCursor) {
-        this.caret += clipboard[0].firstChild.nodeValue.length;
+        this.caret += clipboard[0].textContent.length;
       }
     }
   } else {
-    var nn = this.makeE(Utils.getValue(clipboard[clipboard.length - 1]) +
-      this.current.firstChild.nodeValue.substring(this.caret));
-    this.current.firstChild.nodeValue = this.current.firstChild.nodeValue
-      .substring(0, this.caret) + Utils.getValue(clipboard[0]);
+    var nn = this.makeE(clipboard[clipboard.length - 1].textContent +
+      this.current.textContent.substring(this.caret));
+    this.current.textContent = this.current.textContent.substring(0, this.caret) +
+      clipboard[0].textContent;
     if (this.current.nextSibling == null) {
       this.current.parentNode.appendChild(nn);
     } else {
@@ -660,7 +666,7 @@ Backend.prototype.insertNodes = function (nodeList, moveCursor) {
     }
     if (moveCursor) {
       this.current = nn;
-      this.caret = Utils.getLength(clipboard[clipboard.length - 1]);
+      this.caret = clipboard[clipboard.length - 1].textContent.length;
     }
   }
 };
@@ -726,7 +732,7 @@ Backend.prototype.selectRight = function () {
     this.setSelStart();
     this.selStatus = Backend.SEL_CURSOR_AT_END;
   }
-  if (this.caret >= Utils.getLength(this.current)) {
+  if (this.caret >= this.current.textContent.length) {
     var nn = this.current.nextSibling;
     if (nn != null) {
       this.current = nn.nextSibling;
@@ -765,7 +771,7 @@ Backend.prototype.selectLeft = function () {
     var nn = this.current.previousSibling;
     if (nn != null) {
       this.current = nn.previousSibling;
-      this.caret = Utils.getLength(this.current);
+      this.caret = this.current.textContent.length;
       this.setSelection(Backend.SEL_CURSOR_AT_START);
     } else {
       this.setSelection(Backend.SEL_CURSOR_AT_START);
@@ -831,7 +837,7 @@ Backend.prototype.moveVerticalList = function (down) {
     nn = nn.nextSibling;
   }
   this.current = nn.firstChild;
-  this.caret = down ? 0 : Utils.getLength(this.current);
+  this.caret = down ? 0 : this.current.textContent.length;
 };
 
 Backend.prototype.extendList = function (direction, copy) {
@@ -878,7 +884,7 @@ Backend.prototype.extendList = function (direction, copy) {
         parseInt(node.parentNode.getAttribute('s')) + 1);
     }
     this.current = before ? n.previousSibling.lastChild : n.nextSibling.firstChild;
-    this.caret = Utils.getLength(this.current);
+    this.caret = this.current.textContent.length;
     this.checkpoint();
     return;
   }
@@ -923,7 +929,7 @@ Backend.prototype.removeListColumn = function () {
   // Don't remove if there is only a single column:
   if (n.previousSibling != null) {
     this.current = n.previousSibling.lastChild;
-    this.caret = Utils.getLength(this.current);
+    this.caret = this.current.textContent.length;
   } else if (n.nextSibling != null) {
     this.current = n.nextSibling.firstChild;
     this.caret = 0;
@@ -964,7 +970,7 @@ Backend.prototype.removeListRow = function () {
   // Don't remove if there is only a single row:
   if (n.previousSibling != null) {
     this.current = n.previousSibling.lastChild.lastChild;
-    this.caret = Utils.getLength(this.current);
+    this.caret = this.current.textContent.length;
   } else if (n.nextSibling != null) {
     this.current = n.nextSibling.firstChild.firstChild;
     this.caret = 0;
@@ -990,7 +996,7 @@ Backend.prototype.removeListItem = function () {
   }
   if (n.previousSibling != null) {
     this.current = n.previousSibling.lastChild;
-    this.caret = Utils.getLength(this.current);
+    this.caret = this.current.textContent.length;
   } else if (n.nextSibling != null) {
     this.current = n.nextSibling.firstChild;
     this.caret = 0;
@@ -1003,7 +1009,7 @@ Backend.prototype.removeListItem = function () {
 
 Backend.prototype.right = function () {
   this.clearSelection();
-  if (this.caret >= Utils.getLength(this.current)) {
+  if (this.caret >= this.current.textContent.length) {
     var nn = this.doc.XPathNode('following::e[1]', this.current);
     if (nn != null) {
       this.current = nn;
@@ -1017,7 +1023,7 @@ Backend.prototype.right = function () {
 };
 
 Backend.prototype.spacebar = function () {
-  if (Utils.isText(this.current)) {
+  if (this.current.parentNode.getAttribute('mode') === 'text') {
     this.insertString(' ');
   }
 };
@@ -1028,7 +1034,7 @@ Backend.prototype.left = function () {
     var pn = this.doc.XPathNode('preceding::e[1]', this.current);
     if (pn != null) {
       this.current = pn;
-      this.caret = Utils.getLength(this.current);
+      this.caret = this.current.textContent.length;
     } else {
       this.fireEvent('leftEnd');
     }
@@ -1059,8 +1065,8 @@ Backend.prototype.deleteFromC = function () {
 Backend.prototype.deleteFromE = function () {
   // return false if we deleted something, and true otherwise.
   if (this.caret > 0) {
-    var value = this.current.firstChild.nodeValue;
-    this.current.firstChild.nodeValue = value.slice(0, this.caret - 1) +
+    var value = this.current.textContent;
+    this.current.textContent = value.slice(0, this.caret - 1) +
       value.slice(this.caret);
     this.caret--;
   } else {
@@ -1111,9 +1117,9 @@ Backend.prototype.deleteFromE = function () {
 
 Backend.prototype.deleteForwardFromE = function () {
   // return false if we deleted something, and true otherwise.
-  if (this.caret < this.current.firstChild.nodeValue.length) {
-    var value = this.current.firstChild.nodeValue;
-    this.current.firstChild.nodeValue = value.slice(0, this.caret) +
+  if (this.caret < this.current.textContent.length) {
+    var value = this.current.textContent;
+    this.current.textContent = value.slice(0, this.caret) +
       value.slice(this.caret + 1);
   } else {
     // We're at the end
@@ -1150,13 +1156,14 @@ Backend.prototype.deleteKey = function () {
 };
 
 Backend.prototype.backslash = function () {
-  if (!Utils.isText(this.current)) {
+  if (this.current.parentNode.getAttribute('mode') !== 'text' &&
+      this.current.parentNode.getAttribute('mode') !== 'symbol') {
     this.insertSymbol('sym_name');
   }
 };
 
 Backend.prototype.tab = function () {
-  if (!Utils.isSymbol(this.current)) {
+  if (this.current.parentNode.getAttribute('mode') !== 'symbol') {
     this.checkForSymbol();
     return;
   }
@@ -1177,7 +1184,7 @@ Backend.prototype.tab = function () {
 
 Backend.prototype.rightParen = function () {
   if (this.current.nodeName !== 'e' ||
-      this.caret === Utils.getLength(this.current)) {
+      this.caret === this.current.textContent.length) {
     this.right();
   }
 };
@@ -1197,7 +1204,7 @@ Backend.prototype.up = function () {
       }
     }
     this.current = n.lastChild;
-    this.caret = Utils.getLength(this.current);
+    this.caret = this.current.textContent.length;
   } else {
     this.moveVerticalList(false);
   }
@@ -1218,7 +1225,7 @@ Backend.prototype.down = function () {
       }
     }
     this.current = n.lastChild;
-    this.caret = Utils.getLength(this.current);
+    this.caret = this.current.textContent.length;
   } else {
     this.moveVerticalList(true);
   }
@@ -1231,7 +1238,7 @@ Backend.prototype.home = function () {
 
 Backend.prototype.end = function () {
   this.current = this.doc.root().lastChild;
-  this.caret = Utils.getLength(this.current);
+  this.caret = this.current.textContent.length;
 };
 
 Backend.prototype.checkpoint = function () {
@@ -1281,7 +1288,7 @@ Backend.prototype.redo = function () {
 };
 
 Backend.prototype.done = function (s) {
-  if (Utils.isSymbol(this.current)) {
+  if (this.current.parentNode.getAttribute('mode') === 'symbol') {
     this.completeSymbol();
   } else {
     this.fireEvent('done');
@@ -1346,10 +1353,11 @@ Backend.prototype.checkForIneq = function () {
 };
 
 Backend.prototype.checkForSymbol = function () {
-  if (Utils.isText(this.current)) {
+  if (this.current.parentNode.getAttribute('mode') === 'text' ||
+      this.current.parentNode.getAttribute('mode') === 'symbol') {
     return;
   }
-  var value = this.current.firstChild.nodeValue;
+  var value = this.current.textContent;
 
   if (this.current.parentNode.parentNode.nodeName === 'f' &&
       this.current.parentNode.childNodes.length === 1 && value === 'h') {
@@ -1365,12 +1373,12 @@ Backend.prototype.checkForSymbol = function () {
         value.substring(this.caret - s.length, this.caret) === s) {
       var temp = value;
       var tempCaret = this.caret;
-      this.current.firstChild.nodeValue = value.slice(0, this.caret - s.length) +
+      this.current.textContent = value.slice(0, this.caret - s.length) +
         value.slice(this.caret);
       this.caret -= s.length;
       var success = this.insertSymbol(s);
       if (!success) {
-        this.current.firstChild.nodeValue = temp;
+        this.current.textContent = temp;
         this.caret = tempCaret;
       }
       return;

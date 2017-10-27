@@ -1,7 +1,6 @@
 var Mousetrap = require('mousetrap');
 var katex = require('../lib/katex/katex.js');
 var Backend = require('./mathylem_backend.js');
-var Utils = require('./mathylem_utils.js');
 var Symbols = require('./mathylem_symbols.js');
 var Doc = require('./mathylem_doc.js');
 var debounce = require('throttle-debounce/debounce');
@@ -120,8 +119,7 @@ var MathYlem = function (el, config) {
       g._focus = false;
     }, 500);
     b.clearSelection();
-    b.current = b.doc.root().lastChild;
-    b.caret = MathYlemUtils.getLength(b.current);
+    b.end();
     g.activate(true);
   });
   if (Backend.ready) {
@@ -259,6 +257,20 @@ MathYlem.prototype.computeLocations = function () {
   this.boxes = ans;
 };
 
+MathYlem.getPath = function (n) {
+  var name = n.nodeName;
+  if (name === 'm') {
+    return 'mathylem_loc_m';
+  }
+  var ns = 0;
+  for (var nn = n; nn != null; nn = nn.previousSibling) {
+    if (nn.nodeType === 1 && nn.nodeName === name) {
+      ns++;
+    }
+  }
+  return MathYlem.getPath(n.parentNode) + '_' + name + '' + ns;
+};
+
 MathYlem.getLocation = function (x, y, currentNode, currentCaret) {
   var g = MathYlem.activeMathYlem;
   var minDist = -1;
@@ -266,7 +278,7 @@ MathYlem.getLocation = function (x, y, currentNode, currentCaret) {
   var opt = null;
   // check if we go to first or last element
   if (currentNode) {
-    var currentPath = Utils.getPath(currentNode);
+    var currentPath = MathYlem.getPath(currentNode);
     var currentPos = parseInt(currentPath.substring(
       currentPath.lastIndexOf('e') + 1));
   }

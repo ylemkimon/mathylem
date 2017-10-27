@@ -1,4 +1,3 @@
-var Utils = require('./mathylem_utils.js');
 require('wicked-good-xpath').install();
 
 var Doc = function (doc) {
@@ -111,7 +110,7 @@ Doc.prototype.render = function (t, n, r) {
     if (t === 'latex' && r) {
       ans = n.getAttribute('render');
     } else if (t === 'text') {
-      ans = Utils.getValue(n);
+      ans = n.textContent;
       if (n.previousSibling && n.nextSibling && ans === '' &&
           n.previousSibling.getAttribute('group') !== 'operators' &&
           n.nextSibling.getAttribute('group') !== 'operators') {
@@ -130,7 +129,7 @@ Doc.prototype.render = function (t, n, r) {
         }
       }
     } else {
-      ans = Utils.getValue(n);
+      ans = n.textContent;
     }
   } else if (n.nodeName === 'f') {
     var type = (t === 'latex' && this.isSmall(n)) ? 'small_latex' : t;
