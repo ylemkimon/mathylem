@@ -10,6 +10,7 @@ var buffer = require('vinyl-buffer');
 var rename = require('gulp-rename');
 var uglify = require('gulp-uglify');
 var gutil = require('gulp-util');
+var sourcemaps = require('gulp-sourcemaps');
 
 var BUILD = 'build/';
 
@@ -38,6 +39,35 @@ gulp.task('js', function () {
         ascii_only: true
       }
     }))
+    .pipe(gulp.dest(BUILD));
+});
+
+gulp.task('js-debug', function () {
+  return browserify({
+    entries: ['./js/mathylem.js'],
+    standalone: 'MathYlem',
+    debug: true
+  }).transform(babelify.configure({
+    // from /lib/katex/.babelrc
+    presets: ['es2015', 'flow'],
+    plugins: [
+      'transform-runtime',
+      'transform-class-properties'
+    ],
+    only: /lib\/katex/
+  }))
+    .bundle()
+    .on('error', gutil.log)
+    .pipe(source('mathylem.min.js'))
+    .pipe(buffer())
+    .pipe(sourcemaps.init({loadMaps: true}))
+    .pipe(uglify({
+      mangle: false,
+      output: {
+        ascii_only: true
+      }
+    }))
+    .pipe(sourcemaps.write('./'))
     .pipe(gulp.dest(BUILD));
 });
 

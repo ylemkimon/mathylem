@@ -56,3 +56,6 @@ typings/
 
 # dotenv environment variables file
 .env
+
+# source map file used in debugging
+build/mathylem.min.js.map
