@@ -1,29 +1,28 @@
 .mathylem {
-    border: 2px solid #BDC3C7;
-    border-radius: 5px;
-    min-height:60px;
-    padding: 10px;
-    box-shadow: 1px 1px 1px 0 lightgray inset;
-    cursor: text;
-    overflow: auto;
-    -webkit-touch-callout: none;
-    -webkit-user-select: none;
-    -khtml-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
+  border: 2px solid #BDC3C7;
+  border-radius: 5px;
+  box-shadow: 1px 1px 1px 0 lightgray inset;
+  cursor: text;
+  min-height:60px;
+  overflow: auto;
+  padding: 10px;
+  -webkit-touch-callout: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 .mathylem_active {
-    background-color: #ffffff;
+  background-color: #fff;
 }
 
 .mathylem_inactive {
-    background-color: #fafafa;
+  background-color: #fafafa;
 }
 
 .mathylem_text_current {
-    border: 1px solid #ccc;
+  border: 1px solid #ccc;
 }
 
 .mathylem_active .main_cursor {
@@ -32,10 +31,13 @@
 }
 
 @keyframes blink-animation {
-  to { visibility: hidden; }
+  to {
+    visibility: hidden;
+  }
 }
 
 @-webkit-keyframes blink-animation {
-  to { visibility: hidden; }
+  to {
+    visibility: hidden;
+  }
 }
-

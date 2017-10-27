@@ -15,17 +15,17 @@ var BUILD = 'build/';
 
 gulp.task('js', function () {
   return browserify({
-      entries: ['./js/mathylem.js'],
-      standalone: 'MathYlem'
-    }).transform(babelify.configure({
-      // from /lib/katex/.babelrc
-      presets: ["es2015", "flow"],
-      plugins: [
-        "transform-runtime",
-        "transform-class-properties"
-      ],
-      only: /lib\/katex/
-    }))
+    entries: ['./js/mathylem.js'],
+    standalone: 'MathYlem'
+  }).transform(babelify.configure({
+    // from /lib/katex/.babelrc
+    presets: ['es2015', 'flow'],
+    plugins: [
+      'transform-runtime',
+      'transform-class-properties'
+    ],
+    only: /lib\/katex/
+  }))
     .bundle()
     .on('error', gutil.log)
     .pipe(source('mathylem.js'))
@@ -41,9 +41,9 @@ gulp.task('js', function () {
     .pipe(gulp.dest(BUILD));
 });
 
-gulp.task('css', function() {
+gulp.task('css', function () {
   var katex = gulp.src('lib/katex/static/katex.less')
-    .pipe(less())
+    .pipe(less());
 
   return merge(katex, gulp.src(['./css/*.css']))
     .pipe(concat('mathylem.css'))

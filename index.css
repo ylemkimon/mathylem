@@ -1,20 +1,21 @@
 body {
-    padding: 20px;
-    font-size: 16px;
-
-    background-color: #ececec;
+  background-color: #ececec;
+  font-size: 16px;
+  padding: 20px;
 }
 
 div {
-    width: 100%;
-    max-width: 900px;
+  width: 100%;
+  max-width: 900px;
 }
 
 #result {
-    border: 1px solid black;
-    padding: 10px;
+  border: 1px solid black;
+  padding: 10px;
 }
 
 #stuff {
-    padding-top:10px;
+  padding-top: 10px;
+  white-space: pre-line;
+  word-wrap: break-word;
 }
