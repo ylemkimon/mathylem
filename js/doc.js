@@ -5,7 +5,7 @@ var Doc = function (doc) {
   this.setContent(doc);
 };
 
-Doc.prototype.isSmall = function (nn) {
+Doc.isSmall = function (nn) {
   var n = nn.parentNode;
   while (n != null && n.nodeName !== 'm') {
     if (n.getAttribute('small') === 'yes') {
@@ -132,7 +132,7 @@ Doc.prototype.render = function (t, n, r) {
       ans = n.textContent;
     }
   } else if (n.nodeName === 'f') {
-    var type = (t === 'latex' && this.isSmall(n)) ? 'small_latex' : t;
+    var type = (t === 'latex' && Doc.isSmall(n)) ? 'small_latex' : t;
     var nn = this.XPathNode("./b[@p='" + type + "']", n) ||
       this.XPathNode("./b[@p='" + t + "']", n);
     if (nn) {
