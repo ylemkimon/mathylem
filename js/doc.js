@@ -187,18 +187,4 @@ Doc.prototype.render = function (t, n, r) {
   return ans;
 };
 
-Doc.prototype.getPath = function (n) {
-  var name = n.nodeName;
-  if (name === 'm') {
-    return 'mathylem_loc_m';
-  }
-  var ns = 0;
-  for (var nn = n; nn != null; nn = nn.previousSibling) {
-    if (nn.nodeType === 1 && nn.nodeName === name) {
-      ns++;
-    }
-  }
-  return this.getPath(n.parentNode) + '_' + name + '' + ns;
-};
-
 module.exports = Doc;
