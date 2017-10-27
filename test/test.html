@@ -14,9 +14,8 @@
       MathYlem.initialize(["../build/symbols.json"]);
       var test_mathylem = new MathYlem("mathylem1",
       {"events":{
-      "error":function(g){test_mathylem.backend.setContent("<m><e>"+g.message+"</e></m>");},
-      "left_end":function(g){test_mathylem.backend.setContent("<m><e>!left</e></m>");},
-      "right_end":function(g){test_mathylem.backend.setContent("<m><e>!right</e></m>");},
+      "leftEnd":function(g){test_mathylem.backend.setContent("<m><e>!left</e></m>");},
+      "rightEnd":function(g){test_mathylem.backend.setContent("<m><e>!right</e></m>");},
       "change":function(g){console.log("CHANGE",g.old,g.new)},
       "ready":function(g){
           console.log("testing");

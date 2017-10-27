@@ -1,785 +1,132 @@
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.MathYlem = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-Mousetrap = require('mousetrap');
-katex = require('../lib/katex/katex.js');
-MathYlemBackend = require('./mathylem_backend.js');
-MathYlemUtils = require('./mathylem_utils.js');
-MathYlemSymbols = require('./mathylem_symbols.js');
-debounce = require('throttle-debounce/debounce');
+var Doc = require('./doc.js');
+var Symbols = require('./symbols.js');
 
-var MathYlem = function (mathylem_div, config) {
-  var self = this;
-  var config = config || {};
-  var options = config['options'] || {};
-
-  if (typeof mathylem_div == 'string' || mathylem_div instanceof String) {
-    mathylem_div = document.getElementById(mathylem_div);
-  }
-
-  if (!(mathylem_div.id)) {
-    var i = MathYlem.max_uid || 0;
-    while (document.getElementById('mathylem_uid_' + i)) i++;
-    MathYlem.max_uid = i;
-    mathylem_div.id = 'mathylem_uid_' + i;
-  }
-  mathylem_div.className += " mathylem";
-  var i = MathYlem.max_tabIndex || 0;
-  mathylem_div.tabIndex = i;
-  MathYlem.max_tabIndex = i + 1;
-
-  this.editor_active = true;
-  this.empty_content = options['empty_content'] || '\\red{[?]}';
-  this.editor = mathylem_div;
-  this.blacklist = [];
-  this.maintain_focus = false;
-  this.processed_fake_input = 20;
-  this.autoreplace = true;
-  this.ready = false;
-
-  MathYlem.instances[mathylem_div.id] = this;
-  mathylem_div.mathylem = this;
-
-  config['parent'] = self;
-
-  if (/Mobi/.test(navigator.userAgent)) {
-    var fakeInput = document.createElement('textarea');
-    this.fakeInput = fakeInput;
-
-    fakeInput.setAttribute('id', 'fakeInput_' + mathylem_div.id);
-    fakeInput.setAttribute('autocapitalize', 'none');
-    fakeInput.setAttribute('autocomplete', 'off');
-    fakeInput.setAttribute('autocorrect', 'off');
-    fakeInput.setAttribute('spellcheck', 'false');
-    mathylem_div.insertAdjacentElement('afterend', fakeInput);
-
-    fakeInput.style.position = 'absolute';
-    fakeInput.style.top = mathylem_div.offsetTop + 'px';
-    fakeInput.style.left = mathylem_div.offsetLeft + 'px';
-    fakeInput.style.width = '1px';
-    fakeInput.style.height = '1px';
-    fakeInput.style.opacity = 0;
-    fakeInput.style.padding = 0;
-    fakeInput.style.margin = 0;
-    fakeInput.style.border = 0;
-    fakeInput.addEventListener('input', debounce(100, function () {
-      for (; self.processed_fake_input > self.fakeInput.value.length; self.processed_fake_input--) {
-        Mousetrap.trigger('backspace');
-      }
-      if (self.fakeInput.value.length == 0) {
-        self.processed_fake_input = 20;
-        self.fakeInput.value = '____________________';
-      }
-      for (; self.processed_fake_input < self.fakeInput.value.length; self.processed_fake_input++) {
-        var c = self.fakeInput.value[self.processed_fake_input];
-        if (c != c.toLowerCase()) { Mousetrap.trigger('shift+' + c.toLowerCase()) } else if (c == ' ') { Mousetrap.trigger('space') } else { Mousetrap.trigger(c) }
-      }
-    }));
-    fakeInput.addEventListener('keydown', function (e) {
-      if (e.keycode == 8) {
-        Mousetrap.trigger('backspace');
-        e.preventDefault();
-      } else if (e.keycode == 13) {
-        Mousetrap.trigger('enter');
-        e.preventDefault();
-      }
-    });
-    fakeInput.addEventListener('focus', function () {
-      self.activate(false);
-    });
-    fakeInput.addEventListener('blur', function () {
-      if (self.maintain_focus) {
-        self.maintain_focus = false;
-        this.focus();
-      } else { self.deactivate(false) }
-    });
-    fakeInput.value = '____________________';
-  }
-
-  this.backend = new MathYlemBackend(config);
-  this.temp_cursor = {'node': null, 'caret': 0};
-  this.editor.addEventListener('click', function () {
-    var g = this.mathylem;
-    var b = g.backend;
-    if (g.editor_active) { return }
-    g.maintain_focus = true;
-    setTimeout(function () {
-      g.maintain_focus = false;
-    }, 500);
-    b.sel_clear();
-    b.current = b.doc.root().lastChild;
-    b.caret = MathYlemUtils.get_length(b.current);
-    g.activate(true);
-  });
-  if (MathYlem.ready && !this.ready) {
-    this.ready = true;
-    this.backend.fire_event('ready');
-    this.render(true);
-  }
-  this.deactivate(true);
-  this.recompute_locations_paths();
-};
-
-MathYlem.instances = {};
-MathYlem.ready = false;
-
-MathYlem.active_mathylem = null;
-
-MathYlem.add_symbols = function (symbols) {
-  for (var s in symbols) {
-    var new_syms = MathYlemSymbols.add_symbols(s, symbols[s], MathYlemSymbols.symbols);
-    for (var s in new_syms) { MathYlemSymbols.symbols[s] = new_syms[s] }
-  }
-  for (var i in MathYlem.instances) {
-    for (var s in symbols) {
-      MathYlem.instances[i].backend.symbols[s] = JSON.parse(JSON.stringify(symbols[s]));
-    }
-  }
-};
-
-MathYlem.set_global_symbols = function (symbols) {
-  MathYlemSymbols.symbols = {};
-  MathYlem.add_symbols(symbols);
-};
-
-MathYlem.reset_global_symbols = function () {
-  for (var i in MathYlem.instances) {
-    MathYlem.instances[i].backend.symbols = JSON.parse(JSON.stringify(MathYlemSymbols.symbols));
-  }
-};
-
-MathYlem.init_symbols = function (symbols) {
-  var all_ready = function () {
-    MathYlem.register_keyboard_handlers();
-    for (var i in MathYlem.instances) {
-      MathYlem.instances[i].ready = true;
-      MathYlem.instances[i].render(true);
-      MathYlem.instances[i].backend.symbols = JSON.parse(JSON.stringify(MathYlemSymbols.symbols));
-      MathYlem.instances[i].backend.fire_event('ready');
-    }
-    MathYlemBackend.ready = true;
-  };
-  if (!(Array.isArray(symbols))) {
-    symbols = [symbols];
-  }
-  var calls = [];
-  for (var i = 0; i < symbols.length; i++) {
-    var x = (function outer (j) {
-      return function (callback) {
-        var req = new XMLHttpRequest();
-        req.onload = function () {
-          var syms = JSON.parse(this.responseText);
-          for (var s in syms) {
-            var new_syms = MathYlemSymbols.add_symbols(s, syms[s], MathYlemSymbols.symbols);
-            for (var s in new_syms) { MathYlemSymbols.symbols[s] = new_syms[s] }
-          }
-          callback();
-        };
-        req.open('get', symbols[j], true);
-        req.send();
-      };
-    }(i));
-    calls.push(x);
-  }
-  calls.push(all_ready);
-  var j = 0;
-  var cb = function () {
-    j += 1;
-    if (j < calls.length) calls[j](cb);
-  };
-  if (calls.length > 0) calls[0](cb);
-};
-
-MathYlem.static_render_all = function () {
-  var l = document.getElementsByTagName('script');
-  var ans = [];
-  for (var i = 0; i < l.length; i++) {
-    if (l[i].getAttribute('type') == 'text/mathylem_xml') {
-      var n = l[i];
-      var d = new MathYlemDoc(n.innerHTML);
-      var s = document.createElement('span');
-      s.setAttribute('id', 'eqn1_render');
-      katex.render(d.get_content('latex'), s);
-      n.parentNode.insertBefore(s, n);
-      ans.push({'container': s, 'doc': d});
-    }
-  }
-  return ans;
-};
-
-MathYlem.static_render = function (doc, target_id) {
-  var d = new MathYlemDoc(doc);
-  var target = document.getElementById(target_id);
-  katex.render(d.get_content('latex'), target);
-  return {'container': target, 'doc': d};
-};
-
-MathYlem.prototype.is_changed = function () {
-  var bb = this.editor.getElementsByClassName('katex')[0];
-  if (!bb) { return }
-  var rect = bb.getBoundingClientRect();
-  var ans = !this.bounding_box || this.bounding_box.top != rect.top || this.bounding_box.bottom != rect.bottom || this.bounding_box.right != rect.right || this.bounding_box.left != rect.left;
-  this.bounding_box = rect;
-  return ans;
-};
-
-MathYlem.prototype.recompute_locations_paths = function () {
-  var ans = [];
-  var bb = this.editor.getElementsByClassName('katex')[0];
-  if (!bb) { return }
-  var rect = bb.getBoundingClientRect();
-  ans.push({
-    'path': 'all',
-    'top': rect.top,
-    'bottom': rect.bottom,
-    'left': rect.left,
-    'right': rect.right
-  });
-  var elts = this.editor.getElementsByClassName('mathylem_elt');
-  for (var i = 0; i < elts.length; i++) {
-    var elt = elts[i];
-    if (elt.nodeName == 'mstyle') { continue }
-    var rect = elt.getBoundingClientRect();
-    if (rect.top == 0 && rect.bottom == 0 && rect.left == 0 && rect.right == 0) { continue }
-    var cl = elt.className.split(/\s+/);
-    for (var j = 0; j < cl.length; j++) {
-      if (cl[j].startsWith('mathylem_loc')) {
-        ans.push({
-          'path': cl[j],
-          'top': rect.top,
-          'bottom': rect.bottom,
-          'left': rect.left,
-          'right': rect.right,
-          'mid_x': (rect.left + rect.right) / 2,
-          'mid_y': (rect.bottom + rect.top) / 2,
-          'blank': cl.indexOf('mathylem_blank') >= 0
-        });
-        break;
-      }
-    }
-  }
-  this.boxes = ans;
-};
-
-MathYlem.get_loc = function (x, y, current_node, current_caret) {
-  var g = MathYlem.active_mathylem;
-  var min_dist = -1;
-  var mid_dist = 0;
-  var opt = null;
-  // check if we go to first or last element
-  if (current_node) {
-    var current_path = MathYlemUtils.path_to(current_node);
-    var current_pos = parseInt(current_path.substring(current_path.lastIndexOf('e') + 1));
-  }
-
-  var boxes = g.boxes;
-  if (!boxes) { return }
-  if (current_node) {
-    current_path = current_path.replace(/e[0-9]+$/, 'e');
-    var boxes2 = [];
-    for (var i = 0; i < boxes.length; i++) {
-      if (boxes[i].path == 'all') { continue }
-      var loc = boxes[i].path.substring(0, boxes[i].path.lastIndexOf('_'));
-      loc = loc.replace(/e[0-9]+$/, 'e');
-      if (loc == current_path) {
-        boxes2.push(boxes[i]);
-      }
-    }
-    boxes = boxes2;
-  }
-  if (!boxes) { return }
-  for (var i = 0; i < boxes.length; i++) {
-    var box = boxes[i];
-    if (box.path == 'all') {
-      if (!opt) { opt = { 'path': 'mathylem_loc_m_e1_0' } }
-      continue;
-    }
-    var xdist = Math.max(box.left - x, x - box.right, 0);
-    var ydist = Math.max(box.top - y, y - box.bottom, 0);
-    var dist = Math.sqrt(xdist * xdist + ydist * ydist);
-    if (min_dist == -1 || dist < min_dist) {
-      min_dist = dist;
-      mid_dist = x - box.mid_x;
-      opt = box;
-    }
-  }
-  var loc = opt.path.substring('mathylem_loc'.length);
-  loc = loc.replace(/_/g, '/');
-  loc = loc.replace(/([0-9]+)(?=.*?\/)/g, '[$1]');
-  var cur = g.backend.doc.xpath_node(loc.substring(0, loc.lastIndexOf('/')), g.backend.doc.root());
-  var car = parseInt(loc.substring(loc.lastIndexOf('/') + 1));
-  // Check if we want the cursor before or after the element
-  if (mid_dist > 0 && !(opt.blank)) {
-    car++;
-  }
-  var ans = {
-    'current': cur,
-    'caret': car,
-    'pos': 'none'
-  };
-  if (current_node && opt) {
-    var opt_pos = parseInt(opt.path.substring(opt.path.lastIndexOf('e') + 1, opt.path.lastIndexOf('_')));
-    if (opt_pos < current_pos) { ans['pos'] = 'left' } else if (opt_pos > current_pos) { ans['pos'] = 'right' } else if (car < current_caret) { ans['pos'] = 'left' } else if (car > current_caret) { ans['pos'] = 'right' }
-  }
-  return ans;
-};
-
-MathYlem.mouse_up = function (e) {
-  MathYlem.kb.is_mouse_down = false;
-  var g = MathYlem.active_mathylem;
-  if (g) { g.render(true) }
-};
-
-MathYlem.mouse_down = function (e) {
-  var n = e.target;
-  MathYlem.kb.is_mouse_down = true;
-  while (n != null) {
-    if (n.mathylem) {
-      var g = MathYlem.active_mathylem;
-      if (n.mathylem == g) {
-        g.maintain_focus = true;
-        setTimeout(function () {
-          g.maintain_focus = false;
-        }, 500);
-        if (e.shiftKey) {
-          g.select_to(e.clientX, e.clientY, true);
-        } else {
-          var loc = e.touches ? MathYlem.get_loc(e.touches[0].clientX, e.touches[0].clientY) : MathYlem.get_loc(e.clientX, e.clientY);
-          if (!loc) { return }
-          var b = g.backend;
-          b.current = loc.current;
-          b.caret = loc.caret;
-          b.sel_status = MathYlemBackend.SEL_NONE;
-        }
-        g.render(true);
-      } else if (g) { g.deactivate(true) }
-      return;
-    }
-    n = n.parentNode;
-  }
-  MathYlem.active_mathylem = null;
-  for (var i in MathYlem.instances) {
-    MathYlem.instances[i].deactivate(true);
-  }
-};
-
-MathYlem.mouse_move = function (e) {
-  var g = MathYlem.active_mathylem;
-  if (!g) { return }
-  if (!MathYlem.kb.is_mouse_down) {
-    var bb = g.editor;
-    var rect = bb.getBoundingClientRect();
-    if ((e.clientX < rect.left || e.clientX > rect.right) || (e.clientY > rect.bottom || e.clientY < rect.top)) {
-      g.temp_cursor = {
-        'node': null,
-        'caret': 0
-      };
-    } else {
-      var loc = MathYlem.get_loc(e.clientX, e.clientY);
-      if (!loc) { return }
-      g.temp_cursor = {
-        'node': loc.current,
-        'caret': loc.caret
-      };
-    }
-  } else {
-    g.select_to(e.clientX, e.clientY, true);
-  }
-  g.render(g.is_changed());
-};
-
-MathYlem.touch_move = function (e) {
-  var g = MathYlem.active_mathylem;
-  if (!g) { return }
-  g.select_to(e.touches[0].clientX, e.touches[0].clientY, true);
-  g.render(g.is_changed());
-};
-
-MathYlem.prototype.select_to = function (x, y, mouse) {
-  var sel_caret = this.backend.caret;
-  var sel_cursor = this.backend.current;
-  if (this.backend.sel_status == MathYlemBackend.SEL_CURSOR_AT_START) {
-    sel_cursor = this.backend.sel_end.node;
-    sel_caret = this.backend.sel_end.caret;
-  } else if (this.backend.sel_status == MathYlemBackend.SEL_CURSOR_AT_END) {
-    sel_cursor = this.backend.sel_start.node;
-    sel_caret = this.backend.sel_start.caret;
-  }
-  var loc = MathYlem.get_loc(x, y, sel_cursor, sel_caret);
-  if (!loc) { return }
-  this.backend.select_to(loc, sel_cursor, sel_caret, mouse);
-};
-
-if ('ontouchstart' in window) {
-  window.addEventListener('touchstart', MathYlem.mouse_down, false);
-  window.addEventListener('touchmove', MathYlem.touch_move, false);
-} else {
-  window.addEventListener('mousedown', MathYlem.mouse_down, false);
-  window.addEventListener('mouseup', MathYlem.mouse_up, false);
-  window.addEventListener('mousemove', MathYlem.mouse_move, false);
-}
-
-MathYlem.prototype.render_node = function (t) {
-  // All the interesting work is done by transform.  This function just adds in the cursor and selection-start cursor
-  var output = '';
-  if (t == 'render') {
-    var root = this.backend.doc.root();
-    this.backend.add_paths(root, 'm');
-    this.backend.temp_cursor = this.temp_cursor;
-    this.backend.add_classes_cursors(root);
-    this.backend.current.setAttribute('current', 'yes');
-    if (this.temp_cursor.node) this.temp_cursor.node.setAttribute('temp', 'yes');
-    output = this.backend.get_content('latex', true);
-    this.backend.remove_cursors_classes(root);
-    output = output.replace(new RegExp('&amp;', 'g'), '&');
-    return output;
-  } else {
-    output = this.backend.get_content(t);
-  }
-  return output;
-};
-
-MathYlem.prototype.render = function (updated) {
-  if (!this.editor_active && this.backend.doc.is_blank()) {
-    katex.render(this.empty_content, this.editor);
-    return;
-  }
-  var tex = this.render_node('render');
-  //try {
-    katex.render(tex, this.editor);
-  //} catch (e) {
-  //  this.backend.undo();
-  //  this.render(false);
-  //}
-  if (updated) {
-    this.recompute_locations_paths();
-  }
-};
-
-MathYlem.prototype.activate = function (focus) {
-  MathYlem.active_mathylem = this;
-  this.editor_active = true;
-  this.editor.className = this.editor.className.replace(new RegExp('(\\s|^)mathylem_inactive(\\s|$)'), ' mathylem_active ');
-  if (focus) {
-    if (this.fakeInput) {
-      this.fakeInput.style.top = this.editor.offsetTop + 'px';
-      this.fakeInput.style.left = this.editor.offsetLeft + 'px';
-      this.fakeInput.focus();
-      this.fakeInput.setSelectionRange(this.fakeInput.value.length, this.fakeInput.value.length);
-    } else { this.editor.focus() }
-  }
-  if (this.ready) {
-    this.render(true);
-    this.backend.fire_event('focus', {'focused': true});
-  }
-};
-
-MathYlem.prototype.deactivate = function (blur) {
-  this.editor_active = false;
-  var r1 = new RegExp('(?:\\s|^)mathylem_active(?:\\s|$)');
-  var r2 = new RegExp('(?:\\s|^)mathylem_inactive(?:\\s|$)');
-  if (this.editor.className.match(r1)) {
-    this.editor.className = this.editor.className.replace(r1, ' mathylem_inactive ');
-  } else if (!this.editor.className.match(r2)) {
-    this.editor.className += ' mathylem_inactive ';
-  }
-  if (blur && this.fakeInput) { this.fakeInput.blur() }
-  if (this.ready) {
-    this.render();
-    this.backend.fire_event('focus', {'focused': false});
-  }
-};
-
-// Keyboard stuff
-
-MathYlem.kb = {};
-
-MathYlem.kb.is_mouse_down = false;
-
-/* keyboard behaviour definitions */
-
-// keys aside from 0-9,a-z,A-Z
-MathYlem.kb.k_chars = {
-  '=': '=',
-  '+': '+',
-  '-': '-',
-  '*': '*',
-  '.': '.',
-  ',': ',',
-  'shift+/': '/',
-  'shift+=': '+'
-};
-MathYlem.kb.k_syms = {
-  '/': 'frac',
-  '%': 'mod',
-  '^': 'power',
-  '(': 'paren',
-  '<': 'less',
-  '>': 'greater',
-  '_': 'sub',
-  '|': 'abs',
-  '!': 'fact',
-  'shift+up': 'power',
-  'shift+down': 'sub'
-};
-MathYlem.kb.k_controls = {
-  'up': 'up',
-  'down': 'down',
-  'right': 'right',
-  'left': 'left',
-  'alt+k': 'up',
-  'alt+j': 'down',
-  'alt+l': 'right',
-  'alt+h': 'left',
-  'space': 'spacebar',
-  'home': 'home',
-  'end': 'end',
-  'backspace': 'backspace',
-  'del': 'delete_key',
-  'mod+a': 'sel_all',
-  'mod+c': 'sel_copy',
-  'mod+x': 'sel_cut',
-  'mod+v': 'sel_paste',
-  'mod+z': 'undo',
-  'mod+y': 'redo',
-  'enter': 'done',
-  'mod+shift+right': 'list_extend_copy_right',
-  'mod+shift+left': 'list_extend_copy_left',
-  'mod+right': 'list_extend_right',
-  'mod+left': 'list_extend_left',
-  'mod+up': 'list_extend_up',
-  'mod+down': 'list_extend_down',
-  'mod+shift+up': 'list_extend_copy_up',
-  'mod+shift+down': 'list_extend_copy_down',
-  'mod+backspace': 'list_remove',
-  'mod+shift+backspace': 'list_remove_row',
-  'shift+left': 'sel_left',
-  'shift+right': 'sel_right',
-  ')': 'right_paren',
-  '\\': 'backslash',
-  'tab': 'tab'
-};
-
-// letters
-
-for (var i = 65; i <= 90; i++) {
-  MathYlem.kb.k_chars[String.fromCharCode(i).toLowerCase()] = String.fromCharCode(i).toLowerCase();
-  MathYlem.kb.k_chars['shift+' + String.fromCharCode(i).toLowerCase()] = String.fromCharCode(i).toUpperCase();
-}
-
-// numbers
-
-for (var i = 48; i <= 57; i++) { MathYlem.kb.k_chars[String.fromCharCode(i)] = String.fromCharCode(i) }
-
-MathYlem.register_keyboard_handlers = function () {
-  Mousetrap.addKeycodes({173: '-'}); // Firefox's special minus (needed for _ = sub binding)
-  for (var i in MathYlem.kb.k_chars) {
-    Mousetrap.bind(i, (function (i) {
-      return function () {
-        if (!MathYlem.active_mathylem) return true;
-        MathYlem.active_mathylem.temp_cursor.node = null;
-        MathYlem.active_mathylem.backend.insert_string(MathYlem.kb.k_chars[i]);
-        MathYlem.active_mathylem.render(true);
-        return false;
-      };
-    }(i)));
-  }
-  for (var i in MathYlem.kb.k_syms) {
-    Mousetrap.bind(i, (function (i) {
-      return function () {
-        if (!MathYlem.active_mathylem) return true;
-        MathYlem.active_mathylem.temp_cursor.node = null;
-        MathYlem.active_mathylem.backend.insert_symbol(MathYlem.kb.k_syms[i]);
-        MathYlem.active_mathylem.render(true);
-        return false;
-      };
-    }(i)));
-  }
-  for (var i in MathYlem.kb.k_controls) {
-    Mousetrap.bind(i, (function (i) {
-      return function () {
-        if (!MathYlem.active_mathylem) return true;
-        MathYlem.active_mathylem.backend[MathYlem.kb.k_controls[i]]();
-        MathYlem.active_mathylem.temp_cursor.node = null;
-        MathYlem.active_mathylem.render(['up', 'down', 'right', 'left', 'home', 'end', 'sel_left', 'sel_right'].indexOf(i) < 0);
-        MathYlem.active_mathylem.render(false);
-        return false;
-      };
-    }(i)));
-  }
-};
-
-module.exports = MathYlem;
-
-},{"../lib/katex/katex.js":6,"./mathylem_backend.js":2,"./mathylem_symbols.js":4,"./mathylem_utils.js":5,"mousetrap":120,"throttle-debounce/debounce":122}],2:[function(require,module,exports){
-Mousetrap = require('mousetrap');
-katex = require('../lib/katex/katex.js');
-MathYlemUtils = require('./mathylem_utils.js');
-MathYlemDoc = require('./mathylem_doc.js');
-MathYlemSymbols = require('./mathylem_symbols.js');
-
-if (!String.prototype.startsWith) {
-  String.prototype.startsWith = function (searchString, position) {
-    position = position || 0;
-    return this.substr(position, searchString.length) == searchString;
-  };
-}
-if (!String.prototype.endsWith) {
-  String.prototype.endsWith = function (searchString, position) {
-    position = position || this.length;
-    position -= searchString.length;
-    return this.indexOf(searchString, position) != -1;
-  };
-}
-String.prototype.splice = function (idx, s) {
-  return (this.slice(0, idx) + s + this.slice(idx));
-};
-String.prototype.splicen = function (idx, s, n) {
-  return (this.slice(0, idx) + s + this.slice(idx + n));
-};
-String.prototype.search_at = function (idx, s) {
-  return (this.substring(idx - s.length, idx) == s);
-};
-
-var MathYlemBackend = function (config) {
-  var config = config || {};
+var Backend = function (config) {
+  config = config || {};
   var events = config['events'] || {};
   var options = config['options'] || {};
   this.parent = config['parent'];
 
+  if (!this.parent) {
+    throw new Error('No MathYlem editor provided.');
+  }
+
   this.blacklist = [];
   this.autoreplace = true;
-  this.ready = false;
   this.events = {};
 
-  var evts = ['ready', 'change', 'left_end', 'right_end', 'done', 'completion', 'debug', 'error', 'focus'];
+  var evts = ['ready', 'change', 'leftEnd', 'rightEnd', 'done', 'completion',
+    'focus'];
 
   for (var i = 0; i < evts.length; i++) {
     var e = evts[i];
-    if (e in events) this.events[e] = e in events ? events[e] : null;
+    if (e in events) {
+      this.events[e] = e in events ? events[e] : null;
+    }
   }
 
-  var opts = ['blank_caret', 'empty_content', 'blacklist', 'autoreplace'];
+  var opts = ['blankCaret', 'emptyContent', 'blacklist', 'autoreplace'];
 
-  for (var i = 0; i < opts.length; i++) {
+  for (var i = 0; i < opts.length; i++) { // eslint-disable-line no-redeclare
     var p = opts[i];
-    if (p in options) this[p] = options[p];
+    if (p in options) {
+      this[p] = options[p];
+    }
   }
 
-  this.symbols = {};
-  this.doc = new MathYlemDoc(options['xml_content']);
+  this.doc = new Doc(options['xmlContent']);
 
   this.current = this.doc.root().firstChild;
   this.caret = 0;
-  this.sel_start = null;
-  this.sel_end = null;
-  this.undo_data = [];
-  this.undo_now = -1;
-  this.sel_status = MathYlemBackend.SEL_NONE;
+  this.selStart = null;
+  this.selEnd = null;
+  this.undoData = [];
+  this.undoCurrent = -1;
+  this.selStatus = Backend.SEL_NONE;
   this.checkpoint();
-  if (MathYlemBackend.ready && !this.ready) {
-    this.ready = true;
-    this.symbols = JSON.parse(JSON.stringify(MathYlemSymbols.symbols));
-    this.fire_event('ready');
-  }
 };
 
-MathYlemBackend.SEL_NONE = 0;
-MathYlemBackend.SEL_CURSOR_AT_START = 1;
-MathYlemBackend.SEL_CURSOR_AT_END = 2;
+Backend.CARET = '\\cursor{-0.2ex}{0.7em}';
+Backend.TEMP_SMALL_CARET = '\\cursor{0em}{0.6em}';
+Backend.TEMP_CARET = '\\cursor{-0.2ex}{0.7em}';
+Backend.SMALL_CARET = '\\cursor{-0.05em}{0.5em}';
+Backend.SEL_CARET = '\\cursor{-0.2ex}{0.7em}';
+Backend.SMALL_SEL_CARET = '\\cursor{-0.05em}{0.5em}';
+Backend.SEL_COLOR = 'red';
 
-MathYlemBackend.clipboard = null;
+Backend.SEL_NONE = 0;
+Backend.SEL_CURSOR_AT_START = 1;
+Backend.SEL_CURSOR_AT_END = 2;
 
-MathYlemBackend.prototype.get_content = function (t, r) {
-  return this.doc.get_content(t, r);
+Backend.Clipboard = null;
+
+Backend.prototype.getContent = function (t, r) {
+  return this.doc.getContent(t, r);
 };
 
-MathYlemBackend.prototype.xml = function () {
-  return this.doc.get_content('xml');
+Backend.prototype.xml = function () {
+  return this.doc.getContent('xml');
 };
 
-MathYlemBackend.prototype.latex = function () {
-  return this.doc.get_content('latex');
+Backend.prototype.latex = function () {
+  return this.doc.getContent('latex');
 };
 
-MathYlemBackend.prototype.text = function () {
-  return this.doc.get_content('text');
+Backend.prototype.text = function () {
+  return this.doc.getContent('text');
 };
 
-MathYlemBackend.prototype.set_content = function (xml_data) {
-  this.doc = new MathYlemDoc(xml_data);
+Backend.prototype.setContent = function (xmlData) {
+  this.doc = new Doc(xmlData);
   this.current = this.doc.root().lastChild;
-  this.caret = MathYlemUtils.get_length(this.current);
-  this.sel_start = null;
-  this.sel_end = null;
-  this.undo_data = [];
-  this.undo_now = -1;
-  this.sel_status = MathYlemBackend.SEL_NONE;
+  this.caret = this.current.textContent.length;
+  this.selStart = null;
+  this.selEnd = null;
+  this.undoData = [];
+  this.undoCurrent = -1;
+  this.selStatus = Backend.SEL_NONE;
   this.checkpoint();
 };
 
-MathYlemBackend.prototype.fire_event = function (event, args) {
+Backend.prototype.fireEvent = function (event, args) {
   args = args || {};
-  args.target = this.parent || this;
-  if (this.events[event]) { this.events[event](args) }
-};
-
-MathYlemBackend.prototype.remove_symbol = function (name) {
-  if (this.symbols[name]) delete this.symbols[name];
-};
-
-MathYlemBackend.prototype.add_symbols = function (name, sym) {
-  var new_syms = MathYlemSymbols.add_symbols(name, sym);
-  for (var s in new_syms) {
-    this.symbols[s] = new_syms[s];
+  args.target = this.parent;
+  if (this.events[event]) {
+    this.events[event](args);
   }
 };
 
-MathYlemBackend.prototype.add_symbol_func_nonlatex = function (name, group) {
-  var new_syms = MathYlemSymbols.add_symbols('_func_nonlatex', [{'group': group, 'symbols': [name]}]);
-  for (var s in new_syms) { this.symbols[s] = new_syms[s] }
-};
-
-MathYlemBackend.prototype.add_symbol_func = function (name, group) {
-  var new_syms = MathYlemSymbols.add_symbols('_func', [{'group': group, 'symbols': [name]}]);
-  for (var s in new_syms) { this.symbols[s] = new_syms[s] }
-};
-
-MathYlemBackend.prototype.add_symbol_raw = function (name, latex, text, group) {
-  var s = {};
-  s[name] = {'latex': latex, 'text': text};
-  var new_syms = MathYlemSymbols.add_symbols('_raw', [{'group': group, 'symbols': s}]);
-  for (var s in new_syms) { this.symbols[s] = new_syms[s] }
-};
-
-MathYlemBackend.prototype.select_to = function (loc, sel_cursor, sel_caret, mouse) {
-  if (loc.current == sel_cursor && loc.caret == sel_caret) {
-    this.sel_status = MathYlemBackend.SEL_NONE;
-  } else if (loc.pos == 'left') {
-    this.sel_end = {
-      'node': sel_cursor,
-      'caret': sel_caret
+Backend.prototype.selectTo = function (loc, selCursor, selCaret, mouse) {
+  if (loc.current === selCursor && loc.caret === selCaret) {
+    this.selStatus = Backend.SEL_NONE;
+  } else if (loc.pos === 'left') {
+    this.selEnd = {
+      'node': selCursor,
+      'caret': selCaret
     };
-    this.set_sel_boundary(MathYlemBackend.SEL_CURSOR_AT_START, mouse);
-  } else if (loc.pos == 'right') {
-    this.sel_start = {
-      'node': sel_cursor,
-      'caret': sel_caret
+    this.setSelection(Backend.SEL_CURSOR_AT_START, mouse);
+  } else if (loc.pos === 'right') {
+    this.selStart = {
+      'node': selCursor,
+      'caret': selCaret
     };
-    this.set_sel_boundary(MathYlemBackend.SEL_CURSOR_AT_END, mouse);
+    this.setSelection(Backend.SEL_CURSOR_AT_END, mouse);
   }
   this.current = loc.current;
   this.caret = loc.caret;
 };
 
-MathYlemBackend.prototype.set_sel_start = function () {
-  this.sel_start = {'node': this.current, 'caret': this.caret};
+Backend.prototype.setSelStart = function () {
+  this.selStart = { 'node': this.current, 'caret': this.caret };
 };
 
-MathYlemBackend.prototype.set_sel_end = function () {
-  this.sel_end = {'node': this.current, 'caret': this.caret};
+Backend.prototype.setSelEnd = function () {
+  this.selEnd = { 'node': this.current, 'caret': this.caret };
 };
 
-MathYlemBackend.prototype.add_paths = function (n, path) {
-  if (n.nodeName == 'e') {
+Backend.prototype.addPaths = function (n, path) {
+  if (n.nodeName === 'e') {
     n.setAttribute('path', path);
   } else {
     var es = 1;
@@ -787,154 +134,224 @@ MathYlemBackend.prototype.add_paths = function (n, path) {
     var cs = 1;
     var ls = 1;
     for (var c = n.firstChild; c != null; c = c.nextSibling) {
-      if (c.nodeName == 'c') { this.add_paths(c, path + '_c' + cs); cs++ } else if (c.nodeName == 'f') { this.add_paths(c, path + '_f' + fs); fs++ } else if (c.nodeName == 'l') { this.add_paths(c, path + '_l' + ls); ls++ } else if (c.nodeName == 'e') { this.add_paths(c, path + '_e' + es); es++ }
+      if (c.nodeName === 'c') {
+        this.addPaths(c, path + '_c' + cs);
+        cs++;
+      } else if (c.nodeName === 'f') {
+        this.addPaths(c, path + '_f' + fs);
+        fs++;
+      } else if (c.nodeName === 'l') {
+        this.addPaths(c, path + '_l' + ls);
+        ls++;
+      } else if (c.nodeName === 'e') {
+        this.addPaths(c, path + '_e' + es);
+        es++;
+      }
     }
   }
 };
 
-MathYlemBackend.prototype.add_classes_cursors = function (n, path) {
-  if (n.nodeName == 'e') {
-    var text = MathYlemUtils.get_value(n);
+Backend.prototype.addCursorClasses = function (n, path) {
+  if (n.nodeName === 'e') {
+    var text = n.textContent;
     var ans = '';
-    var sel_cursor;
-    var text_node = MathYlemUtils.is_text(n);
-    if (this.sel_status == MathYlemBackend.SEL_CURSOR_AT_START) sel_cursor = this.sel_end;
-    if (this.sel_status == MathYlemBackend.SEL_CURSOR_AT_END) sel_cursor = this.sel_start;
-    if (this.sel_status != MathYlemBackend.SEL_NONE) {
-      var sel_caret_text = MathYlemUtils.is_small(sel_cursor.node) ? MathYlemUtils.SMALL_SEL_CARET : MathYlemUtils.SEL_CARET;
-      if (!text_node && text.length == 0 && n.parentNode.childElementCount > 1) {
-        sel_caret_text = '\\blue{\\xmlClass{mathylem_elt mathylem_blank mathylem_loc_' + n.getAttribute('path') + '_0}{' + sel_caret_text + '}}';
-      } else {
-        sel_caret_text = '\\blue{' + sel_caret_text + '}';
-      }
-      if (this.sel_status == MathYlemBackend.SEL_CURSOR_AT_END) sel_caret_text = text_node ? '[' : sel_caret_text + '\\' + MathYlemUtils.SEL_COLOR + '{';
-      if (this.sel_status == MathYlemBackend.SEL_CURSOR_AT_START) sel_caret_text = text_node ? ']' : '}' + sel_caret_text;
+    var selCursor;
+    var isTextNode = n.parentNode.getAttribute('mode') === 'text' ||
+      n.parentNode.getAttribute('mode') === 'symbol';
+    if (this.selStatus === Backend.SEL_CURSOR_AT_START) {
+      selCursor = this.selEnd;
     }
-    var caret_text = '';
-    var temp_caret_text = '';
-    if (text.length == 0) {
-      if (text_node) caret_text = '\\_';
-      else if (n.parentNode.childElementCount == 1) {
-        if (this.current == n) {
-          var blank_caret = this.blank_caret || (MathYlemUtils.is_small(this.current) ? MathYlemUtils.SMALL_CARET : MathYlemUtils.CARET);
-          ans = '\\red{\\xmlClass{main_cursor mathylem_elt mathylem_blank mathylem_loc_' + n.getAttribute('path') + '_0' + '}{' + blank_caret + '}}';
-        } else if (this.temp_cursor.node == n) { ans = '\\gray{\\xmlClass{mathylem_elt mathylem_blank mathylem_loc_' + n.getAttribute('path') + '_0' + '}{[?]}}' } else { ans = '\\blue{\\xmlClass{mathylem_elt mathylem_blank mathylem_loc_' + n.getAttribute('path') + '_0' + '}{[?]}}' }
-      } else if (this.temp_cursor.node != n && this.current != n && (!(sel_cursor) || sel_cursor.node != n)) {
+    if (this.selStatus === Backend.SEL_CURSOR_AT_END) {
+      selCursor = this.selStart;
+    }
+    if (this.selStatus !== Backend.SEL_NONE) {
+      var selCaretText = Doc.isSmall(selCursor.node)
+        ? Backend.SMALL_SEL_CARET : Backend.SEL_CARET;
+      if (!isTextNode && text.length === 0 && n.parentNode.childElementCount > 1) {
+        selCaretText = '\\blue{\\xmlClass{mathylem_elt mathylem_blank ' +
+          'mathylem_loc_' + n.getAttribute('path') + '_0}{' + selCaretText + '}}';
+      } else {
+        selCaretText = '\\blue{' + selCaretText + '}';
+      }
+      if (this.selStatus === Backend.SEL_CURSOR_AT_END) {
+        selCaretText = isTextNode ? '[' : selCaretText + '\\' +
+          Backend.SEL_COLOR + '{';
+      }
+      if (this.selStatus === Backend.SEL_CURSOR_AT_START) {
+        selCaretText = isTextNode ? ']' : '}' + selCaretText;
+      }
+    }
+    var caretText = '';
+    var tempCaretText = '';
+    if (text.length === 0) {
+      if (isTextNode) {
+        caretText = '\\_';
+      } else if (n.parentNode.childElementCount === 1) {
+        if (this.current === n) {
+          var blankCaret = this.blankCaret || (Doc.isSmall(this.current)
+            ? Backend.SMALL_CARET : Backend.CARET);
+          ans = '\\red{\\xmlClass{main_cursor mathylem_elt mathylem_blank ' +
+            'mathylem_loc_' + n.getAttribute('path') + '_0}{' + blankCaret + '}}';
+        } else if (this.tempCursor.node === n) {
+          ans = '\\gray{\\xmlClass{mathylem_elt mathylem_blank mathylem_loc_' +
+            n.getAttribute('path') + '_0}{[?]}}';
+        } else {
+          ans = '\\blue{\\xmlClass{mathylem_elt mathylem_blank mathylem_loc_' +
+            n.getAttribute('path') + '_0}{[?]}}';
+        }
+      } else if (this.tempCursor.node !== n && this.current !== n &&
+          (!selCursor || selCursor.node !== n)) {
         // These are the empty e elements at either end of
         // a c or m node, such as the space before and
         // after both the sin and x^2 in sin(x^2)
         //
         // Here, we add in a small element so that we can
         // use the mouse to select these areas
-        ans = '\\phantom{\\xmlClass{mathylem_elt mathylem_blank mathylem_loc_' + n.getAttribute('path') + '_0' + '}{\\cursor{0.1ex}{1ex}}}';
+        ans = '\\phantom{\\xmlClass{mathylem_elt mathylem_blank mathylem_loc_' +
+          n.getAttribute('path') + '_0}{\\cursor{0.1ex}{1ex}}}';
       }
     }
     for (var i = 0; i < text.length + 1; i++) {
-      if (n == this.current && i == this.caret && (text.length > 0 || n.parentNode.childElementCount > 1)) {
-        if (text_node) {
-          if (this.sel_status == MathYlemBackend.SEL_CURSOR_AT_START) { caret_text = '[' } else if (this.sel_status == MathYlemBackend.SEL_CURSOR_AT_END) { caret_text = ']' } else { caret_text = '\\_' }
-        } else {
-          caret_text = MathYlemUtils.is_small(this.current) ? MathYlemUtils.SMALL_CARET : MathYlemUtils.CARET;
-          if (text.length == 0) { caret_text = '\\red{\\xmlClass{main_cursor mathylem_elt mathylem_blank mathylem_loc_' + n.getAttribute('path') + '_0}{' + caret_text + '}}' } else {
-            caret_text = '\\red{\\xmlClass{main_cursor}{' + caret_text + '}}';
+      if (n === this.current && i === this.caret &&
+          (text.length > 0 || n.parentNode.childElementCount > 1)) {
+        if (isTextNode) {
+          if (this.selStatus === Backend.SEL_CURSOR_AT_START) {
+            caretText = '[';
+          } else if (this.selStatus === Backend.SEL_CURSOR_AT_END) {
+            caretText = ']';
+          } else {
+            caretText = '\\_';
           }
-          if (this.sel_status == MathYlemBackend.SEL_CURSOR_AT_START) { caret_text = caret_text + '\\' + MathYlemUtils.SEL_COLOR + '{' } else if (this.sel_status == MathYlemBackend.SEL_CURSOR_AT_END) { caret_text = '}' + caret_text }
+        } else {
+          caretText = Doc.isSmall(this.current) ? Backend.SMALL_CARET
+            : Backend.CARET;
+          if (text.length === 0) {
+            caretText = '\\red{\\xmlClass{main_cursor mathylem_elt mathylem_blank' +
+              ' mathylem_loc_' + n.getAttribute('path') + '_0}{' + caretText + '}}';
+          } else {
+            caretText = '\\red{\\xmlClass{main_cursor}{' + caretText + '}}';
+          }
+          if (this.selStatus === Backend.SEL_CURSOR_AT_START) {
+            caretText = caretText + '\\' + Backend.SEL_COLOR + '{';
+          } else if (this.selStatus === Backend.SEL_CURSOR_AT_END) {
+            caretText = '}' + caretText;
+          }
         }
-        ans += caret_text;
-      } else if (n == this.current && i == this.caret && text_node) {
-        ans += caret_text;
-      } else if (this.sel_status != MathYlemBackend.SEL_NONE && sel_cursor.node == n && i == sel_cursor.caret) {
-        ans += sel_caret_text;
-      } else if (this.temp_cursor.node == n && i == this.temp_cursor.caret && (text.length > 0 || n.parentNode.childElementCount > 1)) {
-        if (text_node) { temp_caret_text = '.' } else {
-          temp_caret_text = MathYlemUtils.is_small(this.current) ? MathYlemUtils.TEMP_SMALL_CARET : MathYlemUtils.TEMP_CARET;
-          if (text.length == 0) {
-            temp_caret_text = '\\gray{\\xmlClass{mathylem_elt mathylem_blank mathylem_loc_' + n.getAttribute('path') + '_0}{' + temp_caret_text + '}}';
-          } else { temp_caret_text = '\\gray{' + temp_caret_text + '}' }
+        ans += caretText;
+      } else if (n === this.current && i === this.caret && isTextNode) {
+        ans += caretText;
+      } else if (this.selStatus !== Backend.SEL_NONE &&
+          selCursor.node === n && i === selCursor.caret) {
+        ans += selCaretText;
+      } else if (this.tempCursor.node === n && i === this.tempCursor.caret &&
+          (text.length > 0 || n.parentNode.childElementCount > 1)) {
+        if (isTextNode) {
+          tempCaretText = '.';
+        } else {
+          tempCaretText = Doc.isSmall(this.current)
+            ? Backend.TEMP_SMALL_CARET : Backend.TEMP_CARET;
+          if (text.length === 0) {
+            tempCaretText = '\\gray{\\xmlClass{mathylem_elt mathylem_blank math' +
+              'ylem_loc_' + n.getAttribute('path') + '_0}{' + tempCaretText + '}}';
+          } else {
+            tempCaretText = '\\gray{' + tempCaretText + '}';
+          }
         }
-        ans += temp_caret_text;
+        ans += tempCaretText;
       }
-      if (i < text.length) ans += '\\xmlClass{mathylem_elt mathylem_loc_' + n.getAttribute('path') + '_' + i + '}{' + text[i] + '}';
+      if (i < text.length) {
+        ans += '\\xmlClass{mathylem_elt mathylem_loc_' + n.getAttribute('path') +
+          '_' + i + '}{' + text[i] + '}';
+      }
     }
-    if (text_node && n == this.current) {
+    if (isTextNode && n === this.current) {
       ans = '\\xmlClass{mathylem_text_current}{{' + ans + '}}';
     }
     n.setAttribute('render', ans);
     n.removeAttribute('path');
   } else {
     for (var c = n.firstChild; c != null; c = c.nextSibling) {
-      if (c.nodeName == 'c' || c.nodeName == 'l' || c.nodeName == 'f' || c.nodeName == 'e') { this.add_classes_cursors(c) }
+      if (c.nodeName === 'c' || c.nodeName === 'l' || c.nodeName === 'f' ||
+          c.nodeName === 'e') {
+        this.addCursorClasses(c);
+      }
     }
   }
 };
 
-MathYlemBackend.prototype.remove_cursors_classes = function (n) {
-  if (n.nodeName == 'e') {
+Backend.prototype.removeCursorClasses = function (n) {
+  if (n.nodeName === 'e') {
     n.removeAttribute('path');
     n.removeAttribute('render');
     n.removeAttribute('current');
     n.removeAttribute('temp');
   } else {
     for (var c = n.firstChild; c != null; c = c.nextSibling) {
-      if (c.nodeType == 1) { this.remove_cursors_classes(c) }
+      if (c.nodeType === 1) {
+        this.removeCursorClasses(c);
+      }
     }
   }
 };
 
-MathYlemBackend.prototype.down_from_f = function () {
+Backend.prototype.downFromF = function () {
   var nn = this.current.firstChild;
-  while (nn != null && nn.nodeName != 'c' && nn.nodeName != 'l') nn = nn.nextSibling;
-  if (nn != null) {
-    while (nn.nodeName == 'l') nn = nn.firstChild;
-    this.current = nn.firstChild;
-  }
-};
-
-MathYlemBackend.prototype.down_from_f_to_blank = function () {
-  var nn = this.current.firstChild;
-  while (nn != null && !(nn.nodeName == 'c' && nn.childNodes.length == 1 && MathYlemUtils.is_blank(nn.firstChild))) {
+  while (nn != null && nn.nodeName !== 'c' && nn.nodeName !== 'l') {
     nn = nn.nextSibling;
   }
   if (nn != null) {
-    // Sanity check:
-
-    while (nn.nodeName == 'l') nn = nn.firstChild;
-    if (nn.nodeName != 'c' || nn.firstChild.nodeName != 'e') {
-      this.problem('dfftb');
-      return;
+    while (nn.nodeName === 'l') {
+      nn = nn.firstChild;
     }
     this.current = nn.firstChild;
-  } else this.down_from_f();
+  }
 };
 
-MathYlemBackend.prototype.delete_from_f = function (to_insert) {
+Backend.prototype.downFromFToBlank = function () {
+  var nn = this.current.firstChild;
+  while (nn != null && !(nn.nodeName === 'c' && nn.childNodes.length === 1 &&
+      nn.firstChild.textContent.length === 0)) {
+    nn = nn.nextSibling;
+  }
+  if (nn != null) {
+    while (nn.nodeName === 'l') {
+      nn = nn.firstChild;
+    }
+    this.current = nn.firstChild;
+  } else {
+    this.downFromF();
+  }
+};
+
+Backend.prototype.deleteFromF = function (toInsert) {
   var n = this.current;
   var p = n.parentNode;
   var prev = n.previousSibling;
   var next = n.nextSibling;
-  var middle = to_insert || '';
-  var new_node = this.make_e(MathYlemUtils.get_value(prev) + middle + MathYlemUtils.get_value(next));
-  this.current = new_node;
-  this.caret = MathYlemUtils.get_length(prev);
-  p.insertBefore(new_node, prev);
+  var middle = toInsert || '';
+  var newNode = this.makeE(prev.textContent + middle + next.textContent);
+  this.current = newNode;
+  this.caret = prev.textContent.length;
+  p.insertBefore(newNode, prev);
   p.removeChild(prev);
   p.removeChild(n);
   p.removeChild(next);
 };
 
-MathYlemBackend.prototype.symbol_to_node = function (sym_name, content) {
-  // sym_name is a key in the symbols dictionary
-  //
-  // content is a list of nodes to insert
+Backend.prototype.symbolToNode = function (name, content) {
   var base = this.doc.base;
-  var s = this.symbols[sym_name];
+  var s = Symbols.symbols[name];
   var f = base.createElement('f');
-  if ('type' in s) f.setAttribute('type', s['type']);
-  if ('group' in s) f.setAttribute('group', s['group']);
-  if (s['char']) f.setAttribute('c', 'yes');
+  f.setAttribute('type', name);
+  if ('group' in s) {
+    f.setAttribute('group', s['group']);
+  }
+  if (s['char']) {
+    f.setAttribute('c', 'yes');
+  }
 
-  var first_ref = -1;
-  var refs_count = 0;
+  var firstRef = -1;
+  var refsCount = 0;
   var lists = {};
   var first;
 
@@ -944,12 +361,12 @@ MathYlemBackend.prototype.symbol_to_node = function (sym_name, content) {
     b.setAttribute('p', t);
 
     var out = s['output'][t];
-    if (typeof out == 'string') {
+    if (typeof out === 'string') {
       out = out.split(/(\{\$[0-9]+(?:\{[^}]+\})*\})/g);
       for (var i = 0; i < out.length; i++) {
         var m = out[i].match(/^\{\$([0-9]+)((?:\{[^}]+\})*)\}$/);
         if (m) {
-          out[i] = {'ref': parseInt(m[1])};
+          out[i] = { 'ref': parseInt(m[1]) };
           if (m[2].length > 0) {
             var mm = m[2].match(/\{[^}]*\}/g);
             out[i]['d'] = mm.length;
@@ -960,19 +377,24 @@ MathYlemBackend.prototype.symbol_to_node = function (sym_name, content) {
         }
       }
     }
-    for (var i = 0; i < out.length; i++) {
-      if (typeof out[i] == 'string' || out[i] instanceof String) {
-        var nt = base.createTextNode(out[i]);
+    for (var i = 0; i < out.length; i++) { // eslint-disable-line no-redeclare
+      var nt;
+      if (typeof out[i] === 'string' || out[i] instanceof String) {
+        nt = base.createTextNode(out[i]);
         b.appendChild(nt);
       } else {
-        var nt = base.createElement('r');
+        nt = base.createElement('r');
         for (var attr in out[i]) {
           nt.setAttribute(attr, out[i][attr]);
         }
-        if (t == 'latex') {
-          if (first_ref == -1) first_ref = out[i]['ref'];
-          if ('d' in out[i]) lists[refs_count] = out[i]['d'];
-          refs_count++;
+        if (t === 'latex') {
+          if (firstRef === -1) {
+            firstRef = out[i]['ref'];
+          }
+          if ('d' in out[i]) {
+            lists[refsCount] = out[i]['d'];
+          }
+          refsCount++;
         }
         b.appendChild(nt);
       }
@@ -980,416 +402,541 @@ MathYlemBackend.prototype.symbol_to_node = function (sym_name, content) {
     f.appendChild(b);
   }
   // Now make the c nodes for storing the content
-  for (var i = 0; i < refs_count; i++) {
+  for (var i = 0; i < refsCount; i++) { // eslint-disable-line no-redeclare
     var nc = base.createElement('c');
     if (i in content) {
-      var node_list = content[i];
-      for (var se = 0; se < node_list.length; se++) {
-        nc.appendChild(node_list[se].cloneNode(true));
+      var nodeList = content[i];
+      for (var se = 0; se < nodeList.length; se++) {
+        nc.appendChild(nodeList[se].cloneNode(true));
       }
-    } else nc.appendChild(this.make_e(''));
-    if (i + 1 == first_ref) first = nc.lastChild;
-    if (s['attrs']) { for (var a in (s['attrs'][i] || {})) { nc.setAttribute(a, s['attrs'][i][a]) } }
+    } else {
+      nc.appendChild(this.makeE(''));
+    }
+    if (i + 1 === firstRef) {
+      first = nc.lastChild;
+    }
+    if (s['attrs']) {
+      for (var a in (s['attrs'][i] || {})) {
+        nc.setAttribute(a, s['attrs'][i][a]);
+      }
+    }
     if (i in lists) {
       var par = f;
-      for (var j = 0; j < lists[i]; j++) {
+      for (var j = 0; j < lists[i]; j++) { // eslint-disable-line no-redeclare
         var nl = base.createElement('l');
         nl.setAttribute('s', '1');
         par.appendChild(nl);
         par = nl;
-        if (j == lists[i] - 1) nl.appendChild(nc);
+        if (j === lists[i] - 1) {
+          nl.appendChild(nc);
+        }
       }
-    } else f.appendChild(nc);
+    } else {
+      f.appendChild(nc);
+    }
   }
-  return {'f': f, 'first': first};
+  return { 'f': f, 'first': first };
 };
 
-MathYlemBackend.prototype.insert_symbol = function (sym_name) {
-  if (sym_name == 'power' && this.caret == 0 && this.current.parentNode.parentNode.nodeName == 'f' && this.current.parentNode.childNodes.length == 1) { this.current = this.current.parentNode.parentNode.nextSibling }
-
-  var s = this.symbols[sym_name];
-  if (this.is_blacklisted(s['type'])) {
+Backend.prototype.insertSymbol = function (name) {
+  if (this.isBlacklisted(name)) {
     return false;
   }
+
+  if (name === 'power' && this.caret === 0 && this.current.parentNode.parentNode
+    .nodeName === 'f' && this.current.parentNode.childNodes.length === 1) {
+    this.current = this.current.parentNode.parentNode.nextSibling;
+  }
+
+  var s = Symbols.symbols[name];
   var content = {};
-  var left_piece, right_piece;
+  var leftPiece, rightPiece;
   var cur = s['current'] == null ? 0 : parseInt(s['current']);
-  var to_remove = [];
-  var to_replace = null;
-  var replace_f = false;
+  var toRemove = [];
+  var toReplace = null;
+  var replace = false;
 
   if (cur > 0) {
     cur--;
-    if (this.sel_status != MathYlemBackend.SEL_NONE) {
-      var sel = this.sel_get();
-      to_remove = sel.involved;
-      left_piece = this.make_e(MathYlemUtils.get_value(sel.remnant).slice(0, this.sel_start.caret));
-      right_piece = this.make_e(MathYlemUtils.get_value(sel.remnant).slice(this.sel_start.caret));
-      content[cur] = sel.node_list;
-    } else if (s['current_type'] == 'token') {
+    if (this.selStatus !== Backend.SEL_NONE) {
+      var sel = this.getSelection();
+      toRemove = sel.involved;
+      leftPiece = this.makeE(sel.remnant.textContent.slice(0, this.selStart.caret));
+      rightPiece = this.makeE(sel.remnant.textContent.slice(this.selStart.caret));
+      content[cur] = sel.nodeList;
+    } else if (s['current_type'] === 'token') {
       // If we're at the beginning, then the token is the previous f node
-      if (this.caret == 0 && this.current.previousSibling != null) {
-        content[cur] = [this.make_e(''), this.current.previousSibling, this.make_e('')];
-        to_replace = this.current.previousSibling;
-        replace_f = true;
+      if (this.caret === 0 && this.current.previousSibling != null) {
+        content[cur] = [this.makeE(''), this.current.previousSibling,
+          this.makeE('')];
+        toReplace = this.current.previousSibling;
+        replace = true;
       } else {
-        // look for [0-9.]+|[a-zA-Z] immediately preceeding the caret and use that as token
-        var prev = MathYlemUtils.get_value(this.current).substring(0, this.caret);
+        // look for [0-9.]+|[a-zA-Z] immediately preceeding the caret and
+        // use that as token
+        var prev = this.current.textContent.substring(0, this.caret);
         var token = prev.match(/[0-9.]+$|[a-zA-Z]$/);
         if (token != null && token.length > 0) {
           token = token[0];
-          left_piece = this.make_e(MathYlemUtils.get_value(this.current).slice(0, this.caret - token.length));
-          right_piece = this.make_e(MathYlemUtils.get_value(this.current).slice(this.caret));
-          content[cur] = [this.make_e(token)];
+          leftPiece = this.makeE(this.current.textContent
+            .slice(0, this.caret - token.length));
+          rightPiece = this.makeE(this.current.textContent.slice(this.caret));
+          content[cur] = [this.makeE(token)];
         }
       }
     }
   }
-  if (!replace_f && (left_piece == null || right_piece == null)) {
-    left_piece = this.make_e(MathYlemUtils.get_value(this.current).slice(0, this.caret));
-    right_piece = this.make_e(MathYlemUtils.get_value(this.current).slice(this.caret));
-    to_remove = [this.current];
+  if (!replace && (leftPiece == null || rightPiece == null)) {
+    leftPiece = this.makeE(this.current.textContent.slice(0, this.caret));
+    rightPiece = this.makeE(this.current.textContent.slice(this.caret));
+    toRemove = [this.current];
   }
 
   // By now:
   // 
-  // content contains whatever we want to pre-populate the 'current' field with (if any)
+  // content contains whatever we want to pre-populate the 'current' field
+  // with (if any)
   //
-  // right_piece contains whatever content was in an involved node
+  // rightPiece contains whatever content was in an involved node
   // to the right of the cursor but is not part of the insertion.
-  // Analogously for left_piece
+  // Analogously for leftPiece
   //
-  // Thus all we should have to do now is symbol_to_node(sym_type,
-  // content) and then add the left_piece, resulting node, and
-  // right_piece in that order.
-  var current_parent = this.current.parentNode;
+  // Thus all we should have to do now is symbolToNode(sym_type,
+  // content) and then add the leftPiece, resulting node, and
+  // rightPiece in that order.
+  var currentParent = this.current.parentNode;
 
-  var sym = this.symbol_to_node(sym_name, content);
-  var f = sym.f;
+  var symbol = this.symbolToNode(name, content);
+  var f = symbol.f;
 
   var next = this.current.nextSibling;
 
-  if (replace_f) {
-    current_parent.replaceChild(f, to_replace);
+  if (replace) {
+    currentParent.replaceChild(f, toReplace);
   } else {
-    if (to_remove.length == 0) this.current.parentNode.removeChild(this.current);
-
-    for (var i = 0; i < to_remove.length; i++) {
-      if (next == to_remove[i]) next = next.nextSibling;
-      current_parent.removeChild(to_remove[i]);
+    if (toRemove.length === 0) {
+      this.current.parentNode.removeChild(this.current);
     }
-    current_parent.insertBefore(left_piece, next);
-    current_parent.insertBefore(f, next);
-    current_parent.insertBefore(right_piece, next);
+
+    for (var i = 0; i < toRemove.length; i++) {
+      if (next === toRemove[i]) {
+        next = next.nextSibling;
+      }
+      currentParent.removeChild(toRemove[i]);
+    }
+    currentParent.insertBefore(leftPiece, next);
+    currentParent.insertBefore(f, next);
+    currentParent.insertBefore(rightPiece, next);
   }
 
   this.caret = 0;
   this.current = f;
   if (s['char']) {
     this.current = this.current.nextSibling;
-  } else this.down_from_f_to_blank();
+  } else {
+    this.downFromFToBlank();
+  }
 
-  this.sel_clear();
+  this.clearSelection();
   this.checkpoint();
   return true;
 };
 
-MathYlemBackend.prototype.sel_get = function () {
-  if (this.sel_status == MathYlemBackend.SEL_NONE) {
+Backend.prototype.getSelection = function () {
+  if (this.selStatus === Backend.SEL_NONE) {
     return null;
   }
   var involved = [];
-  var node_list = [];
+  var nodeList = [];
   var remnant = null;
 
-  if (this.sel_start.node == this.sel_end.node) {
-    return {'node_list': [this.make_e(MathYlemUtils.get_value(this.sel_start.node).substring(this.sel_start.caret, this.sel_end.caret))],
-      'remnant': this.make_e(MathYlemUtils.get_value(this.sel_start.node).substring(0, this.sel_start.caret) + MathYlemUtils.get_value(this.sel_end.node).substring(this.sel_end.caret)),
-      'involved': [this.sel_start.node]};
+  if (this.selStart.node === this.selEnd.node) {
+    return {
+      'nodeList': [this.makeE(this.selStart.node.textContent
+        .substring(this.selStart.caret, this.selEnd.caret))],
+      'remnant': this.makeE(this.selStart.node.textContent
+        .substring(0, this.selStart.caret) + this.selEnd.node.textContent
+          .substring(this.selEnd.caret)),
+      'involved': [this.selStart.node]
+    };
   }
 
-  node_list.push(this.make_e(MathYlemUtils.get_value(this.sel_start.node).substring(this.sel_start.caret)));
-  involved.push(this.sel_start.node);
-  involved.push(this.sel_end.node);
-  remnant = this.make_e(MathYlemUtils.get_value(this.sel_start.node).substring(0, this.sel_start.caret) + MathYlemUtils.get_value(this.sel_end.node).substring(this.sel_end.caret));
-  var n = this.sel_start.node.nextSibling;
-  while (n != null && n != this.sel_end.node) {
+  nodeList.push(this.makeE(this.selStart.node.textContent
+    .substring(this.selStart.caret)));
+  involved.push(this.selStart.node);
+  involved.push(this.selEnd.node);
+  remnant = this.makeE(this.selStart.node.textContent.substring(0, this.selStart
+    .caret) + this.selEnd.node.textContent.substring(this.selEnd.caret));
+  var n = this.selStart.node.nextSibling;
+  while (n != null && n !== this.selEnd.node) {
     involved.push(n);
-    node_list.push(n);
+    nodeList.push(n);
     n = n.nextSibling;
   }
-  node_list.push(this.make_e(MathYlemUtils.get_value(this.sel_end.node).substring(0, this.sel_end.caret)));
-  return {'node_list': node_list,
+  nodeList.push(this.makeE(this.selEnd.node.textContent
+    .substring(0, this.selEnd.caret)));
+  return { 'nodeList': nodeList,
     'remnant': remnant,
     'involved': involved,
-    'cursor': 0};
+    'cursor': 0 };
 };
 
-MathYlemBackend.prototype.make_e = function (text) {
+Backend.prototype.makeE = function (text) {
   var base = this.doc.base;
-  var new_node = base.createElement('e');
-  new_node.appendChild(base.createTextNode(text));
-  return new_node;
+  var newNode = base.createElement('e');
+  newNode.appendChild(base.createTextNode(text));
+  return newNode;
 };
 
-MathYlemBackend.prototype.insert_string = function (s) {
-  if (this.sel_status != MathYlemBackend.SEL_NONE) {
-    this.sel_delete();
-    this.sel_clear();
+Backend.prototype.insertString = function (s) {
+  if (this.selStatus !== Backend.SEL_NONE) {
+    this.deleteSelection();
+    this.clearSelection();
   }
-  if (s == '*' && this.check_for_power()) return;
-  if (this.current.firstChild) { this.current.firstChild.nodeValue = this.current.firstChild.nodeValue.splice(this.caret, s) } else { this.current.appendChild(this.doc.base.createTextNode(s)) }
+  if ((s === '*' && this.checkForPower()) || (s === '=' && this.checkForIneq())) {
+    return;
+  }
+  if (this.current.firstChild) {
+    var value = this.current.textContent;
+    this.current.textContent = value.slice(0, this.caret) + s +
+      value.slice(this.caret);
+  } else {
+    this.current.appendChild(this.doc.base.createTextNode(s));
+  }
   this.caret += s.length;
   this.checkpoint();
-  if (this.autoreplace) this.check_for_symbol();
+  if (this.autoreplace) {
+    this.checkForSymbol();
+  }
 };
 
-MathYlemBackend.prototype.sel_copy = function () {
-  var sel = this.sel_get();
-  if (!sel) return;
-  MathYlemBackend.clipboard = [];
-  for (var i = 0; i < sel.node_list.length; i++) {
-    MathYlemBackend.clipboard.push(sel.node_list[i].cloneNode(true));
+Backend.prototype.copySelection = function () {
+  var sel = this.getSelection();
+  if (!sel) {
+    return;
   }
-  this.sel_clear();
+  Backend.Clipboard = [];
+  for (var i = 0; i < sel.nodeList.length; i++) {
+    Backend.Clipboard.push(sel.nodeList[i].cloneNode(true));
+  }
+  this.clearSelection();
 };
 
-MathYlemBackend.prototype.sel_cut = function () {
-  var node_list = this.sel_delete();
-  if (!node_list) return;
-  MathYlemBackend.clipboard = [];
-  for (var i = 0; i < node_list.length; i++) {
-    MathYlemBackend.clipboard.push(node_list[i].cloneNode(true));
+Backend.prototype.cutSelection = function () {
+  var nodeList = this.deleteSelection();
+  if (!nodeList) {
+    return;
   }
-  this.sel_clear();
+  Backend.Clipboard = [];
+  for (var i = 0; i < nodeList.length; i++) {
+    Backend.Clipboard.push(nodeList[i].cloneNode(true));
+  }
+  this.clearSelection();
   this.checkpoint();
 };
 
-MathYlemBackend.prototype.insert_nodes = function (node_list, move_cursor) {
-  var real_clipboard = [];
-  for (var i = 0; i < node_list.length; i++) {
-    real_clipboard.push(node_list[i].cloneNode(true));
+Backend.prototype.insertNodes = function (nodeList, moveCursor) {
+  var clipboard = [];
+  for (var i = 0; i < nodeList.length; i++) {
+    clipboard.push(nodeList[i].cloneNode(true));
   }
 
-  if (!this.current.firstChild) this.current.appendChild(this.doc.base.createTextNode(''));
-  if (real_clipboard.length == 1) {
-    if (real_clipboard[0].firstChild) {
-      this.current.firstChild.nodeValue = this.current.firstChild.nodeValue.substring(0, this.caret) + real_clipboard[0].firstChild.nodeValue + this.current.firstChild.nodeValue.substring(this.caret);
-      if (move_cursor) this.caret += real_clipboard[0].firstChild.nodeValue.length;
+  if (!this.current.firstChild) {
+    this.current.appendChild(this.doc.base.createTextNode(''));
+  }
+  if (clipboard.length === 1) {
+    if (clipboard[0].firstChild) {
+      this.current.textContent = this.current.textContent.substring(0, this.caret) +
+        clipboard[0].textContent + this.current.textContent.substring(this.caret);
+      if (moveCursor) {
+        this.caret += clipboard[0].textContent.length;
+      }
     }
   } else {
-    var nn = this.make_e(MathYlemUtils.get_value(real_clipboard[real_clipboard.length - 1]) + this.current.firstChild.nodeValue.substring(this.caret));
-    this.current.firstChild.nodeValue = this.current.firstChild.nodeValue.substring(0, this.caret) + MathYlemUtils.get_value(real_clipboard[0]);
-    if (this.current.nextSibling == null) { this.current.parentNode.appendChild(nn) } else { this.current.parentNode.insertBefore(nn, this.current.nextSibling) }
-    for (var i = 1; i < real_clipboard.length - 1; i++) { this.current.parentNode.insertBefore(real_clipboard[i], nn) }
-    if (move_cursor) {
+    var nn = this.makeE(clipboard[clipboard.length - 1].textContent +
+      this.current.textContent.substring(this.caret));
+    this.current.textContent = this.current.textContent.substring(0, this.caret) +
+      clipboard[0].textContent;
+    if (this.current.nextSibling == null) {
+      this.current.parentNode.appendChild(nn);
+    } else {
+      this.current.parentNode.insertBefore(nn, this.current.nextSibling);
+    }
+    for (var i = 1; i < clipboard.length - 1; i++) { // eslint-disable-line no-redeclare
+      this.current.parentNode.insertBefore(clipboard[i], nn);
+    }
+    if (moveCursor) {
       this.current = nn;
-      this.caret = MathYlemUtils.get_length(real_clipboard[real_clipboard.length - 1]);
+      this.caret = clipboard[clipboard.length - 1].textContent.length;
     }
   }
 };
 
-MathYlemBackend.prototype.sel_paste = function () {
-  this.sel_delete();
-  this.sel_clear();
-  if (!(MathYlemBackend.clipboard) || MathYlemBackend.clipboard.length == 0) return;
-  this.insert_nodes(MathYlemBackend.clipboard, true);
+Backend.prototype.paste = function () {
+  this.deleteSelection();
+  this.clearSelection();
+  if (!Backend.Clipboard || Backend.Clipboard.length === 0) {
+    return;
+  }
+  this.insertNodes(Backend.Clipboard, true);
   this.checkpoint();
 };
 
-MathYlemBackend.prototype.sel_clear = function () {
-  this.sel_start = null;
-  this.sel_end = null;
-  this.sel_status = MathYlemBackend.SEL_NONE;
+Backend.prototype.clearSelection = function () {
+  this.selStart = null;
+  this.selEnd = null;
+  this.selStatus = Backend.SEL_NONE;
 };
 
-MathYlemBackend.prototype.sel_delete = function () {
-  var sel = this.sel_get();
-  if (!sel) return null;
-  var sel_parent = sel.involved[0].parentNode;
-  var sel_prev = sel.involved[0].previousSibling;
+Backend.prototype.deleteSelection = function () {
+  var sel = this.getSelection();
+  if (!sel) {
+    return null;
+  }
+  var selParent = sel.involved[0].parentNode;
+  var selPrev = sel.involved[0].previousSibling;
   for (var i = 0; i < sel.involved.length; i++) {
     var n = sel.involved[i];
-    sel_parent.removeChild(n);
+    selParent.removeChild(n);
   }
-  if (sel_prev == null) {
-    if (sel_parent.firstChild == null) { sel_parent.appendChild(sel.remnant) } else { sel_parent.insertBefore(sel.remnant, sel_parent.firstChild) }
-  } else if (sel_prev.nodeName == 'f') {
-    if (sel_prev.nextSibling == null) { sel_parent.appendChild(sel.remnant) } else { sel_parent.insertBefore(sel.remnant, sel_prev.nextSibling) }
+  if (selPrev == null) {
+    if (selParent.firstChild == null) {
+      selParent.appendChild(sel.remnant);
+    } else {
+      selParent.insertBefore(sel.remnant, selParent.firstChild);
+    }
+  } else if (selPrev.nodeName === 'f') {
+    if (selPrev.nextSibling == null) {
+      selParent.appendChild(sel.remnant);
+    } else {
+      selParent.insertBefore(sel.remnant, selPrev.nextSibling);
+    }
   }
   this.current = sel.remnant;
-  this.caret = this.sel_start.caret;
-  return sel.node_list;
+  this.caret = this.selStart.caret;
+  return sel.nodeList;
 };
 
-MathYlemBackend.prototype.sel_all = function () {
+Backend.prototype.selectAll = function () {
   this.home();
-  this.set_sel_start();
+  this.setSelStart();
   this.end();
-  this.set_sel_end();
-  if (this.sel_start.node != this.sel_end.node || this.sel_start.caret != this.sel_end.caret) { this.sel_status = MathYlemBackend.SEL_CURSOR_AT_END }
+  this.setSelEnd();
+  if (this.selStart.node !== this.selEnd.node ||
+      this.selStart.caret !== this.selEnd.caret) {
+    this.selStatus = Backend.SEL_CURSOR_AT_END;
+  }
 };
 
-MathYlemBackend.prototype.sel_right = function () {
-  if (this.sel_status == MathYlemBackend.SEL_NONE) {
-    this.set_sel_start();
-    this.sel_status = MathYlemBackend.SEL_CURSOR_AT_END;
+Backend.prototype.selectRight = function () {
+  if (this.selStatus === Backend.SEL_NONE) {
+    this.setSelStart();
+    this.selStatus = Backend.SEL_CURSOR_AT_END;
   }
-  if (this.caret >= MathYlemUtils.get_length(this.current)) {
+  if (this.caret >= this.current.textContent.length) {
     var nn = this.current.nextSibling;
     if (nn != null) {
       this.current = nn.nextSibling;
       this.caret = 0;
-      this.set_sel_boundary(MathYlemBackend.SEL_CURSOR_AT_END);
+      this.setSelection(Backend.SEL_CURSOR_AT_END);
     } else {
-      this.set_sel_boundary(MathYlemBackend.SEL_CURSOR_AT_END);
+      this.setSelection(Backend.SEL_CURSOR_AT_END);
     }
   } else {
     this.caret += 1;
-    this.set_sel_boundary(MathYlemBackend.SEL_CURSOR_AT_END);
+    this.setSelection(Backend.SEL_CURSOR_AT_END);
   }
-  if (this.sel_start.node == this.sel_end.node && this.sel_start.caret == this.sel_end.caret) {
-    this.sel_status = MathYlemBackend.SEL_NONE;
+  if (this.selStart.node === this.selEnd.node &&
+      this.selStart.caret === this.selEnd.caret) {
+    this.selStatus = Backend.SEL_NONE;
   }
 };
 
-MathYlemBackend.prototype.set_sel_boundary = function (sstatus, mouse) {
-  if (this.sel_status == MathYlemBackend.SEL_NONE || mouse) this.sel_status = sstatus;
-  if (this.sel_status == MathYlemBackend.SEL_CURSOR_AT_START) { this.set_sel_start() } else if (this.sel_status == MathYlemBackend.SEL_CURSOR_AT_END) { this.set_sel_end() }
+Backend.prototype.setSelection = function (sstatus, mouse) {
+  if (this.selStatus === Backend.SEL_NONE || mouse) {
+    this.selStatus = sstatus;
+  }
+  if (this.selStatus === Backend.SEL_CURSOR_AT_START) {
+    this.setSelStart();
+  } else if (this.selStatus === Backend.SEL_CURSOR_AT_END) {
+    this.setSelEnd();
+  }
 };
 
-MathYlemBackend.prototype.sel_left = function () {
-  if (this.sel_status == MathYlemBackend.SEL_NONE) {
-    this.set_sel_end();
-    this.sel_status = MathYlemBackend.SEL_CURSOR_AT_START;
+Backend.prototype.selectLeft = function () {
+  if (this.selStatus === Backend.SEL_NONE) {
+    this.setSelEnd();
+    this.selStatus = Backend.SEL_CURSOR_AT_START;
   }
   if (this.caret <= 0) {
     var nn = this.current.previousSibling;
     if (nn != null) {
       this.current = nn.previousSibling;
-      this.caret = MathYlemUtils.get_length(this.current);
-      this.set_sel_boundary(MathYlemBackend.SEL_CURSOR_AT_START);
+      this.caret = this.current.textContent.length;
+      this.setSelection(Backend.SEL_CURSOR_AT_START);
     } else {
-      this.set_sel_boundary(MathYlemBackend.SEL_CURSOR_AT_START);
+      this.setSelection(Backend.SEL_CURSOR_AT_START);
     }
   } else {
     this.caret -= 1;
-    this.set_sel_boundary(MathYlemBackend.SEL_CURSOR_AT_START);
+    this.setSelection(Backend.SEL_CURSOR_AT_START);
   }
-  if (this.sel_start.node == this.sel_end.node && this.sel_start.caret == this.sel_end.caret) {
-    this.sel_status = MathYlemBackend.SEL_NONE;
+  if (this.selStart.node === this.selEnd.node &&
+      this.selStart.caret === this.selEnd.caret) {
+    this.selStatus = Backend.SEL_NONE;
   }
 };
 
-MathYlemBackend.prototype.list_extend_copy_right = function () { this.list_extend('right', true) };
-MathYlemBackend.prototype.list_extend_copy_left = function () { this.list_extend('left', true) };
-MathYlemBackend.prototype.list_extend_right = function () { this.list_extend('right', false) };
-MathYlemBackend.prototype.list_extend_left = function () { this.list_extend('left', false) };
-MathYlemBackend.prototype.list_extend_up = function () { this.list_extend('up', false) };
-MathYlemBackend.prototype.list_extend_down = function () { this.list_extend('down', false) };
-MathYlemBackend.prototype.list_extend_copy_up = function () { this.list_extend('up', true) };
-MathYlemBackend.prototype.list_extend_copy_down = function () { this.list_extend('down', true) };
+Backend.prototype.copyExtendListRight = function () {
+  this.extendList('right', true);
+};
+Backend.prototype.copyExtendListLeft = function () {
+  this.extendList('left', true);
+};
+Backend.prototype.extendListRight = function () {
+  this.extendList('right', false);
+};
+Backend.prototype.extendListLeft = function () {
+  this.extendList('left', false);
+};
+Backend.prototype.extendListUp = function () {
+  this.extendList('up', false);
+};
+Backend.prototype.extendListDown = function () {
+  this.extendList('down', false);
+};
+Backend.prototype.copyExtendListUp = function () {
+  this.extendList('up', true);
+};
+Backend.prototype.copyExtendListDown = function () {
+  this.extendList('down', true);
+};
 
-MathYlemBackend.prototype.list_vertical_move = function (down) {
+Backend.prototype.moveVerticalList = function (down) {
   var n = this.current;
-  while (n.parentNode && n.parentNode.parentNode && !(n.nodeName == 'c' && n.parentNode.nodeName == 'l' && n.parentNode.parentNode.nodeName == 'l')) {
+  while (n.parentNode && n.parentNode.parentNode && !(n.nodeName === 'c' &&
+      n.parentNode.nodeName === 'l' && n.parentNode.parentNode.nodeName === 'l')) {
     n = n.parentNode;
   }
-  if (!n.parentNode) return;
+  if (!n.parentNode) {
+    return;
+  }
   var pos = 1;
   var cc = n;
   while (cc.previousSibling != null) {
     pos++;
     cc = cc.previousSibling;
   }
-  var new_l = down ? n.parentNode.nextSibling : n.parentNode.previousSibling;
-  if (!new_l) return;
+  var newRow = down ? n.parentNode.nextSibling : n.parentNode.previousSibling;
+  if (!newRow) {
+    return;
+  }
   var idx = 1;
-  var nn = new_l.firstChild;
+  var nn = newRow.firstChild;
   while (idx < pos) {
     idx++;
     nn = nn.nextSibling;
   }
   this.current = nn.firstChild;
-  this.caret = down ? 0 : MathYlemUtils.get_length(this.current);
+  this.caret = down ? 0 : this.current.textContent.length;
 };
 
-MathYlemBackend.prototype.list_extend = function (direction, copy) {
+Backend.prototype.extendList = function (direction, copy) {
   var base = this.doc.base;
-  var vertical = direction == 'up' || direction == 'down';
-  var before = direction == 'up' || direction == 'left';
-  var this_name = vertical ? 'l' : 'c';
+  var vertical = direction === 'up' || direction === 'down';
+  var before = direction === 'up' || direction === 'left';
+  var name = vertical ? 'l' : 'c';
   var n = this.current;
-  while (n.parentNode && !(n.nodeName == this_name && n.parentNode.nodeName == 'l')) {
+  while (n.parentNode && !(n.nodeName === name && n.parentNode.nodeName === 'l')) {
     n = n.parentNode;
   }
-  if (!n.parentNode) return;
-  var to_insert;
+  if (!n.parentNode) {
+    return;
+  }
+  var toInsert;
 
   // check if 2D and horizontal and extend all the other rows if so 
-  if (!vertical && n.parentNode.parentNode.nodeName == 'l') {
-    to_insert = base.createElement('c');
-    to_insert.appendChild(this.make_e(''));
+  if (!vertical && n.parentNode.parentNode.nodeName === 'l') {
+    toInsert = base.createElement('c');
+    toInsert.appendChild(this.makeE(''));
     var pos = 1;
     var cc = n;
     while (cc.previousSibling != null) {
       pos++;
       cc = cc.previousSibling;
     }
-    var to_modify = [];
-    var iterator = this.doc.xpath_list('./l/c[position()=' + pos + ']', n.parentNode.parentNode);
-    try { for (var nn = iterator.iterateNext(); nn != null; nn = iterator.iterateNext()) { to_modify.push(nn) } } catch (e) { this.fire_event('error', {'message': 'XML modified during iteration? ' + e}) }
-    for (var j = 0; j < to_modify.length; j++) {
-      var nn = to_modify[j];
-      if (copy) nn.parentNode.insertBefore(nn.cloneNode(true), before ? nn : nn.nextSibling);
-      else nn.parentNode.insertBefore(to_insert.cloneNode(true), before ? nn : nn.nextSibling);
-      nn.parentNode.setAttribute('s', parseInt(nn.parentNode.getAttribute('s')) + 1);
+    var toModify = [];
+    var iterator = this.doc.XPathList('./l/c[position()=' + pos + ']',
+      n.parentNode.parentNode);
+    for (var nn = iterator.iterateNext(); nn != null; nn =
+        iterator.iterateNext()) {
+      toModify.push(nn);
+    }
+    for (var j = 0; j < toModify.length; j++) {
+      var node = toModify[j];
+      if (copy) {
+        node.parentNode.insertBefore(node.cloneNode(true),
+          before ? node : node.nextSibling);
+      } else {
+        node.parentNode.insertBefore(toInsert.cloneNode(true),
+          before ? node : node.nextSibling);
+      }
+      node.parentNode.setAttribute('s',
+        parseInt(node.parentNode.getAttribute('s')) + 1);
     }
     this.current = before ? n.previousSibling.lastChild : n.nextSibling.firstChild;
-    this.caret = MathYlemUtils.get_length(this.current);
+    this.caret = this.current.textContent.length;
     this.checkpoint();
     return;
   }
 
   if (copy) {
-    to_insert = n.cloneNode(true);
+    toInsert = n.cloneNode(true);
   } else {
     if (vertical) {
-      to_insert = base.createElement('l');
-      to_insert.setAttribute('s', n.getAttribute('s'));
+      toInsert = base.createElement('l');
+      toInsert.setAttribute('s', n.getAttribute('s'));
       for (var i = 0; i < parseInt(n.getAttribute('s')); i++) {
         var c = base.createElement('c');
-        c.appendChild(this.make_e(''));
-        to_insert.appendChild(c);
+        c.appendChild(this.makeE(''));
+        toInsert.appendChild(c);
       }
     } else {
-      to_insert = base.createElement('c');
-      to_insert.appendChild(this.make_e(''));
+      toInsert = base.createElement('c');
+      toInsert.appendChild(this.makeE(''));
     }
   }
   n.parentNode.setAttribute('s', parseInt(n.parentNode.getAttribute('s')) + 1);
-  n.parentNode.insertBefore(to_insert, before ? n : n.nextSibling);
-  if (vertical) this.current = to_insert.firstChild.firstChild;
-  else this.current = to_insert.firstChild;
+  n.parentNode.insertBefore(toInsert, before ? n : n.nextSibling);
+  if (vertical) {
+    this.current = toInsert.firstChild.firstChild;
+  } else {
+    this.current = toInsert.firstChild;
+  }
   this.caret = 0;
   this.checkpoint();
 };
 
-MathYlemBackend.prototype.list_remove_col = function () {
+Backend.prototype.removeListColumn = function () {
   var n = this.current;
-  while (n.parentNode && n.parentNode.parentNode && !(n.nodeName == 'c' && n.parentNode.nodeName == 'l' && n.parentNode.parentNode.nodeName == 'l')) {
+  while (n.parentNode && n.parentNode.parentNode && !(n.nodeName === 'c' &&
+      n.parentNode.nodeName === 'l' && n.parentNode.parentNode.nodeName === 'l')) {
     n = n.parentNode;
   }
-  if (!n.parentNode) return;
+  if (!n.parentNode) {
+    return;
+  }
 
   // Don't remove if there is only a single column:
   if (n.previousSibling != null) {
     this.current = n.previousSibling.lastChild;
-    this.caret = MathYlemUtils.get_length(this.current);
+    this.caret = this.current.textContent.length;
   } else if (n.nextSibling != null) {
     this.current = n.nextSibling.firstChild;
     this.caret = 0;
-  } else return;
+  } else {
+    return;
+  }
 
   var pos = 1;
   var cc = n;
@@ -1399,142 +946,167 @@ MathYlemBackend.prototype.list_remove_col = function () {
     pos++;
     cc = cc.previousSibling;
   }
-  var to_modify = [];
-  var iterator = this.doc.xpath_list('./l/c[position()=' + pos + ']', n.parentNode.parentNode);
-  try { for (var nn = iterator.iterateNext(); nn != null; nn = iterator.iterateNext()) { to_modify.push(nn) } } catch (e) { this.fire_event('error', {'message': 'XML modified during iteration? ' + e}) }
-  for (var j = 0; j < to_modify.length; j++) {
-    var nn = to_modify[j];
-    nn.parentNode.setAttribute('s', parseInt(nn.parentNode.getAttribute('s')) - 1);
-    nn.parentNode.removeChild(nn);
+  var toModify = [];
+  var iterator = this.doc.XPathList('./l/c[position()=' + pos + ']',
+    n.parentNode.parentNode);
+  for (var nn = iterator.iterateNext(); nn != null; nn = iterator.iterateNext()) {
+    toModify.push(nn);
+  }
+  for (var j = 0; j < toModify.length; j++) {
+    var node = toModify[j];
+    node.parentNode.setAttribute('s',
+      parseInt(node.parentNode.getAttribute('s')) - 1);
+    node.parentNode.removeChild(node);
   }
 };
 
-MathYlemBackend.prototype.list_remove_row = function () {
+Backend.prototype.removeListRow = function () {
   var n = this.current;
-  while (n.parentNode && !(n.nodeName == 'l' && n.parentNode.nodeName == 'l')) {
+  while (n.parentNode && !(n.nodeName === 'l' && n.parentNode.nodeName === 'l')) {
     n = n.parentNode;
   }
-  if (!n.parentNode) return;
+  if (!n.parentNode) {
+    return;
+  }
   // Don't remove if there is only a single row:
   if (n.previousSibling != null) {
     this.current = n.previousSibling.lastChild.lastChild;
-    this.caret = MathYlemUtils.get_length(this.current);
+    this.caret = this.current.textContent.length;
   } else if (n.nextSibling != null) {
     this.current = n.nextSibling.firstChild.firstChild;
     this.caret = 0;
-  } else return;
+  } else {
+    return;
+  }
 
   n.parentNode.setAttribute('s', parseInt(n.parentNode.getAttribute('s')) - 1);
   n.parentNode.removeChild(n);
 };
 
-MathYlemBackend.prototype.list_remove = function () {
+Backend.prototype.removeListItem = function () {
   var n = this.current;
-  while (n.parentNode && !(n.nodeName == 'c' && n.parentNode.nodeName == 'l')) {
+  while (n.parentNode && !(n.nodeName === 'c' && n.parentNode.nodeName === 'l')) {
     n = n.parentNode;
   }
-  if (!n.parentNode) return;
-  if (n.parentNode.parentNode && n.parentNode.parentNode.nodeName == 'l') {
-    this.list_remove_col();
+  if (!n.parentNode) {
+    return;
+  }
+  if (n.parentNode.parentNode && n.parentNode.parentNode.nodeName === 'l') {
+    this.removeListColumn();
     return;
   }
   if (n.previousSibling != null) {
     this.current = n.previousSibling.lastChild;
-    this.caret = MathYlemUtils.get_length(this.current);
+    this.caret = this.current.textContent.length;
   } else if (n.nextSibling != null) {
     this.current = n.nextSibling.firstChild;
     this.caret = 0;
-  } else return;
+  } else {
+    return;
+  }
   n.parentNode.setAttribute('s', parseInt(n.parentNode.getAttribute('s')) - 1);
   n.parentNode.removeChild(n);
 };
 
-MathYlemBackend.prototype.right = function () {
-  this.sel_clear();
-  if (this.caret >= MathYlemUtils.get_length(this.current)) {
-    var nn = this.doc.xpath_node('following::e[1]', this.current);
+Backend.prototype.right = function () {
+  this.clearSelection();
+  if (this.caret >= this.current.textContent.length) {
+    var nn = this.doc.XPathNode('following::e[1]', this.current);
     if (nn != null) {
       this.current = nn;
       this.caret = 0;
     } else {
-      this.fire_event('right_end');
+      this.fireEvent('rightEnd');
     }
   } else {
     this.caret += 1;
   }
 };
 
-MathYlemBackend.prototype.spacebar = function () {
-  if (MathYlemUtils.is_text(this.current)) this.insert_string(' ');
+Backend.prototype.spacebar = function () {
+  if (this.current.parentNode.getAttribute('mode') === 'text') {
+    this.insertString(' ');
+  }
 };
 
-MathYlemBackend.prototype.left = function () {
-  this.sel_clear();
+Backend.prototype.left = function () {
+  this.clearSelection();
   if (this.caret <= 0) {
-    var pn = this.doc.xpath_node('preceding::e[1]', this.current);
+    var pn = this.doc.XPathNode('preceding::e[1]', this.current);
     if (pn != null) {
       this.current = pn;
-      this.caret = MathYlemUtils.get_length(this.current);
+      this.caret = this.current.textContent.length;
     } else {
-      this.fire_event('left_end');
+      this.fireEvent('leftEnd');
     }
   } else {
     this.caret -= 1;
   }
 };
 
-MathYlemBackend.prototype.delete_from_c = function () {
+Backend.prototype.deleteFromC = function () {
   var pos = 0;
   var c = this.current.parentNode;
-  while (c && c.nodeName == 'c') {
+  while (c && c.nodeName === 'c') {
     pos++;
     c = c.previousSibling;
   }
   var idx = this.current.parentNode.getAttribute('delete');
-  var survivor_node = this.doc.xpath_node('./c[position()=' + idx + ']', this.current.parentNode.parentNode);
-  var survivor_nodes = [];
-  for (var n = survivor_node.firstChild; n != null; n = n.nextSibling) {
-    survivor_nodes.push(n);
+  var node = this.doc.XPathNode('./c[position()=' + idx + ']',
+    this.current.parentNode.parentNode);
+  var remaining = [];
+  for (var n = node.firstChild; n != null; n = n.nextSibling) {
+    remaining.push(n);
   }
   this.current = this.current.parentNode.parentNode;
-  this.delete_from_f();
-  this.insert_nodes(survivor_nodes, pos > idx);
+  this.deleteFromF();
+  this.insertNodes(remaining, pos > idx);
 };
 
-MathYlemBackend.prototype.delete_from_e = function () {
+Backend.prototype.deleteFromE = function () {
   // return false if we deleted something, and true otherwise.
   if (this.caret > 0) {
-    this.current.firstChild.nodeValue = this.current.firstChild.nodeValue.splicen(this.caret - 1, '', 1);
+    var value = this.current.textContent;
+    this.current.textContent = value.slice(0, this.caret - 1) +
+      value.slice(this.caret);
     this.caret--;
   } else {
     // The order of these is important
-    if (this.current.previousSibling != null && this.current.previousSibling.getAttribute('c') == 'yes') {
+    if (this.current.previousSibling != null &&
+        this.current.previousSibling.getAttribute('c') === 'yes') {
       // The previous node is an f node but is really just a character.  Delete it.
       this.current = this.current.previousSibling;
-      this.delete_from_f();
-    } else if (this.current.previousSibling != null && this.current.previousSibling.nodeName == 'f') {
-      // We're in an e node just after an f node.  Move back into the f node (delete it?)
+      this.deleteFromF();
+    } else if (this.current.previousSibling != null &&
+        this.current.previousSibling.nodeName === 'f') {
+      // We're in an e node just after an f node. 
+      // Move back into the f node (delete it?)
       this.left();
       return false;
-    } else if (this.current.parentNode.previousSibling != null && this.current.parentNode.previousSibling.nodeName == 'c') {
-      // We're in a c child of an f node, but not the first one.  Go to the previous c
+    } else if (this.current.parentNode.previousSibling != null &&
+        this.current.parentNode.previousSibling.nodeName === 'c') {
+      // We're in a c child of an f node, but not the first one.
+      // Go to the previous c
       if (this.current.parentNode.hasAttribute('delete')) {
-        this.delete_from_c();
+        this.deleteFromC();
       } else {
         this.left();
         return false;
       }
-    } else if (this.current.previousSibling == null && this.current.parentNode.nodeName == 'c' && (this.current.parentNode.previousSibling == null || this.current.parentNode.previousSibling.nodeName != 'c')) {
-      // We're in the first c child of an f node and at the beginning--delete the f node
+    } else if (this.current.previousSibling == null && this.current.parentNode
+      .nodeName === 'c' && (this.current.parentNode.previousSibling == null ||
+        this.current.parentNode.previousSibling.nodeName !== 'c')) {
+      // We're in the first c child of an f node and at the beginning
+      // delete the f node
       var par = this.current.parentNode;
-      while (par.parentNode.nodeName == 'l' || par.parentNode.nodeName == 'c') {
+      while (par.parentNode.nodeName === 'l' || par.parentNode.nodeName === 'c') {
         par = par.parentNode;
       }
       if (par.hasAttribute('delete')) {
-        this.delete_from_c();
+        this.deleteFromC();
       } else {
         this.current = par.parentNode;
-        this.delete_from_f();
+        this.deleteFromF();
       }
     } else {
       // We're at the beginning (hopefully!) 
@@ -1544,17 +1116,19 @@ MathYlemBackend.prototype.delete_from_e = function () {
   return true;
 };
 
-MathYlemBackend.prototype.delete_forward_from_e = function () {
+Backend.prototype.deleteForwardFromE = function () {
   // return false if we deleted something, and true otherwise.
-  if (this.caret < this.current.firstChild.nodeValue.length) {
-    this.current.firstChild.nodeValue = this.current.firstChild.nodeValue.splicen(this.caret, '', 1);
+  if (this.caret < this.current.textContent.length) {
+    var value = this.current.textContent;
+    this.current.textContent = value.slice(0, this.caret) +
+      value.slice(this.caret + 1);
   } else {
     // We're at the end
     if (this.current.nextSibling != null) {
       // The next node is an f node.  Delete it.
       this.current = this.current.nextSibling;
-      this.delete_from_f();
-    } else if (this.current.parentNode.nodeName == 'c') {
+      this.deleteFromF();
+    } else if (this.current.parentNode.nodeName === 'c') {
       // We're in a c child of an f node.  Do nothing
       return false;
     }
@@ -1562,263 +1136,331 @@ MathYlemBackend.prototype.delete_forward_from_e = function () {
   return true;
 };
 
-MathYlemBackend.prototype.backspace = function () {
-  if (this.sel_status != MathYlemBackend.SEL_NONE) {
-    this.sel_delete();
-    this.sel_status = MathYlemBackend.SEL_NONE;
+Backend.prototype.backspace = function () {
+  if (this.selStatus !== Backend.SEL_NONE) {
+    this.deleteSelection();
+    this.selStatus = Backend.SEL_NONE;
     this.checkpoint();
-  } else if (this.delete_from_e()) {
-    this.checkpoint();
-  }
-};
-
-MathYlemBackend.prototype.delete_key = function () {
-  if (this.sel_status != MathYlemBackend.SEL_NONE) {
-    this.sel_delete();
-    this.sel_status = MathYlemBackend.SEL_NONE;
-    this.checkpoint();
-  } else if (this.delete_forward_from_e()) {
+  } else if (this.deleteFromE()) {
     this.checkpoint();
   }
 };
 
-MathYlemBackend.prototype.backslash = function () {
-  if (MathYlemUtils.is_text(this.current)) return;
-  this.insert_symbol('sym_name');
+Backend.prototype.deleteKey = function () {
+  if (this.selStatus !== Backend.SEL_NONE) {
+    this.deleteSelection();
+    this.selStatus = Backend.SEL_NONE;
+    this.checkpoint();
+  } else if (this.deleteForwardFromE()) {
+    this.checkpoint();
+  }
 };
 
-MathYlemBackend.prototype.tab = function () {
-  if (!MathYlemUtils.is_symbol(this.current)) {
-    this.check_for_symbol();
+Backend.prototype.backslash = function () {
+  if (this.current.parentNode.getAttribute('mode') !== 'text' &&
+      this.current.parentNode.getAttribute('mode') !== 'symbol') {
+    this.insertSymbol('sym_name');
+  }
+};
+
+Backend.prototype.tab = function () {
+  if (this.current.parentNode.getAttribute('mode') !== 'symbol') {
+    this.checkForSymbol();
     return;
   }
-  var sym_name = this.current.firstChild.textContent;
+  var name = this.current.firstChild.textContent;
   var candidates = [];
-  for (var n in this.symbols) {
-    if (n.startsWith(sym_name)) candidates.push(n);
+  for (var n in Symbols.symbols) {
+    if (n.substr(0, name.length) === name) {
+      candidates.push(n);
+    }
   }
-  if (candidates.length == 1) {
+  if (candidates.length === 1) {
     this.current.firstChild.textContent = candidates[0];
     this.caret = candidates[0].length;
   } else {
-    this.fire_event('completion', {'candidates': candidates});
+    this.fireEvent('completion', { 'candidates': candidates });
   }
 };
 
-MathYlemBackend.prototype.right_paren = function () {
-  if (this.current.nodeName != 'e' || this.caret == MathYlemUtils.get_length(this.current)) { this.right() }
+Backend.prototype.rightParen = function () {
+  if (this.current.nodeName !== 'e' ||
+      this.caret === this.current.textContent.length) {
+    this.right();
+  }
 };
 
-MathYlemBackend.prototype.up = function () {
-  this.sel_clear();
+Backend.prototype.up = function () {
+  this.clearSelection();
   if (this.current.parentNode.hasAttribute('up')) {
     var t = parseInt(this.current.parentNode.getAttribute('up'));
     var f = this.current.parentNode.parentNode;
     var n = f.firstChild;
     while (n != null && t > 0) {
-      if (n.nodeName == 'c') t--;
-      if (t > 0) n = n.nextSibling;
+      if (n.nodeName === 'c') {
+        t--;
+      }
+      if (t > 0) {
+        n = n.nextSibling;
+      }
     }
     this.current = n.lastChild;
-    this.caret = MathYlemUtils.get_length(this.current);
-  } else this.list_vertical_move(false);
+    this.caret = this.current.textContent.length;
+  } else {
+    this.moveVerticalList(false);
+  }
 };
 
-MathYlemBackend.prototype.down = function () {
-  this.sel_clear();
+Backend.prototype.down = function () {
+  this.clearSelection();
   if (this.current.parentNode.hasAttribute('down')) {
     var t = parseInt(this.current.parentNode.getAttribute('down'));
     var f = this.current.parentNode.parentNode;
     var n = f.firstChild;
     while (n != null && t > 0) {
-      if (n.nodeName == 'c') t--;
-      if (t > 0) n = n.nextSibling;
+      if (n.nodeName === 'c') {
+        t--;
+      }
+      if (t > 0) {
+        n = n.nextSibling;
+      }
     }
     this.current = n.lastChild;
-    this.caret = MathYlemUtils.get_length(this.current);
-  } else this.list_vertical_move(true);
+    this.caret = this.current.textContent.length;
+  } else {
+    this.moveVerticalList(true);
+  }
 };
 
-MathYlemBackend.prototype.home = function () {
+Backend.prototype.home = function () {
   this.current = this.doc.root().firstChild;
   this.caret = 0;
 };
 
-MathYlemBackend.prototype.end = function () {
+Backend.prototype.end = function () {
   this.current = this.doc.root().lastChild;
-  this.caret = MathYlemUtils.get_length(this.current);
+  this.caret = this.current.textContent.length;
 };
 
-MathYlemBackend.prototype.checkpoint = function () {
+Backend.prototype.checkpoint = function () {
   var base = this.doc.base;
   this.current.setAttribute('current', 'yes');
   this.current.setAttribute('caret', this.caret.toString());
-  this.undo_now++;
-  this.undo_data[this.undo_now] = base.cloneNode(true);
-  this.undo_data.splice(this.undo_now + 1, this.undo_data.length);
-  this.fire_event('change', {'old': this.undo_data[this.undo_now - 1], 'new': this.undo_data[this.undo_now]});
+  this.undoCurrent++;
+  this.undoData[this.undoCurrent] = base.cloneNode(true);
+  this.undoData.splice(this.undoCurrent + 1, this.undoData.length);
+  this.fireEvent('change', { 'old': this.undoData[this.undoCurrent - 1],
+    'new': this.undoData[this.undoCurrent] });
   this.current.removeAttribute('current');
   this.current.removeAttribute('caret');
-  if (this.parent && this.parent.ready) this.parent.render(true);
+  if (this.parent.ready) {
+    this.parent.render(true);
+  }
 };
 
-MathYlemBackend.prototype.restore = function (t) {
-  this.doc.base = this.undo_data[t].cloneNode(true);
-  this.find_current();
+Backend.prototype.restore = function (t) {
+  this.doc.base = this.undoData[t].cloneNode(true);
+  this.findCurrent();
   this.current.removeAttribute('current');
   this.current.removeAttribute('caret');
 };
 
-MathYlemBackend.prototype.find_current = function () {
-  this.current = this.doc.xpath_node("//*[@current='yes']");
+Backend.prototype.findCurrent = function () {
+  this.current = this.doc.XPathNode("//*[@current='yes']");
   this.caret = parseInt(this.current.getAttribute('caret'));
 };
 
-MathYlemBackend.prototype.undo = function () {
-  this.sel_clear();
-  if (this.undo_now <= 0) return;
-  this.undo_now--;
-  this.restore(this.undo_now);
+Backend.prototype.undo = function () {
+  this.clearSelection();
+  if (this.undoCurrent <= 0) {
+    return;
+  }
+  this.undoCurrent--;
+  this.restore(this.undoCurrent);
 };
 
-MathYlemBackend.prototype.redo = function () {
-  this.sel_clear();
-  if (this.undo_now >= this.undo_data.length - 1) return;
-  this.undo_now++;
-  this.restore(this.undo_now);
+Backend.prototype.redo = function () {
+  this.clearSelection();
+  if (this.undoCurrent >= this.undoData.length - 1) {
+    return;
+  }
+  this.undoCurrent++;
+  this.restore(this.undoCurrent);
 };
 
-MathYlemBackend.prototype.done = function (s) {
-  if (MathYlemUtils.is_symbol(this.current)) this.complete_symbol();
-  else this.fire_event('done');
+Backend.prototype.done = function (s) {
+  if (this.current.parentNode.getAttribute('mode') === 'symbol') {
+    this.completeSymbol();
+  } else {
+    this.fireEvent('done');
+  }
 };
 
-MathYlemBackend.prototype.complete_symbol = function () {
-  var sym_name = this.current.firstChild.textContent;
-  if (!(this.symbols[sym_name])) return;
+Backend.prototype.completeSymbol = function () {
+  var name = this.current.firstChild.textContent;
+  if (!Symbols.symbols[name]) {
+    return;
+  }
   this.current = this.current.parentNode.parentNode;
-  this.delete_from_f();
-  this.insert_symbol(sym_name);
+  this.deleteFromF();
+  this.insertSymbol(name);
 };
 
-MathYlemBackend.prototype.problem = function (message) {
-  this.fire_event('error', {'message': message});
-};
-
-MathYlemBackend.prototype.is_blacklisted = function (symb_type) {
-  for (var i = 0; i < this.blacklist.length; i++) { if (symb_type == this.blacklist[i]) return true; }
+Backend.prototype.isBlacklisted = function (type) {
+  for (var i = 0; i < this.blacklist.length; i++) {
+    if (type === this.blacklist[i]) {
+      return true;
+    }
+  }
   return false;
 };
 
-MathYlemBackend.prototype.check_for_power = function () {
-  if (this.autoreplace && this.caret == 0 && this.current.previousSibling && this.current.previousSibling.nodeName == 'f' && this.current.previousSibling.getAttribute('type') == '*') {
-    var n = this.current.previousSibling;
-    var p = n.parentNode;
-    var prev = n.previousSibling;
-    var next = n.nextSibling;
-    var new_node = this.make_e(MathYlemUtils.get_value(prev) + MathYlemUtils.get_value(next));
-    this.current = new_node;
-    this.caret = MathYlemUtils.get_length(prev);
-    p.insertBefore(new_node, prev);
-    p.removeChild(prev);
-    p.removeChild(n);
-    p.removeChild(next);
-    this.insert_symbol('power');
+Backend.prototype.replaceSymbol = function (node, name) {
+  var symbol = Symbols.symbols[name];
+  if (!symbol || this.isBlacklisted(name)) {
+    return false;
+  }
+  var f = this.symbolToNode(name, []).f;
+  node.parentNode.replaceChild(f, node);
+  if (!symbol['char']) {
+    this.caret = 0;
+    this.current = f;
+    this.downFromFToBlank();
+  }
+  this.checkpoint();
+  return true;
+};
+
+Backend.prototype.checkForPower = function () {
+  if (this.autoreplace && this.caret === 0 && this.current.previousSibling &&
+      this.current.previousSibling.nodeName === 'f' &&
+      this.current.previousSibling.getAttribute('type') === '*') {
+    this.current = this.current.previousSibling;
+    this.deleteFromF();
+    this.insertSymbol('power');
     return true;
   }
   return false;
 };
 
-MathYlemBackend.prototype.check_for_symbol = function () {
-  var instance = this;
-  if (MathYlemUtils.is_text(this.current)) return;
-  if (this.current.parentNode.parentNode.nodeName == 'f' && this.current.parentNode.childNodes.length == 1 && this.current.firstChild.nodeValue == 'h') {
-    var n = this.current.parentNode.parentNode;
-    var sym_name = n.getAttribute('type') + 'h';
-    var s = this.symbols[sym_name];
-    if (!s || this.is_blacklisted(s['type'])) { return }
-    var f = this.symbol_to_node(sym_name, []).f;
-    n.parentNode.replaceChild(f, n);
-    this.caret = 0;
-    this.current = f;
-    this.down_from_f_to_blank();
-    this.checkpoint();
+Backend.prototype.checkForIneq = function () {
+  if (this.autoreplace && this.caret === 0 && this.current.previousSibling &&
+      this.current.previousSibling.nodeName === 'f' &&
+      ['<', '>'].indexOf(this.current.previousSibling.getAttribute('type')) > -1) {
+    var n = this.current.previousSibling;
+    return this.replaceSymbol(n, n.getAttribute('type') + '=');
+  }
+  return false;
+};
+
+Backend.prototype.checkForSymbol = function () {
+  if (this.current.parentNode.getAttribute('mode') === 'text' ||
+      this.current.parentNode.getAttribute('mode') === 'symbol') {
     return;
   }
-  for (var s in this.symbols) {
-    if (instance.current.nodeName == 'e' && !(MathYlemUtils.is_blank(instance.current)) && instance.current.firstChild.nodeValue.search_at(instance.caret, s)) {
-      var temp = instance.current.firstChild.nodeValue;
-      var temp_caret = instance.caret;
-      instance.current.firstChild.nodeValue = instance.current.firstChild.nodeValue.slice(0, instance.caret - s.length) + instance.current.firstChild.nodeValue.slice(instance.caret);
-      instance.caret -= s.length;
-      var success = instance.insert_symbol(s);
+  var value = this.current.textContent;
+
+  if (this.current.parentNode.parentNode.nodeName === 'f' &&
+      this.current.parentNode.childNodes.length === 1 && value === 'h') {
+    var n = this.current.parentNode.parentNode;
+    this.replaceSymbol(n, n.getAttribute('type') + 'h');
+    return;
+  }
+  for (var s in Symbols.symbols) {
+    if (['psi', 'xi'].indexOf(s) > -1) {
+      continue;
+    }
+    if (this.current.nodeName === 'e' &&
+        value.substring(this.caret - s.length, this.caret) === s) {
+      var temp = value;
+      var tempCaret = this.caret;
+      this.current.textContent = value.slice(0, this.caret - s.length) +
+        value.slice(this.caret);
+      this.caret -= s.length;
+      var success = this.insertSymbol(s);
       if (!success) {
-        instance.current.firstChild.nodeValue = temp;
-        instance.caret = temp_caret;
+        this.current.textContent = temp;
+        this.caret = tempCaret;
       }
       return;
     }
   }
 };
 
-module.exports = MathYlemBackend;
+module.exports = Backend;
 
-},{"../lib/katex/katex.js":6,"./mathylem_doc.js":3,"./mathylem_symbols.js":4,"./mathylem_utils.js":5,"mousetrap":120}],3:[function(require,module,exports){
+},{"./doc.js":2,"./symbols.js":4}],2:[function(require,module,exports){
 require('wicked-good-xpath').install();
 
-var MathYlemDoc = function (doc) {
+var Doc = function (doc) {
   doc = doc || '<m><e></e></m>';
-  this.set_content(doc);
+  this.setContent(doc);
 };
 
-MathYlemDoc.prototype.is_small = function (nn) {
+Doc.isSmall = function (nn) {
   var n = nn.parentNode;
-  while (n != null && n.nodeName != 'm') {
-    if (n.getAttribute('small') == 'yes') { return true }
+  while (n != null && n.nodeName !== 'm') {
+    if (n.getAttribute('small') === 'yes') {
+      return true;
+    }
     n = n.parentNode;
-    while (n != null && n.nodeName != 'c') { n = n.parentNode }
+    while (n != null && n.nodeName !== 'c') {
+      n = n.parentNode;
+    }
   }
   return false;
 };
 
-MathYlemDoc.prototype.ensure_text_nodes = function () {
+Doc.prototype.ensureTextNodes = function () {
   var l = this.base.getElementsByTagName('e');
   for (var i = 0; i < l.length; i++) {
-    if (!(l[i].firstChild)) { l[i].appendChild(this.base.createTextNode('')) }
+    if (!l[i].firstChild) {
+      l[i].appendChild(this.base.createTextNode(''));
+    }
   }
 };
 
-MathYlemDoc.prototype.is_blank = function () {
-  if (this.base.getElementsByTagName('f').length > 0) { return false }
+Doc.prototype.isBlank = function () {
+  if (this.base.getElementsByTagName('f').length > 0) {
+    return false;
+  }
   var l = this.base.getElementsByTagName('e');
-  if (l.length == 1 && (!(l[0].firstChild) || l[0].firstChild.textContent == '')) { return true }
+  if (l.length === 1 && (!l[0].firstChild || l[0].firstChild.textContent === '')) {
+    return true;
+  }
   return false;
 };
 
-MathYlemDoc.prototype.root = function () {
+Doc.prototype.root = function () {
   return this.base.documentElement;
 };
 
-MathYlemDoc.prototype.get_content = function (t, r) {
-  if (t != 'xml') { return this.manual_render(t, this.root(), r) } else { return (new XMLSerializer()).serializeToString(this.base) }
+Doc.prototype.getContent = function (t, r) {
+  if (t !== 'xml') {
+    return this.render(t, this.root(), r);
+  } else {
+    return (new XMLSerializer()).serializeToString(this.base);
+  }
 };
 
-MathYlemDoc.prototype.xpath_node = function (xpath, node) {
+Doc.prototype.XPathNode = function (xpath, node) {
   node = node || this.root();
-  return this.base.evaluate(xpath, node, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+  return this.base.evaluate(xpath, node, null,
+    XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
 };
 
-MathYlemDoc.prototype.xpath_list = function (xpath, node) {
+Doc.prototype.XPathList = function (xpath, node) {
   node = node || this.root();
-  return this.base.evaluate(xpath, node, null, XPathResult.ORDERED_NODE_ITERATOR_TYPE, null);
+  return this.base.evaluate(xpath, node, null,
+    XPathResult.ORDERED_NODE_ITERATOR_TYPE, null);
 };
 
-MathYlemDoc.prototype.set_content = function (xml_data) {
-  this.base = (new window.DOMParser()).parseFromString(xml_data, 'text/xml');
-  this.ensure_text_nodes();
+Doc.prototype.setContent = function (data) {
+  this.base = (new DOMParser()).parseFromString(data, 'text/xml');
+  this.ensureTextNodes();
 };
 
-MathYlemDoc.bracket_xpath = "(count(./*) != 1 and not \
+var BRACKET_XPATH = "(count(./*) != 1 and not \
                   ( \
                             count(./e)=2 and \
                 count(./f)=1 and \
@@ -1854,62 +1496,82 @@ MathYlemDoc.bracket_xpath = "(count(./*) != 1 and not \
               ./e/@temp = 'yes' \
             )";
 
-MathYlemDoc.prototype.manual_render = function (t, n, r) {
+Doc.prototype.render = function (t, n, r) {
   var ans = '';
-  if (n.nodeName == 'e') {
-    if (t == 'latex' && r) {
+  if (n.nodeName === 'e') {
+    if (t === 'latex' && r) {
       ans = n.getAttribute('render');
-    } else if (t == 'text') {
-      ans = MathYlemUtils.get_value(n);
-      if (n.previousSibling && n.nextSibling && ans == '') { ans = ' * ' } else {
-        ans = ans.replace(/(.)([^a-zA-Z0-9.])(.)/g, '$1 $2 $3');
-        ans = ans.replace(/([a-zA-Z])(?=\.)/g, '$1 * ');
-        ans = ans.replace(/(\.)(?=[a-zA-Z])/g, '$1 * ');
-        ans = ans.replace(/([a-zA-Z])(?=[a-zA-Z0-9])/g, '$1 * ');
-        ans = ans.replace(/([a-zA-Z0-9])(?=[a-zA-Z])/g, '$1 * ');
-        if (n.previousSibling && n.previousSibling.getAttribute('group') != 'operations') { ans = ans.replace(/^([a-zA-Z0-9])/g, ' * $1') }
-        if (n.nextSibling && n.nextSibling.getAttribute('group') != 'operations') { ans = ans.replace(/([a-zA-Z0-9])$/g, '$1 * ') }
-        ans = ' ' + ans + ' ';
+    } else if (t === 'text') {
+      ans = n.textContent;
+      if (n.previousSibling && n.nextSibling && ans === '' &&
+          n.previousSibling.getAttribute('group') !== 'operators' &&
+          n.nextSibling.getAttribute('group') !== 'operators') {
+        ans = '*';
+      } else {
+        ans = ans.replace(/([a-zA-Z])(?=\.)/g, '$1*');
+        ans = ans.replace(/(\.)(?=[a-zA-Z])/g, '$1*');
+        ans = ans.replace(/([a-zA-Z])(?=[a-zA-Z0-9])/g, '$1*');
+        ans = ans.replace(/([a-zA-Z0-9])(?=[a-zA-Z])/g, '$1*');
+        if (n.previousSibling &&
+            n.previousSibling.getAttribute('group') !== 'operators') {
+          ans = ans.replace(/^([a-zA-Z0-9])/g, '*$1');
+        }
+        if (n.nextSibling && n.nextSibling.getAttribute('group') !== 'operators') {
+          ans = ans.replace(/([a-zA-Z0-9])$/g, '$1*');
+        }
       }
     } else {
-      ans = MathYlemUtils.get_value(n);
+      ans = n.textContent;
     }
-  } else if (n.nodeName == 'f') {
-    var real_type = (t == 'latex' && this.is_small(n)) ? 'small_latex' : t;
-    var nn = this.xpath_node("./b[@p='" + real_type + "']", n) || this.xpath_node("./b[@p='" + t + "']", n);
-    if (nn) { ans = this.manual_render(t, nn, r) }
-  } else if (n.nodeName == 'b') {
+  } else if (n.nodeName === 'f') {
+    var type = (t === 'latex' && Doc.isSmall(n)) ? 'small_latex' : t;
+    var nn = this.XPathNode("./b[@p='" + type + "']", n) ||
+      this.XPathNode("./b[@p='" + t + "']", n);
+    if (nn) {
+      ans = this.render(t, nn, r);
+    }
+  } else if (n.nodeName === 'b') {
     var cs = [];
     var i = 1;
     var par = n.parentNode;
-    for (var nn = par.firstChild; nn != null; nn = nn.nextSibling) {
-      if (nn.nodeName == 'c' || nn.nodeName == 'l') { cs[i++] = this.manual_render(t, nn, r) }
+    for (var nn = par.firstChild; nn != null; nn = nn.nextSibling) { // eslint-disable-line no-redeclare
+      if (nn.nodeName === 'c' || nn.nodeName === 'l') {
+        cs[i++] = this.render(t, nn, r);
+      }
     }
-    for (var nn = n.firstChild; nn != null; nn = nn.nextSibling) {
-      if (nn.nodeType == 3) { ans += nn.textContent } else if (nn.nodeType == 1) {
+    for (var nn = n.firstChild; nn != null; nn = nn.nextSibling) { // eslint-disable-line no-redeclare
+      if (nn.nodeType === 3) {
+        ans += nn.textContent;
+      } else if (nn.nodeType === 1) {
         if (nn.hasAttribute('d')) {
           var dim = parseInt(nn.getAttribute('d'));
           var joiner = function (d, l) {
             if (d > 1) {
-              for (var k = 0; k < l.length; k++) { l[k] = joiner(d - 1, l[k]) }
+              for (var k = 0; k < l.length; k++) {
+                l[k] = joiner(d - 1, l[k]);
+              }
             }
             return l.join(nn.getAttribute('sep' + (d - 1)));
           };
           ans += joiner(dim, cs[parseInt(nn.getAttribute('ref'))]);
-        } else { ans += cs[parseInt(nn.getAttribute('ref'))] }
+        } else {
+          ans += cs[parseInt(nn.getAttribute('ref'))];
+        }
       }
     }
-  } else if (n.nodeName == 'l') {
+  } else if (n.nodeName === 'l') {
     ans = [];
-    var i = 0;
-    for (var nn = n.firstChild; nn != null; nn = nn.nextSibling) {
-      ans[i++] = this.manual_render(t, nn, r);
+    var i = 0; // eslint-disable-line no-redeclare
+    for (var nn = n.firstChild; nn != null; nn = nn.nextSibling) { // eslint-disable-line no-redeclare
+      ans[i++] = this.render(t, nn, r);
     }
-  } else if (n.nodeName == 'c' || n.nodeName == 'm') {
-    for (var nn = n.firstChild; nn != null; nn = nn.nextSibling) { ans += this.manual_render(t, nn, r) }
-    if (t == 'latex' &&
-                n.getAttribute('bracket') == 'yes' &&
-                this.base.evaluate(MathYlemDoc.bracket_xpath, n, null,
+  } else if (n.nodeName === 'c' || n.nodeName === 'm') {
+    for (var nn = n.firstChild; nn != null; nn = nn.nextSibling) { // eslint-disable-line no-redeclare
+      ans += this.render(t, nn, r);
+    }
+    if (t === 'latex' &&
+                n.getAttribute('bracket') === 'yes' &&
+                this.base.evaluate(BRACKET_XPATH, n, null,
                   XPathResult.BOOLEAN_TYPE, null).booleanValue) {
       ans = '\\left(' + ans + '\\right)';
     }
@@ -1917,138 +1579,746 @@ MathYlemDoc.prototype.manual_render = function (t, n, r) {
   return ans;
 };
 
-MathYlemDoc.prototype.path_to = function (n) {
+module.exports = Doc;
+
+},{"wicked-good-xpath":123}],3:[function(require,module,exports){
+var Mousetrap = require('mousetrap');
+var katex = require('../lib/katex/katex.js');
+var Backend = require('./backend.js');
+var Symbols = require('./symbols.js');
+var Doc = require('./doc.js');
+var debounce = require('throttle-debounce/debounce');
+
+var MathYlem = function (el, config) {
+  var self = this;
+  config = config || {};
+  var options = config['options'] || {};
+
+  if (typeof el === 'string' || el instanceof String) {
+    el = document.getElementById(el);
+  }
+
+  if (!el) {
+    throw new Error('Invalid element.');
+  } else if (el.mathylem) {
+    throw new Error('MathYlem already attached.');
+  }
+
+  if (!el.id) {
+    var i = MathYlem.maxUid;
+    while (document.getElementById('mathylem_' + i)) {
+      i++;
+    }
+    MathYlem.maxUid = i;
+    el.id = 'mathylem_' + i;
+  }
+  el.className += ' mathylem';
+  el.tabIndex = MathYlem.maxTabIndex++;
+
+  this.active = true;
+  this.emptyContent = options['emptyContent'] || '\\red{[?]}';
+  this.editor = el;
+  this._focus = false;
+  this._processedFakeInput = 20;
+  this.ready = false;
+
+  MathYlem.instances[el.id] = this;
+  el.mathylem = this;
+
+  config['parent'] = self;
+
+  if (/Mobi/.test(navigator.userAgent)) {
+    var fakeInput = document.createElement('textarea');
+    this.fakeInput = fakeInput;
+
+    fakeInput.setAttribute('autocapitalize', 'none');
+    fakeInput.setAttribute('autocomplete', 'off');
+    fakeInput.setAttribute('autocorrect', 'off');
+    fakeInput.setAttribute('spellcheck', 'false');
+    el.insertAdjacentElement('afterend', fakeInput);
+
+    fakeInput.style.position = 'absolute';
+    fakeInput.style.top = el.offsetTop + 'px';
+    fakeInput.style.left = el.offsetLeft + 'px';
+    fakeInput.style.width = '1px';
+    fakeInput.style.height = '1px';
+    fakeInput.style.opacity = 0;
+    fakeInput.style.padding = 0;
+    fakeInput.style.margin = 0;
+    fakeInput.style.border = 0;
+    fakeInput.addEventListener('input', debounce(100, function () {
+      for (; self._processedFakeInput >
+          self.fakeInput.value.length; self._processedFakeInput--) {
+        Mousetrap.trigger('backspace');
+      }
+      if (self.fakeInput.value.length === 0) {
+        self._processedFakeInput = 20;
+        self.fakeInput.value = '____________________';
+      }
+      for (; self._processedFakeInput <
+          self.fakeInput.value.length; self._processedFakeInput++) {
+        var c = self.fakeInput.value[self._processedFakeInput];
+        if (c !== c.toLowerCase()) {
+          Mousetrap.trigger('shift+' + c.toLowerCase());
+        } else if (c === ' ') {
+          Mousetrap.trigger('space');
+        } else {
+          Mousetrap.trigger(c);
+        }
+      }
+    }));
+    fakeInput.addEventListener('keydown', function (e) {
+      if (e.keycode === 8) {
+        Mousetrap.trigger('backspace');
+        e.preventDefault();
+      } else if (e.keycode === 13) {
+        Mousetrap.trigger('enter');
+        e.preventDefault();
+      }
+    });
+    fakeInput.addEventListener('focus', function () {
+      self.activate(false);
+    });
+    fakeInput.addEventListener('blur', function () {
+      if (self._focus) {
+        self._focus = false;
+        this.focus();
+      } else {
+        self.deactivate(false);
+      }
+    });
+    fakeInput.value = '____________________';
+  }
+
+  this.backend = new Backend(config);
+  this.tempCursor = { 'node': null, 'caret': 0 };
+  this.editor.addEventListener('click', function () {
+    var g = this.mathylem;
+    var b = g.backend;
+    if (g.active) {
+      return;
+    }
+    g._focus = true;
+    setTimeout(function () {
+      g._focus = false;
+    }, 500);
+    b.clearSelection();
+    b.end();
+    g.activate(true);
+  });
+  if (Backend.ready) {
+    this.ready = true;
+    this.backend.fireEvent('ready');
+    this.render(true);
+  }
+  this.deactivate(true);
+  this.computeLocations();
+};
+
+MathYlem.maxUid = 0;
+MathYlem.maxTabIndex = 0;
+
+MathYlem.instances = {};
+
+MathYlem.activeMathYlem = null;
+
+MathYlem.initialize = function (symbols) {
+  var allReady = function () {
+    MathYlem.registerKeyboardHandlers();
+    for (var i in MathYlem.instances) {
+      MathYlem.instances[i].ready = true;
+      MathYlem.instances[i].render(true);
+      MathYlem.instances[i].backend.fireEvent('ready');
+    }
+    Backend.ready = true;
+  };
+  if (!Array.isArray(symbols)) {
+    symbols = [symbols];
+  }
+  var calls = [];
+  for (var i = 0; i < symbols.length; i++) {
+    var x = (function outer (j) {
+      return function (callback) {
+        var req = new XMLHttpRequest();
+        req.onload = function () {
+          Symbols.addSymbols(this.responseText);
+          callback();
+        };
+        req.open('get', symbols[j], true);
+        req.send();
+      };
+    }(i));
+    calls.push(x);
+  }
+  calls.push(allReady);
+  var j = 0;
+  var cb = function () {
+    j++;
+    calls[j](cb);
+  };
+  calls[0](cb);
+};
+
+MathYlem.staticRenderAll = function () {
+  var l = document.getElementsByTagName('script');
+  var ans = [];
+  for (var i = 0; i < l.length; i++) {
+    if (l[i].getAttribute('type') === 'text/mathylem_xml') {
+      var n = l[i];
+      var d = new Doc(n.innerHTML);
+      var s = document.createElement('span');
+      s.setAttribute('id', 'eqn1_render');
+      katex.render(d.getContent('latex'), s);
+      n.parentNode.insertBefore(s, n);
+      ans.push({ 'container': s, 'doc': d });
+    }
+  }
+  return ans;
+};
+
+MathYlem.staticRender = function (doc, id) {
+  var d = new Doc(doc);
+  var target = document.getElementById(id);
+  katex.render(d.getContent('latex'), target);
+  return { 'container': target, 'doc': d };
+};
+
+MathYlem.prototype.isChanged = function () {
+  var bb = this.editor.getElementsByClassName('katex')[0];
+  if (!bb) {
+    return;
+  }
+  var rect = bb.getBoundingClientRect();
+  var ans = !this.boundingBox || this.boundingBox.top !== rect.top ||
+    this.boundingBox.bottom !== rect.bottom || this.boundingBox.right !==
+    rect.right || this.boundingBox.left !== rect.left;
+  this.boundingBox = rect;
+  return ans;
+};
+
+MathYlem.prototype.computeLocations = function () {
+  var ans = [];
+  var bb = this.editor.getElementsByClassName('katex')[0];
+  if (!bb) {
+    return;
+  }
+  var rect = bb.getBoundingClientRect();
+  ans.push({
+    'path': 'all',
+    'top': rect.top,
+    'bottom': rect.bottom,
+    'left': rect.left,
+    'right': rect.right
+  });
+  var elts = this.editor.getElementsByClassName('mathylem_elt');
+  for (var i = 0; i < elts.length; i++) {
+    var elt = elts[i];
+    if (elt.nodeName === 'mstyle') {
+      continue;
+    }
+    rect = elt.getBoundingClientRect();
+    if (rect.top === 0 && rect.bottom === 0 &&
+        rect.left === 0 && rect.right === 0) {
+      continue;
+    }
+    var cl = elt.className.split(/\s+/);
+    for (var j = 0; j < cl.length; j++) {
+      if (cl[j].substr(0, 12) === 'mathylem_loc') {
+        ans.push({
+          'path': cl[j],
+          'top': rect.top,
+          'bottom': rect.bottom,
+          'left': rect.left,
+          'right': rect.right,
+          'midX': (rect.left + rect.right) / 2,
+          'midY': (rect.bottom + rect.top) / 2,
+          'blank': cl.indexOf('mathylem_blank') >= 0
+        });
+        break;
+      }
+    }
+  }
+  this.boxes = ans;
+};
+
+MathYlem.getPath = function (n) {
   var name = n.nodeName;
-  if (name == 'm') { return 'mathylem_loc_m' }
+  if (name === 'm') {
+    return 'mathylem_loc_m';
+  }
   var ns = 0;
   for (var nn = n; nn != null; nn = nn.previousSibling) {
-    if (nn.nodeType == 1 && nn.nodeName == name) { ns++ }
+    if (nn.nodeType === 1 && nn.nodeName === name) {
+      ns++;
+    }
   }
-  return this.path_to(n.parentNode) + '_' + name + '' + ns;
+  return MathYlem.getPath(n.parentNode) + '_' + name + '' + ns;
 };
 
-module.exports = MathYlemDoc;
+MathYlem.getLocation = function (x, y, currentNode, currentCaret) {
+  var g = MathYlem.activeMathYlem;
+  var minDist = -1;
+  var midDist = 0;
+  var opt = null;
+  // check if we go to first or last element
+  if (currentNode) {
+    var currentPath = MathYlem.getPath(currentNode);
+    var currentPos = parseInt(currentPath.substring(
+      currentPath.lastIndexOf('e') + 1));
+  }
 
-},{"wicked-good-xpath":124}],4:[function(require,module,exports){
-MathYlemSymbols = {'symbols': {}};
-
-MathYlemSymbols.symb_raw = function (symb_name, latex_symb, text_symb, group) {
-  return {'output': {'latex': latex_symb,
-    'text': text_symb},
-  'group': group,
-  'char': true,
-  'type': symb_name};
-};
-
-MathYlemSymbols.symb_func = function (func_name, group) {
-  return {'output': {'latex': '\\' + func_name + '\\left({$1}\\right)',
-    'text': ' ' + func_name + '({$1})'},
-  'type': func_name,
-  'group': group,
-  'attrs': [
-    {'delete': '1'}
-  ]
+  var boxes = g.boxes;
+  if (!boxes) {
+    return;
+  }
+  if (currentNode) {
+    currentPath = currentPath.replace(/e[0-9]+$/, 'e');
+    var boxes2 = [];
+    for (var i = 0; i < boxes.length; i++) {
+      if (boxes[i].path === 'all') {
+        continue;
+      }
+      var path = boxes[i].path.substring(0, boxes[i].path.lastIndexOf('_'));
+      path = path.replace(/e[0-9]+$/, 'e');
+      if (path === currentPath) {
+        boxes2.push(boxes[i]);
+      }
+    }
+    boxes = boxes2;
+  }
+  if (!boxes) {
+    return;
+  }
+  for (var i = 0; i < boxes.length; i++) { // eslint-disable-line no-redeclare
+    var box = boxes[i];
+    if (box.path === 'all') {
+      if (!opt) {
+        opt = { 'path': 'mathylem_loc_m_e1_0' };
+      }
+      continue;
+    }
+    var xdist = Math.max(box.left - x, x - box.right, 0);
+    var ydist = Math.max(box.top - y, y - box.bottom, 0);
+    var dist = Math.sqrt(xdist * xdist + ydist * ydist);
+    if (minDist === -1 || dist < minDist) {
+      minDist = dist;
+      midDist = x - box.midX;
+      opt = box;
+    }
+  }
+  var loc = opt.path.substring('mathylem_loc'.length);
+  loc = loc.replace(/_/g, '/');
+  loc = loc.replace(/([0-9]+)(?=.*?\/)/g, '[$1]');
+  var cur = g.backend.doc.XPathNode(loc.substring(0, loc.lastIndexOf('/')),
+    g.backend.doc.root());
+  var car = parseInt(loc.substring(loc.lastIndexOf('/') + 1));
+  // Check if we want the cursor before or after the element
+  if (midDist > 0 && !opt.blank) {
+    car++;
+  }
+  var ans = {
+    'current': cur,
+    'caret': car,
+    'pos': 'none'
   };
-};
-
-MathYlemSymbols.symb_func_nonlatex = function (func_name, group) {
-  return {'output': {'latex': '\\mathrm{' + func_name + '}\\left({$1}\\right)',
-    'text': ' ' + func_name + '({$1})'},
-  'type': func_name,
-  'group': group,
-  'attrs': [
-    {'delete': '1'}
-  ]
-  };
-};
-
-MathYlemSymbols.add_symbols = function (name, sym) {
-  var symbols = {};
-  if (name == '_raw') {
-    for (var i = 0; i < sym.length; i++) {
-      for (var t in sym[i]['symbols']) {
-        symbols[t] = MathYlemSymbols.symb_raw(t, sym[i]['symbols'][t]['latex'], sym[i]['symbols'][t]['text'], sym[i]['group']);
-      }
+  if (currentNode && opt) {
+    var optPos = parseInt(opt.path.substring(opt.path.lastIndexOf('e') + 1,
+      opt.path.lastIndexOf('_')));
+    if (optPos < currentPos) {
+      ans['pos'] = 'left';
+    } else if (optPos > currentPos) {
+      ans['pos'] = 'right';
+    } else if (car < currentCaret) {
+      ans['pos'] = 'left';
+    } else if (car > currentCaret) {
+      ans['pos'] = 'right';
     }
-  } else if (name == '_literal') {
-    for (var j = 0; j < sym.length; j++) {
-      for (var i = 0; i < sym[j]['symbols'].length; i++) {
-        symbols[sym[j]['symbols'][i]] = MathYlemSymbols.symb_raw(sym[j]['symbols'][i], '\\' + sym[j]['symbols'][i], ' $' + sym[j]['symbols'][i] + ' ', sym[j]['group']);
+  }
+  return ans;
+};
+
+MathYlem.mouseUp = function (e) {
+  MathYlem.kb.isMouseDown = false;
+  var g = MathYlem.activeMathYlem;
+  if (g) {
+    g.render(true);
+  }
+};
+
+MathYlem.mouseDown = function (e) {
+  var n = e.target;
+  MathYlem.kb.isMouseDown = true;
+  while (n != null) {
+    if (n.mathylem) {
+      var g = MathYlem.activeMathYlem;
+      if (n.mathylem === g) {
+        g._focus = true;
+        setTimeout(function () {
+          g._focus = false;
+        }, 500);
+        if (e.shiftKey) {
+          g.selectTo(e.clientX, e.clientY, true);
+        } else {
+          var loc = e.touches ? MathYlem.getLocation(e.touches[0].clientX,
+            e.touches[0].clientY) : MathYlem.getLocation(e.clientX, e.clientY);
+          if (!loc) {
+            return;
+          }
+          var b = g.backend;
+          b.current = loc.current;
+          b.caret = loc.caret;
+          b.selStatus = Backend.SEL_NONE;
+        }
+        g.render(true);
+      } else if (g) {
+        g.deactivate(true);
       }
-    }
-  } else if (name == '_func') {
-    for (var j = 0; j < sym.length; j++) {
-      for (var i = 0; i < sym[j]['symbols'].length; i++) {
-        symbols[sym[j]['symbols'][i]] = MathYlemSymbols.symb_func(sym[j]['symbols'][i], sym[j]['group']);
-      }
-    }
-  } else if (name == '_func_nonlatex') {
-    for (var j = 0; j < sym.length; j++) {
-      for (var i = 0; i < sym[j]['symbols'].length; i++) {
-        symbols[sym[j]['symbols'][i]] = MathYlemSymbols.symb_func_nonlatex(sym[j]['symbols'][i], sym[j]['group']);
-      }
-    }
-  } else symbols[name] = sym;
-  return symbols;
-};
-
-module.exports = MathYlemSymbols;
-
-},{}],5:[function(require,module,exports){
-var MathYlemUtils = {};
-
-MathYlemUtils.CARET = '\\cursor{-0.2ex}{0.7em}';
-MathYlemUtils.TEMP_SMALL_CARET = '\\cursor{0em}{0.6em}';
-MathYlemUtils.TEMP_CARET = '\\cursor{-0.2ex}{0.7em}';
-MathYlemUtils.SMALL_CARET = '\\cursor{-0.05em}{0.5em}';
-MathYlemUtils.SEL_CARET = '\\cursor{-0.2ex}{0.7em}';
-MathYlemUtils.SMALL_SEL_CARET = '\\cursor{-0.05em}{0.5em}';
-MathYlemUtils.SEL_COLOR = 'red';
-
-MathYlemUtils.is_blank = function (n) {
-  return n.firstChild == null || n.firstChild.nodeValue == '';
-};
-
-MathYlemUtils.get_value = function (n) {
-  return n.firstChild ? n.firstChild.nodeValue : '';
-};
-
-MathYlemUtils.get_length = function (n) {
-  if (MathYlemUtils.is_blank(n) || n.nodeName == 'f') return 0;
-  return n.firstChild.nodeValue.length;
-};
-
-MathYlemUtils.path_to = function (n) {
-  var name = n.nodeName;
-  if (name == 'm') return 'mathylem_loc_m';
-  var ns = 0;
-  for (var nn = n; nn != null; nn = nn.previousSibling) if (nn.nodeType == 1 && nn.nodeName == name) ns++;
-  return MathYlemUtils.path_to(n.parentNode) + '_' + name + '' + ns;
-};
-
-MathYlemUtils.is_text = function (nn) {
-  return nn.parentNode.getAttribute('mode') && (nn.parentNode.getAttribute('mode') == 'text' || nn.parentNode.getAttribute('mode') == 'symbol');
-};
-
-MathYlemUtils.is_symbol = function (nn) {
-  return nn.parentNode.getAttribute('mode') && nn.parentNode.getAttribute('mode') == 'symbol';
-};
-
-MathYlemUtils.is_small = function (nn) {
-  var n = nn.parentNode;
-  while (n != null && n.nodeName != 'm') {
-    if (n.getAttribute('small') == 'yes') {
-      return true;
+      return;
     }
     n = n.parentNode;
-    while (n != null && n.nodeName != 'c') { n = n.parentNode }
   }
-  return false;
+  MathYlem.activeMathYlem = null;
+  for (var i in MathYlem.instances) {
+    MathYlem.instances[i].deactivate(true);
+  }
 };
 
-module.exports = MathYlemUtils;
+MathYlem.mouseMove = function (e) {
+  var g = MathYlem.activeMathYlem;
+  if (!g) {
+    return;
+  }
+  if (!MathYlem.kb.isMouseDown) {
+    var bb = g.editor;
+    var rect = bb.getBoundingClientRect();
+    if (e.clientX < rect.left || e.clientX > rect.right ||
+        e.clientY > rect.bottom || e.clientY < rect.top) {
+      g.tempCursor = {
+        'node': null,
+        'caret': 0
+      };
+    } else {
+      var loc = MathYlem.getLocation(e.clientX, e.clientY);
+      if (!loc) {
+        return;
+      }
+      g.tempCursor = {
+        'node': loc.current,
+        'caret': loc.caret
+      };
+    }
+  } else {
+    g.selectTo(e.clientX, e.clientY, true);
+  }
+  g.render(g.isChanged());
+};
 
-},{}],6:[function(require,module,exports){
+MathYlem.touchMove = function (e) {
+  var g = MathYlem.activeMathYlem;
+  if (!g) {
+    return;
+  }
+  g.selectTo(e.touches[0].clientX, e.touches[0].clientY, true);
+  g.render(g.isChanged());
+};
+
+MathYlem.prototype.selectTo = function (x, y, mouse) {
+  var selCaret = this.backend.caret;
+  var selCursor = this.backend.current;
+  if (this.backend.selStatus === Backend.SEL_CURSOR_AT_START) {
+    selCursor = this.backend.selEnd.node;
+    selCaret = this.backend.selEnd.caret;
+  } else if (this.backend.selStatus === Backend.SEL_CURSOR_AT_END) {
+    selCursor = this.backend.selStart.node;
+    selCaret = this.backend.selStart.caret;
+  }
+  var loc = MathYlem.getLocation(x, y, selCursor, selCaret);
+  if (!loc) {
+    return;
+  }
+  this.backend.selectTo(loc, selCursor, selCaret, mouse);
+};
+
+if ('ontouchstart' in window) {
+  window.addEventListener('touchstart', MathYlem.mouseDown, false);
+  window.addEventListener('touchmove', MathYlem.touchMove, false);
+} else {
+  window.addEventListener('mousedown', MathYlem.mouseDown, false);
+  window.addEventListener('mouseup', MathYlem.mouseUp, false);
+  window.addEventListener('mousemove', MathYlem.mouseMove, false);
+}
+
+MathYlem.prototype.renderNode = function (t) {
+  // All the interesting work is done by transform.
+  // This function just adds in the cursor and selection-start cursor
+  var output = '';
+  if (t === 'render') {
+    var root = this.backend.doc.root();
+    this.backend.addPaths(root, 'm');
+    this.backend.tempCursor = this.tempCursor;
+    this.backend.addCursorClasses(root);
+    this.backend.current.setAttribute('current', 'yes');
+    if (this.tempCursor.node) {
+      this.tempCursor.node.setAttribute('temp', 'yes');
+    }
+    output = this.backend.getContent('latex', true);
+    this.backend.removeCursorClasses(root);
+    output = output.replace(new RegExp('&amp;', 'g'), '&');
+    return output;
+  } else {
+    output = this.backend.getContent(t);
+  }
+  return output;
+};
+
+MathYlem.prototype.render = function (updated) {
+  if (!this.active && this.backend.doc.isBlank()) {
+    katex.render(this.emptyContent, this.editor);
+    return;
+  }
+  var tex = this.renderNode('render');
+  try {
+    katex.render(tex, this.editor);
+  } catch (e) {
+    this.backend.undo();
+    this.render(false);
+  }
+  if (updated) {
+    this.computeLocations();
+  }
+};
+
+MathYlem.prototype.activate = function (focus) {
+  MathYlem.activeMathYlem = this;
+  this.active = true;
+  this.editor.className = this.editor.className.replace(
+    new RegExp('(\\s|^)mathylem_inactive(\\s|$)'), ' mathylem_active ');
+  if (focus) {
+    if (this.fakeInput) {
+      this.fakeInput.style.top = this.editor.offsetTop + 'px';
+      this.fakeInput.style.left = this.editor.offsetLeft + 'px';
+      this.fakeInput.focus();
+      this.fakeInput.setSelectionRange(this.fakeInput.value.length,
+        this.fakeInput.value.length);
+    } else {
+      this.editor.focus();
+    }
+  }
+  if (this.ready) {
+    this.render(true);
+    this.backend.fireEvent('focus', { 'focused': true });
+  }
+};
+
+MathYlem.prototype.deactivate = function (blur) {
+  this.active = false;
+  var r1 = new RegExp('(?:\\s|^)mathylem_active(?:\\s|$)');
+  var r2 = new RegExp('(?:\\s|^)mathylem_inactive(?:\\s|$)');
+  if (this.editor.className.match(r1)) {
+    this.editor.className = this.editor.className.replace(r1,
+      ' mathylem_inactive ');
+  } else if (!this.editor.className.match(r2)) {
+    this.editor.className += ' mathylem_inactive ';
+  }
+  if (blur && this.fakeInput) {
+    this.fakeInput.blur();
+  }
+  if (this.ready) {
+    this.render();
+    this.backend.fireEvent('focus', { 'focused': false });
+  }
+};
+
+// Keyboard stuff
+
+MathYlem.kb = {};
+
+MathYlem.kb.isMouseDown = false;
+
+/* keyboard behaviour definitions */
+
+// keys aside from 0-9,a-z,A-Z
+MathYlem.kb.chars = {
+  '=': '=',
+  '+': '+',
+  '-': '-',
+  '*': '*',
+  '.': '.',
+  ',': ',',
+  '<': '<',
+  '>': '>',
+  'shift+/': '/',
+  'shift+=': '+'
+};
+MathYlem.kb.symbols = {
+  '/': 'frac',
+  '%': 'mod',
+  '^': 'power',
+  '(': 'paren',
+  '_': 'sub',
+  '|': 'abs',
+  '!': 'fact',
+  'shift+up': 'power',
+  'shift+down': 'sub'
+};
+MathYlem.kb.controls = {
+  'up': 'up',
+  'down': 'down',
+  'right': 'right',
+  'left': 'left',
+  'alt+k': 'up',
+  'alt+j': 'down',
+  'alt+l': 'right',
+  'alt+h': 'left',
+  'space': 'spacebar',
+  'home': 'home',
+  'end': 'end',
+  'backspace': 'backspace',
+  'del': 'deleteKey',
+  'mod+a': 'selectAll',
+  'mod+c': 'copySelection',
+  'mod+x': 'cutSelection',
+  'mod+v': 'paste',
+  'mod+z': 'undo',
+  'mod+y': 'redo',
+  'enter': 'done',
+  'mod+shift+right': 'copyExtendListRight',
+  'mod+shift+left': 'copyExtendListLeft',
+  'mod+right': 'extendListRight',
+  'mod+left': 'extendListLeft',
+  'mod+up': 'extendListUp',
+  'mod+down': 'extendListDown',
+  'mod+shift+up': 'copyExtendListUp',
+  'mod+shift+down': 'copyExtendListDown',
+  'mod+backspace': 'removeListItem',
+  'mod+shift+backspace': 'removeListRow',
+  'shift+left': 'selectLeft',
+  'shift+right': 'selectRight',
+  ')': 'rightParen',
+  '\\': 'backslash',
+  'tab': 'tab'
+};
+
+// letters
+for (var i = 65; i <= 90; i++) {
+  MathYlem.kb.chars[String.fromCharCode(i).toLowerCase()] =
+    String.fromCharCode(i).toLowerCase();
+  MathYlem.kb.chars['shift+' + String.fromCharCode(i).toLowerCase()] =
+    String.fromCharCode(i).toUpperCase();
+}
+
+// numbers
+for (var i = 48; i <= 57; i++) { // eslint-disable-line no-redeclare
+  MathYlem.kb.chars[String.fromCharCode(i)] = String.fromCharCode(i);
+}
+
+MathYlem.registerKeyboardHandlers = function () {
+  // Firefox's special minus (needed for _ = sub binding)
+  Mousetrap.addKeycodes({ 173: '-' });
+  for (var i in MathYlem.kb.chars) { // eslint-disable-line no-redeclare
+    Mousetrap.bind(i, (function (i) {
+      return function () {
+        if (!MathYlem.activeMathYlem) {
+          return true;
+        }
+        MathYlem.activeMathYlem.tempCursor.node = null;
+        MathYlem.activeMathYlem.backend.insertString(MathYlem.kb.chars[i]);
+        MathYlem.activeMathYlem.render(true);
+        return false;
+      };
+    }(i)));
+  }
+  for (var i in MathYlem.kb.symbols) { // eslint-disable-line no-redeclare
+    Mousetrap.bind(i, (function (i) {
+      return function () {
+        if (!MathYlem.activeMathYlem) {
+          return true;
+        }
+        MathYlem.activeMathYlem.tempCursor.node = null;
+        MathYlem.activeMathYlem.backend.insertSymbol(MathYlem.kb.symbols[i]);
+        MathYlem.activeMathYlem.render(true);
+        return false;
+      };
+    }(i)));
+  }
+  for (var i in MathYlem.kb.controls) { // eslint-disable-line no-redeclare
+    Mousetrap.bind(i, (function (i) {
+      return function () {
+        if (!MathYlem.activeMathYlem) {
+          return true;
+        }
+        MathYlem.activeMathYlem.backend[MathYlem.kb.controls[i]]();
+        MathYlem.activeMathYlem.tempCursor.node = null;
+        MathYlem.activeMathYlem.render(['up', 'down', 'right', 'left', 'home',
+          'end', 'selectLeft', 'selectRight'].indexOf(i) < 0);
+        MathYlem.activeMathYlem.render(false);
+        return false;
+      };
+    }(i)));
+  }
+};
+
+module.exports = MathYlem;
+
+},{"../lib/katex/katex.js":5,"./backend.js":1,"./doc.js":2,"./symbols.js":4,"mousetrap":119,"throttle-debounce/debounce":121}],4:[function(require,module,exports){
+var Symbols = { 'symbols': {} };
+
+Symbols.makeRawSymbol = function (name, latex, group) {
+  return {
+    'output': { 'latex': latex, 'text': name },
+    'group': group,
+    'char': true
+  };
+};
+
+Symbols.makeFunctionSymbol = function (name, group, nonLaTeX) {
+  return {
+    'output': {
+      'latex': '\\' + (!nonLaTeX ? name : 'mathrm{' + name + '}') +
+        '\\left({$1}\\right)',
+      'text': name + '({$1})'
+    },
+    'group': 'functions',
+    'attrs': [{ 'delete': '1' }]
+  };
+};
+
+Symbols.addSymbols = function (symbols) {
+  if (typeof symbols === 'string' || symbols instanceof String) {
+    symbols = JSON.parse(symbols);
+  }
+
+  for (var name in symbols) {
+    var symbol = symbols[name];
+    switch (name) {
+      case '_operator':
+        for (var t in symbol) {
+          Symbols.symbols[t] = Symbols.makeRawSymbol(t, symbol[t], 'operators');
+        }
+        break;
+      case '_greek':
+        for (var i = 0; i < symbol.length; i++) {
+          Symbols.symbols[symbol[i]] = Symbols.makeRawSymbol(symbol[i],
+            '\\' + symbol[i], 'greek');
+        }
+        break;
+      case '_func':
+      case '_func_nonlatex':
+        for (var i = 0; i < symbol.length; i++) { // eslint-disable-line no-redeclare
+          Symbols.symbols[symbol[i]] = Symbols.makeFunctionSymbol(symbol[i],
+            'functions', name === '_func_nonlatex');
+        }
+        break;
+      default:
+        Symbols.symbols[name] = symbol;
+        break;
+    }
+  }
+};
+
+module.exports = Symbols;
+
+},{}],5:[function(require,module,exports){
 "use strict";
 
 var _ParseError = require("./src/ParseError");
@@ -2139,7 +2409,7 @@ module.exports = {
     ParseError: _ParseError2.default
 };
 
-},{"./src/ParseError":10,"./src/Settings":13,"./src/buildTree":20,"./src/parseTree":35,"./src/utils":41}],7:[function(require,module,exports){
+},{"./src/ParseError":9,"./src/Settings":12,"./src/buildTree":19,"./src/parseTree":34,"./src/utils":40}],6:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -2264,7 +2534,7 @@ var Lexer = function () {
 
 exports.default = Lexer;
 
-},{"./ParseError":10,"./SourceLocation":14,"./Token":16,"babel-runtime/helpers/classCallCheck":48,"babel-runtime/helpers/createClass":49,"match-at":119}],8:[function(require,module,exports){
+},{"./ParseError":9,"./SourceLocation":13,"./Token":15,"babel-runtime/helpers/classCallCheck":47,"babel-runtime/helpers/createClass":48,"match-at":118}],7:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -2555,7 +2825,7 @@ var MacroExpander = function () {
 
 exports.default = MacroExpander;
 
-},{"./Lexer":7,"./ParseError":10,"./Token":16,"./macros":33,"babel-runtime/helpers/classCallCheck":48,"babel-runtime/helpers/createClass":49,"babel-runtime/helpers/toConsumableArray":51,"object-assign":121}],9:[function(require,module,exports){
+},{"./Lexer":6,"./ParseError":9,"./Token":15,"./macros":32,"babel-runtime/helpers/classCallCheck":47,"babel-runtime/helpers/createClass":48,"babel-runtime/helpers/toConsumableArray":50,"object-assign":120}],8:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -2895,7 +3165,7 @@ Options.colorMap = {
 };
 exports.default = Options;
 
-},{"./fontMetrics":27,"babel-runtime/helpers/classCallCheck":48,"babel-runtime/helpers/createClass":49}],10:[function(require,module,exports){
+},{"./fontMetrics":26,"babel-runtime/helpers/classCallCheck":47,"babel-runtime/helpers/createClass":48}],9:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -2986,7 +3256,7 @@ ParseError.prototype.__proto__ = Error.prototype;
 
 exports.default = ParseError;
 
-},{"./ParseNode":11,"./Token":16,"babel-runtime/helpers/classCallCheck":48}],11:[function(require,module,exports){
+},{"./ParseNode":10,"./Token":15,"babel-runtime/helpers/classCallCheck":47}],10:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -3030,7 +3300,7 @@ lastToken) // last token of the input for this node,
 
 exports.default = ParseNode;
 
-},{"./SourceLocation":14,"./Token":16,"babel-runtime/helpers/classCallCheck":48}],12:[function(require,module,exports){
+},{"./SourceLocation":13,"./Token":15,"babel-runtime/helpers/classCallCheck":47}],11:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -4105,7 +4375,7 @@ Parser.oldFontFuncs = {
 };
 exports.default = Parser;
 
-},{"./MacroExpander":8,"./ParseError":10,"./ParseNode":11,"./environments":25,"./functions":29,"./symbols":38,"./unicodeRegexes":39,"./units":40,"./utils":41,"babel-runtime/helpers/classCallCheck":48,"babel-runtime/helpers/createClass":49}],13:[function(require,module,exports){
+},{"./MacroExpander":7,"./ParseError":9,"./ParseNode":10,"./environments":24,"./functions":28,"./symbols":37,"./unicodeRegexes":38,"./units":39,"./utils":40,"babel-runtime/helpers/classCallCheck":47,"babel-runtime/helpers/createClass":48}],12:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -4151,7 +4421,7 @@ var Settings = function Settings(options) {
 
 exports.default = Settings;
 
-},{"./utils":41,"babel-runtime/helpers/classCallCheck":48}],14:[function(require,module,exports){
+},{"./utils":40,"babel-runtime/helpers/classCallCheck":47}],13:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -4217,7 +4487,7 @@ var SourceLocation = function () {
 
 exports.default = SourceLocation;
 
-},{"babel-runtime/core-js/object/freeze":47,"babel-runtime/helpers/classCallCheck":48,"babel-runtime/helpers/createClass":49}],15:[function(require,module,exports){
+},{"babel-runtime/core-js/object/freeze":46,"babel-runtime/helpers/classCallCheck":47,"babel-runtime/helpers/createClass":48}],14:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -4365,7 +4635,7 @@ exports.default = {
     SCRIPTSCRIPT: styles[SS]
 };
 
-},{"babel-runtime/helpers/classCallCheck":48,"babel-runtime/helpers/createClass":49}],16:[function(require,module,exports){
+},{"babel-runtime/helpers/classCallCheck":47,"babel-runtime/helpers/createClass":48}],15:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -4432,7 +4702,7 @@ var Token = exports.Token = function () {
     return Token;
 }();
 
-},{"./SourceLocation":14,"babel-runtime/helpers/classCallCheck":48,"babel-runtime/helpers/createClass":49}],17:[function(require,module,exports){
+},{"./SourceLocation":13,"babel-runtime/helpers/classCallCheck":47,"babel-runtime/helpers/createClass":48}],16:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -4962,7 +5232,7 @@ exports.default = {
     spacingFunctions: spacingFunctions
 };
 
-},{"./domTree":24,"./fontMetrics":27,"./symbols":38,"./utils":41}],18:[function(require,module,exports){
+},{"./domTree":23,"./fontMetrics":26,"./symbols":37,"./utils":40}],17:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -6525,7 +6795,7 @@ function buildHTML(tree, options) {
     return htmlNode;
 }
 
-},{"./ParseError":10,"./Style":15,"./buildCommon":17,"./delimiter":23,"./domTree":24,"./stretchy":36,"./units":40,"./utils":41,"babel-runtime/core-js/json/stringify":45}],19:[function(require,module,exports){
+},{"./ParseError":9,"./Style":14,"./buildCommon":16,"./delimiter":22,"./domTree":23,"./stretchy":35,"./units":39,"./utils":40,"babel-runtime/core-js/json/stringify":44}],18:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -7211,7 +7481,7 @@ function buildMathML(tree, texExpression, options) {
     return _buildCommon2.default.makeSpan(["katex-mathml"], [math]);
 }
 
-},{"./ParseError":10,"./Style":15,"./buildCommon":17,"./fontMetrics":27,"./mathMLTree":34,"./stretchy":36,"./symbols":38,"./utils":41}],20:[function(require,module,exports){
+},{"./ParseError":9,"./Style":14,"./buildCommon":16,"./fontMetrics":26,"./mathMLTree":33,"./stretchy":35,"./symbols":37,"./utils":40}],19:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -7274,7 +7544,7 @@ var buildTree = function buildTree(tree, expression, settings) {
 
 exports.default = buildTree;
 
-},{"./Options":9,"./Settings":13,"./Style":15,"./buildCommon":17,"./buildHTML":18,"./buildMathML":19}],21:[function(require,module,exports){
+},{"./Options":8,"./Settings":12,"./Style":14,"./buildCommon":16,"./buildHTML":17,"./buildMathML":18}],20:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -7364,7 +7634,7 @@ function defineEnvironment(_ref) {
     }
 }
 
-},{"./Options":9,"./ParseNode":11,"./buildHTML":18,"./buildMathML":19}],22:[function(require,module,exports){
+},{"./Options":8,"./ParseNode":10,"./buildHTML":17,"./buildMathML":18}],21:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -7441,7 +7711,7 @@ var ordargument = exports.ordargument = function ordargument(arg) {
     }
 };
 
-},{"./buildHTML":18,"./buildMathML":19}],23:[function(require,module,exports){
+},{"./buildHTML":17,"./buildMathML":18}],22:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -8020,7 +8290,7 @@ exports.default = {
     leftRightDelim: makeLeftRightDelim
 };
 
-},{"./ParseError":10,"./Style":15,"./buildCommon":17,"./domTree":24,"./fontMetrics":27,"./symbols":38,"./utils":41}],24:[function(require,module,exports){
+},{"./ParseError":9,"./Style":14,"./buildCommon":16,"./domTree":23,"./fontMetrics":26,"./symbols":37,"./utils":40}],23:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -8579,7 +8849,7 @@ exports.default = {
     lineNode: lineNode
 };
 
-},{"./svgGeometry":37,"./unicodeRegexes":39,"./utils":41,"babel-runtime/helpers/classCallCheck":48,"babel-runtime/helpers/createClass":49,"babel-runtime/helpers/slicedToArray":50}],25:[function(require,module,exports){
+},{"./svgGeometry":36,"./unicodeRegexes":38,"./utils":40,"babel-runtime/helpers/classCallCheck":47,"babel-runtime/helpers/createClass":48,"babel-runtime/helpers/slicedToArray":49}],24:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -8602,7 +8872,7 @@ exports.default = environments;
 
 // All environment definitions should be imported below
 
-},{"./defineEnvironment":21,"./environments/array.js":26}],26:[function(require,module,exports){
+},{"./defineEnvironment":20,"./environments/array.js":25}],25:[function(require,module,exports){
 "use strict";
 
 var _buildCommon = require("../buildCommon");
@@ -9064,7 +9334,7 @@ var mathmlBuilder = function mathmlBuilder(group, options) {
     mathmlBuilder: mathmlBuilder
 });
 
-},{"../ParseError":10,"../ParseNode":11,"../buildCommon":17,"../buildHTML":18,"../buildMathML":19,"../defineEnvironment":21,"../mathMLTree":34,"../units":40,"../utils":41}],27:[function(require,module,exports){
+},{"../ParseError":9,"../ParseNode":10,"../buildCommon":16,"../buildHTML":17,"../buildMathML":18,"../defineEnvironment":20,"../mathMLTree":33,"../units":39,"../utils":40}],26:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -9363,7 +9633,7 @@ exports.default = {
     getCharacterMetrics: getCharacterMetrics
 };
 
-},{"./fontMetricsData":28,"./unicodeRegexes":39}],28:[function(require,module,exports){
+},{"./fontMetricsData":27,"./unicodeRegexes":38}],27:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -11127,7 +11397,7 @@ var fontMetricsData = {
 
 exports.default = fontMetricsData;
 
-},{}],29:[function(require,module,exports){
+},{}],28:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -11824,7 +12094,7 @@ defineFunction(["\\verb"], {
     throw new _ParseError2.default("\\verb ended by end of line instead of matching delimiter");
 });
 
-},{"./ParseError":10,"./ParseNode":11,"./defineFunction":22,"./functions/delimsizing":30,"./functions/operators":31,"./functions/phantom":32,"./utils":41}],30:[function(require,module,exports){
+},{"./ParseError":9,"./ParseNode":10,"./defineFunction":21,"./functions/delimsizing":29,"./functions/operators":30,"./functions/phantom":31,"./utils":40}],29:[function(require,module,exports){
 "use strict";
 
 var _buildCommon = require("../buildCommon");
@@ -12084,7 +12354,7 @@ function checkDelimiter(delim, context) {
     }
 });
 
-},{"../ParseError":10,"../buildCommon":17,"../buildHTML":18,"../buildMathML":19,"../defineFunction":22,"../delimiter":23,"../mathMLTree":34,"../utils":41}],31:[function(require,module,exports){
+},{"../ParseError":9,"../buildCommon":16,"../buildHTML":17,"../buildMathML":18,"../defineFunction":21,"../delimiter":22,"../mathMLTree":33,"../utils":40}],30:[function(require,module,exports){
 "use strict";
 
 var _defineFunction = require("../defineFunction");
@@ -12182,7 +12452,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
     }
 });
 
-},{"../buildCommon":17,"../buildHTML":18,"../buildMathML":19,"../defineFunction":22,"../domTree":24,"../mathMLTree":34}],32:[function(require,module,exports){
+},{"../buildCommon":16,"../buildHTML":17,"../buildMathML":18,"../defineFunction":21,"../domTree":23,"../mathMLTree":33}],31:[function(require,module,exports){
 "use strict";
 
 var _defineFunction = require("../defineFunction");
@@ -12304,7 +12574,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
     }
 });
 
-},{"../buildCommon":17,"../buildHTML":18,"../buildMathML":19,"../defineFunction":22,"../mathMLTree":34}],33:[function(require,module,exports){
+},{"../buildCommon":16,"../buildHTML":17,"../buildMathML":18,"../defineFunction":21,"../mathMLTree":33}],32:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -12601,7 +12871,7 @@ defineMacro("\\simcoloncolon", "\\sim\\mathrel{\\mkern-1.2mu}\\dblcolon");
 defineMacro("\\approxcolon", "\\approx\\mathrel{\\mkern-1.2mu}\\vcentcolon");
 defineMacro("\\approxcoloncolon", "\\approx\\mathrel{\\mkern-1.2mu}\\dblcolon");
 
-},{"./Token":16,"./symbols":38,"./utils":41}],34:[function(require,module,exports){
+},{"./Token":15,"./symbols":37,"./utils":40}],33:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -12751,7 +13021,7 @@ exports.default = {
     TextNode: TextNode
 };
 
-},{"./utils":41,"babel-runtime/helpers/classCallCheck":48,"babel-runtime/helpers/createClass":49}],35:[function(require,module,exports){
+},{"./utils":40,"babel-runtime/helpers/classCallCheck":47,"babel-runtime/helpers/createClass":48}],34:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -12781,7 +13051,7 @@ var parseTree = function parseTree(toParse, settings) {
 
 exports.default = parseTree;
 
-},{"./Parser":12}],36:[function(require,module,exports){
+},{"./Parser":11}],35:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -13113,7 +13383,7 @@ exports.default = {
     svgSpan: svgSpan
 };
 
-},{"./buildCommon":17,"./domTree":24,"./mathMLTree":34,"./utils":41,"babel-runtime/helpers/slicedToArray":50}],37:[function(require,module,exports){
+},{"./buildCommon":16,"./domTree":23,"./mathMLTree":33,"./utils":40,"babel-runtime/helpers/slicedToArray":49}],36:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -13231,7 +13501,7 @@ var path = {
 
 exports.default = { path: path };
 
-},{}],38:[function(require,module,exports){
+},{}],37:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -13953,7 +14223,7 @@ defineSymbol(text, main, textord, "\u2019", "’");
 defineSymbol(text, main, textord, "\u201C", "“");
 defineSymbol(text, main, textord, "\u201D", "”");
 
-},{}],39:[function(require,module,exports){
+},{}],38:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -13971,7 +14241,7 @@ var hangulRegex = exports.hangulRegex = /[\uAC00-\uD7AF]/;
 // Notably missing are halfwidth Katakana and Romanji glyphs.
 var cjkRegex = exports.cjkRegex = /[\u3000-\u30FF\u4E00-\u9FAF\uAC00-\uD7AF\uFF00-\uFF60]/;
 
-},{}],40:[function(require,module,exports){
+},{}],39:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -14082,7 +14352,7 @@ var calculateSize = exports.calculateSize = function calculateSize(sizeValue, op
     return Math.min(sizeValue.number * scale, options.maxSize);
 };
 
-},{"./Options":9,"./ParseError":10}],41:[function(require,module,exports){
+},{"./Options":8,"./ParseError":9}],40:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -14191,19 +14461,19 @@ exports.default = {
     clearNode: clearNode
 };
 
-},{}],42:[function(require,module,exports){
+},{}],41:[function(require,module,exports){
 module.exports = { "default": require("core-js/library/fn/array/from"), __esModule: true };
-},{"core-js/library/fn/array/from":52}],43:[function(require,module,exports){
+},{"core-js/library/fn/array/from":51}],42:[function(require,module,exports){
 module.exports = { "default": require("core-js/library/fn/get-iterator"), __esModule: true };
-},{"core-js/library/fn/get-iterator":53}],44:[function(require,module,exports){
+},{"core-js/library/fn/get-iterator":52}],43:[function(require,module,exports){
 module.exports = { "default": require("core-js/library/fn/is-iterable"), __esModule: true };
-},{"core-js/library/fn/is-iterable":54}],45:[function(require,module,exports){
+},{"core-js/library/fn/is-iterable":53}],44:[function(require,module,exports){
 module.exports = { "default": require("core-js/library/fn/json/stringify"), __esModule: true };
-},{"core-js/library/fn/json/stringify":55}],46:[function(require,module,exports){
+},{"core-js/library/fn/json/stringify":54}],45:[function(require,module,exports){
 module.exports = { "default": require("core-js/library/fn/object/define-property"), __esModule: true };
-},{"core-js/library/fn/object/define-property":56}],47:[function(require,module,exports){
+},{"core-js/library/fn/object/define-property":55}],46:[function(require,module,exports){
 module.exports = { "default": require("core-js/library/fn/object/freeze"), __esModule: true };
-},{"core-js/library/fn/object/freeze":57}],48:[function(require,module,exports){
+},{"core-js/library/fn/object/freeze":56}],47:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -14213,7 +14483,7 @@ exports.default = function (instance, Constructor) {
     throw new TypeError("Cannot call a class as a function");
   }
 };
-},{}],49:[function(require,module,exports){
+},{}],48:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -14241,7 +14511,7 @@ exports.default = function () {
     return Constructor;
   };
 }();
-},{"../core-js/object/define-property":46}],50:[function(require,module,exports){
+},{"../core-js/object/define-property":45}],49:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -14293,7 +14563,7 @@ exports.default = function () {
     }
   };
 }();
-},{"../core-js/get-iterator":43,"../core-js/is-iterable":44}],51:[function(require,module,exports){
+},{"../core-js/get-iterator":42,"../core-js/is-iterable":43}],50:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -14315,56 +14585,56 @@ exports.default = function (arr) {
     return (0, _from2.default)(arr);
   }
 };
-},{"../core-js/array/from":42}],52:[function(require,module,exports){
+},{"../core-js/array/from":41}],51:[function(require,module,exports){
 require('../../modules/es6.string.iterator');
 require('../../modules/es6.array.from');
 module.exports = require('../../modules/_core').Array.from;
 
-},{"../../modules/_core":64,"../../modules/es6.array.from":113,"../../modules/es6.string.iterator":117}],53:[function(require,module,exports){
+},{"../../modules/_core":63,"../../modules/es6.array.from":112,"../../modules/es6.string.iterator":116}],52:[function(require,module,exports){
 require('../modules/web.dom.iterable');
 require('../modules/es6.string.iterator');
 module.exports = require('../modules/core.get-iterator');
 
-},{"../modules/core.get-iterator":111,"../modules/es6.string.iterator":117,"../modules/web.dom.iterable":118}],54:[function(require,module,exports){
+},{"../modules/core.get-iterator":110,"../modules/es6.string.iterator":116,"../modules/web.dom.iterable":117}],53:[function(require,module,exports){
 require('../modules/web.dom.iterable');
 require('../modules/es6.string.iterator');
 module.exports = require('../modules/core.is-iterable');
 
-},{"../modules/core.is-iterable":112,"../modules/es6.string.iterator":117,"../modules/web.dom.iterable":118}],55:[function(require,module,exports){
+},{"../modules/core.is-iterable":111,"../modules/es6.string.iterator":116,"../modules/web.dom.iterable":117}],54:[function(require,module,exports){
 var core = require('../../modules/_core');
 var $JSON = core.JSON || (core.JSON = { stringify: JSON.stringify });
 module.exports = function stringify(it) { // eslint-disable-line no-unused-vars
   return $JSON.stringify.apply($JSON, arguments);
 };
 
-},{"../../modules/_core":64}],56:[function(require,module,exports){
+},{"../../modules/_core":63}],55:[function(require,module,exports){
 require('../../modules/es6.object.define-property');
 var $Object = require('../../modules/_core').Object;
 module.exports = function defineProperty(it, key, desc) {
   return $Object.defineProperty(it, key, desc);
 };
 
-},{"../../modules/_core":64,"../../modules/es6.object.define-property":115}],57:[function(require,module,exports){
+},{"../../modules/_core":63,"../../modules/es6.object.define-property":114}],56:[function(require,module,exports){
 require('../../modules/es6.object.freeze');
 module.exports = require('../../modules/_core').Object.freeze;
 
-},{"../../modules/_core":64,"../../modules/es6.object.freeze":116}],58:[function(require,module,exports){
+},{"../../modules/_core":63,"../../modules/es6.object.freeze":115}],57:[function(require,module,exports){
 module.exports = function (it) {
   if (typeof it != 'function') throw TypeError(it + ' is not a function!');
   return it;
 };
 
-},{}],59:[function(require,module,exports){
+},{}],58:[function(require,module,exports){
 module.exports = function () { /* empty */ };
 
-},{}],60:[function(require,module,exports){
+},{}],59:[function(require,module,exports){
 var isObject = require('./_is-object');
 module.exports = function (it) {
   if (!isObject(it)) throw TypeError(it + ' is not an object!');
   return it;
 };
 
-},{"./_is-object":80}],61:[function(require,module,exports){
+},{"./_is-object":79}],60:[function(require,module,exports){
 // false -> Array#indexOf
 // true  -> Array#includes
 var toIObject = require('./_to-iobject');
@@ -14389,7 +14659,7 @@ module.exports = function (IS_INCLUDES) {
   };
 };
 
-},{"./_to-absolute-index":102,"./_to-iobject":104,"./_to-length":105}],62:[function(require,module,exports){
+},{"./_to-absolute-index":101,"./_to-iobject":103,"./_to-length":104}],61:[function(require,module,exports){
 // getting tag from 19.1.3.6 Object.prototype.toString()
 var cof = require('./_cof');
 var TAG = require('./_wks')('toStringTag');
@@ -14414,18 +14684,18 @@ module.exports = function (it) {
     : (B = cof(O)) == 'Object' && typeof O.callee == 'function' ? 'Arguments' : B;
 };
 
-},{"./_cof":63,"./_wks":109}],63:[function(require,module,exports){
+},{"./_cof":62,"./_wks":108}],62:[function(require,module,exports){
 var toString = {}.toString;
 
 module.exports = function (it) {
   return toString.call(it).slice(8, -1);
 };
 
-},{}],64:[function(require,module,exports){
+},{}],63:[function(require,module,exports){
 var core = module.exports = { version: '2.5.1' };
 if (typeof __e == 'number') __e = core; // eslint-disable-line no-undef
 
-},{}],65:[function(require,module,exports){
+},{}],64:[function(require,module,exports){
 'use strict';
 var $defineProperty = require('./_object-dp');
 var createDesc = require('./_property-desc');
@@ -14435,7 +14705,7 @@ module.exports = function (object, index, value) {
   else object[index] = value;
 };
 
-},{"./_object-dp":90,"./_property-desc":96}],66:[function(require,module,exports){
+},{"./_object-dp":89,"./_property-desc":95}],65:[function(require,module,exports){
 // optional / simple context binding
 var aFunction = require('./_a-function');
 module.exports = function (fn, that, length) {
@@ -14457,20 +14727,20 @@ module.exports = function (fn, that, length) {
   };
 };
 
-},{"./_a-function":58}],67:[function(require,module,exports){
+},{"./_a-function":57}],66:[function(require,module,exports){
 // 7.2.1 RequireObjectCoercible(argument)
 module.exports = function (it) {
   if (it == undefined) throw TypeError("Can't call method on  " + it);
   return it;
 };
 
-},{}],68:[function(require,module,exports){
+},{}],67:[function(require,module,exports){
 // Thank's IE8 for his funny defineProperty
 module.exports = !require('./_fails')(function () {
   return Object.defineProperty({}, 'a', { get: function () { return 7; } }).a != 7;
 });
 
-},{"./_fails":72}],69:[function(require,module,exports){
+},{"./_fails":71}],68:[function(require,module,exports){
 var isObject = require('./_is-object');
 var document = require('./_global').document;
 // typeof document.createElement is 'object' in old IE
@@ -14479,13 +14749,13 @@ module.exports = function (it) {
   return is ? document.createElement(it) : {};
 };
 
-},{"./_global":73,"./_is-object":80}],70:[function(require,module,exports){
+},{"./_global":72,"./_is-object":79}],69:[function(require,module,exports){
 // IE 8- don't enum bug keys
 module.exports = (
   'constructor,hasOwnProperty,isPrototypeOf,propertyIsEnumerable,toLocaleString,toString,valueOf'
 ).split(',');
 
-},{}],71:[function(require,module,exports){
+},{}],70:[function(require,module,exports){
 var global = require('./_global');
 var core = require('./_core');
 var ctx = require('./_ctx');
@@ -14548,7 +14818,7 @@ $export.U = 64;  // safe
 $export.R = 128; // real proto method for `library`
 module.exports = $export;
 
-},{"./_core":64,"./_ctx":66,"./_global":73,"./_hide":75}],72:[function(require,module,exports){
+},{"./_core":63,"./_ctx":65,"./_global":72,"./_hide":74}],71:[function(require,module,exports){
 module.exports = function (exec) {
   try {
     return !!exec();
@@ -14557,7 +14827,7 @@ module.exports = function (exec) {
   }
 };
 
-},{}],73:[function(require,module,exports){
+},{}],72:[function(require,module,exports){
 // https://github.com/zloirock/core-js/issues/86#issuecomment-115759028
 var global = module.exports = typeof window != 'undefined' && window.Math == Math
   ? window : typeof self != 'undefined' && self.Math == Math ? self
@@ -14565,13 +14835,13 @@ var global = module.exports = typeof window != 'undefined' && window.Math == Mat
   : Function('return this')();
 if (typeof __g == 'number') __g = global; // eslint-disable-line no-undef
 
-},{}],74:[function(require,module,exports){
+},{}],73:[function(require,module,exports){
 var hasOwnProperty = {}.hasOwnProperty;
 module.exports = function (it, key) {
   return hasOwnProperty.call(it, key);
 };
 
-},{}],75:[function(require,module,exports){
+},{}],74:[function(require,module,exports){
 var dP = require('./_object-dp');
 var createDesc = require('./_property-desc');
 module.exports = require('./_descriptors') ? function (object, key, value) {
@@ -14581,16 +14851,16 @@ module.exports = require('./_descriptors') ? function (object, key, value) {
   return object;
 };
 
-},{"./_descriptors":68,"./_object-dp":90,"./_property-desc":96}],76:[function(require,module,exports){
+},{"./_descriptors":67,"./_object-dp":89,"./_property-desc":95}],75:[function(require,module,exports){
 var document = require('./_global').document;
 module.exports = document && document.documentElement;
 
-},{"./_global":73}],77:[function(require,module,exports){
+},{"./_global":72}],76:[function(require,module,exports){
 module.exports = !require('./_descriptors') && !require('./_fails')(function () {
   return Object.defineProperty(require('./_dom-create')('div'), 'a', { get: function () { return 7; } }).a != 7;
 });
 
-},{"./_descriptors":68,"./_dom-create":69,"./_fails":72}],78:[function(require,module,exports){
+},{"./_descriptors":67,"./_dom-create":68,"./_fails":71}],77:[function(require,module,exports){
 // fallback for non-array-like ES3 and non-enumerable old V8 strings
 var cof = require('./_cof');
 // eslint-disable-next-line no-prototype-builtins
@@ -14598,7 +14868,7 @@ module.exports = Object('z').propertyIsEnumerable(0) ? Object : function (it) {
   return cof(it) == 'String' ? it.split('') : Object(it);
 };
 
-},{"./_cof":63}],79:[function(require,module,exports){
+},{"./_cof":62}],78:[function(require,module,exports){
 // check on default Array iterator
 var Iterators = require('./_iterators');
 var ITERATOR = require('./_wks')('iterator');
@@ -14608,12 +14878,12 @@ module.exports = function (it) {
   return it !== undefined && (Iterators.Array === it || ArrayProto[ITERATOR] === it);
 };
 
-},{"./_iterators":86,"./_wks":109}],80:[function(require,module,exports){
+},{"./_iterators":85,"./_wks":108}],79:[function(require,module,exports){
 module.exports = function (it) {
   return typeof it === 'object' ? it !== null : typeof it === 'function';
 };
 
-},{}],81:[function(require,module,exports){
+},{}],80:[function(require,module,exports){
 // call something on iterator step with safe closing on error
 var anObject = require('./_an-object');
 module.exports = function (iterator, fn, value, entries) {
@@ -14627,7 +14897,7 @@ module.exports = function (iterator, fn, value, entries) {
   }
 };
 
-},{"./_an-object":60}],82:[function(require,module,exports){
+},{"./_an-object":59}],81:[function(require,module,exports){
 'use strict';
 var create = require('./_object-create');
 var descriptor = require('./_property-desc');
@@ -14642,7 +14912,7 @@ module.exports = function (Constructor, NAME, next) {
   setToStringTag(Constructor, NAME + ' Iterator');
 };
 
-},{"./_hide":75,"./_object-create":89,"./_property-desc":96,"./_set-to-string-tag":98,"./_wks":109}],83:[function(require,module,exports){
+},{"./_hide":74,"./_object-create":88,"./_property-desc":95,"./_set-to-string-tag":97,"./_wks":108}],82:[function(require,module,exports){
 'use strict';
 var LIBRARY = require('./_library');
 var $export = require('./_export');
@@ -14714,7 +14984,7 @@ module.exports = function (Base, NAME, Constructor, next, DEFAULT, IS_SET, FORCE
   return methods;
 };
 
-},{"./_export":71,"./_has":74,"./_hide":75,"./_iter-create":82,"./_iterators":86,"./_library":87,"./_object-gpo":92,"./_redefine":97,"./_set-to-string-tag":98,"./_wks":109}],84:[function(require,module,exports){
+},{"./_export":70,"./_has":73,"./_hide":74,"./_iter-create":81,"./_iterators":85,"./_library":86,"./_object-gpo":91,"./_redefine":96,"./_set-to-string-tag":97,"./_wks":108}],83:[function(require,module,exports){
 var ITERATOR = require('./_wks')('iterator');
 var SAFE_CLOSING = false;
 
@@ -14738,18 +15008,18 @@ module.exports = function (exec, skipClosing) {
   return safe;
 };
 
-},{"./_wks":109}],85:[function(require,module,exports){
+},{"./_wks":108}],84:[function(require,module,exports){
 module.exports = function (done, value) {
   return { value: value, done: !!done };
 };
 
-},{}],86:[function(require,module,exports){
+},{}],85:[function(require,module,exports){
 module.exports = {};
 
-},{}],87:[function(require,module,exports){
+},{}],86:[function(require,module,exports){
 module.exports = true;
 
-},{}],88:[function(require,module,exports){
+},{}],87:[function(require,module,exports){
 var META = require('./_uid')('meta');
 var isObject = require('./_is-object');
 var has = require('./_has');
@@ -14804,7 +15074,7 @@ var meta = module.exports = {
   onFreeze: onFreeze
 };
 
-},{"./_fails":72,"./_has":74,"./_is-object":80,"./_object-dp":90,"./_uid":108}],89:[function(require,module,exports){
+},{"./_fails":71,"./_has":73,"./_is-object":79,"./_object-dp":89,"./_uid":107}],88:[function(require,module,exports){
 // 19.1.2.2 / 15.2.3.5 Object.create(O [, Properties])
 var anObject = require('./_an-object');
 var dPs = require('./_object-dps');
@@ -14847,7 +15117,7 @@ module.exports = Object.create || function create(O, Properties) {
   return Properties === undefined ? result : dPs(result, Properties);
 };
 
-},{"./_an-object":60,"./_dom-create":69,"./_enum-bug-keys":70,"./_html":76,"./_object-dps":91,"./_shared-key":99}],90:[function(require,module,exports){
+},{"./_an-object":59,"./_dom-create":68,"./_enum-bug-keys":69,"./_html":75,"./_object-dps":90,"./_shared-key":98}],89:[function(require,module,exports){
 var anObject = require('./_an-object');
 var IE8_DOM_DEFINE = require('./_ie8-dom-define');
 var toPrimitive = require('./_to-primitive');
@@ -14865,7 +15135,7 @@ exports.f = require('./_descriptors') ? Object.defineProperty : function defineP
   return O;
 };
 
-},{"./_an-object":60,"./_descriptors":68,"./_ie8-dom-define":77,"./_to-primitive":107}],91:[function(require,module,exports){
+},{"./_an-object":59,"./_descriptors":67,"./_ie8-dom-define":76,"./_to-primitive":106}],90:[function(require,module,exports){
 var dP = require('./_object-dp');
 var anObject = require('./_an-object');
 var getKeys = require('./_object-keys');
@@ -14880,7 +15150,7 @@ module.exports = require('./_descriptors') ? Object.defineProperties : function 
   return O;
 };
 
-},{"./_an-object":60,"./_descriptors":68,"./_object-dp":90,"./_object-keys":94}],92:[function(require,module,exports){
+},{"./_an-object":59,"./_descriptors":67,"./_object-dp":89,"./_object-keys":93}],91:[function(require,module,exports){
 // 19.1.2.9 / 15.2.3.2 Object.getPrototypeOf(O)
 var has = require('./_has');
 var toObject = require('./_to-object');
@@ -14895,7 +15165,7 @@ module.exports = Object.getPrototypeOf || function (O) {
   } return O instanceof Object ? ObjectProto : null;
 };
 
-},{"./_has":74,"./_shared-key":99,"./_to-object":106}],93:[function(require,module,exports){
+},{"./_has":73,"./_shared-key":98,"./_to-object":105}],92:[function(require,module,exports){
 var has = require('./_has');
 var toIObject = require('./_to-iobject');
 var arrayIndexOf = require('./_array-includes')(false);
@@ -14914,7 +15184,7 @@ module.exports = function (object, names) {
   return result;
 };
 
-},{"./_array-includes":61,"./_has":74,"./_shared-key":99,"./_to-iobject":104}],94:[function(require,module,exports){
+},{"./_array-includes":60,"./_has":73,"./_shared-key":98,"./_to-iobject":103}],93:[function(require,module,exports){
 // 19.1.2.14 / 15.2.3.14 Object.keys(O)
 var $keys = require('./_object-keys-internal');
 var enumBugKeys = require('./_enum-bug-keys');
@@ -14923,7 +15193,7 @@ module.exports = Object.keys || function keys(O) {
   return $keys(O, enumBugKeys);
 };
 
-},{"./_enum-bug-keys":70,"./_object-keys-internal":93}],95:[function(require,module,exports){
+},{"./_enum-bug-keys":69,"./_object-keys-internal":92}],94:[function(require,module,exports){
 // most Object methods by ES6 should accept primitives
 var $export = require('./_export');
 var core = require('./_core');
@@ -14935,7 +15205,7 @@ module.exports = function (KEY, exec) {
   $export($export.S + $export.F * fails(function () { fn(1); }), 'Object', exp);
 };
 
-},{"./_core":64,"./_export":71,"./_fails":72}],96:[function(require,module,exports){
+},{"./_core":63,"./_export":70,"./_fails":71}],95:[function(require,module,exports){
 module.exports = function (bitmap, value) {
   return {
     enumerable: !(bitmap & 1),
@@ -14945,10 +15215,10 @@ module.exports = function (bitmap, value) {
   };
 };
 
-},{}],97:[function(require,module,exports){
+},{}],96:[function(require,module,exports){
 module.exports = require('./_hide');
 
-},{"./_hide":75}],98:[function(require,module,exports){
+},{"./_hide":74}],97:[function(require,module,exports){
 var def = require('./_object-dp').f;
 var has = require('./_has');
 var TAG = require('./_wks')('toStringTag');
@@ -14957,14 +15227,14 @@ module.exports = function (it, tag, stat) {
   if (it && !has(it = stat ? it : it.prototype, TAG)) def(it, TAG, { configurable: true, value: tag });
 };
 
-},{"./_has":74,"./_object-dp":90,"./_wks":109}],99:[function(require,module,exports){
+},{"./_has":73,"./_object-dp":89,"./_wks":108}],98:[function(require,module,exports){
 var shared = require('./_shared')('keys');
 var uid = require('./_uid');
 module.exports = function (key) {
   return shared[key] || (shared[key] = uid(key));
 };
 
-},{"./_shared":100,"./_uid":108}],100:[function(require,module,exports){
+},{"./_shared":99,"./_uid":107}],99:[function(require,module,exports){
 var global = require('./_global');
 var SHARED = '__core-js_shared__';
 var store = global[SHARED] || (global[SHARED] = {});
@@ -14972,7 +15242,7 @@ module.exports = function (key) {
   return store[key] || (store[key] = {});
 };
 
-},{"./_global":73}],101:[function(require,module,exports){
+},{"./_global":72}],100:[function(require,module,exports){
 var toInteger = require('./_to-integer');
 var defined = require('./_defined');
 // true  -> String#at
@@ -14991,7 +15261,7 @@ module.exports = function (TO_STRING) {
   };
 };
 
-},{"./_defined":67,"./_to-integer":103}],102:[function(require,module,exports){
+},{"./_defined":66,"./_to-integer":102}],101:[function(require,module,exports){
 var toInteger = require('./_to-integer');
 var max = Math.max;
 var min = Math.min;
@@ -15000,7 +15270,7 @@ module.exports = function (index, length) {
   return index < 0 ? max(index + length, 0) : min(index, length);
 };
 
-},{"./_to-integer":103}],103:[function(require,module,exports){
+},{"./_to-integer":102}],102:[function(require,module,exports){
 // 7.1.4 ToInteger
 var ceil = Math.ceil;
 var floor = Math.floor;
@@ -15008,7 +15278,7 @@ module.exports = function (it) {
   return isNaN(it = +it) ? 0 : (it > 0 ? floor : ceil)(it);
 };
 
-},{}],104:[function(require,module,exports){
+},{}],103:[function(require,module,exports){
 // to indexed object, toObject with fallback for non-array-like ES3 strings
 var IObject = require('./_iobject');
 var defined = require('./_defined');
@@ -15016,7 +15286,7 @@ module.exports = function (it) {
   return IObject(defined(it));
 };
 
-},{"./_defined":67,"./_iobject":78}],105:[function(require,module,exports){
+},{"./_defined":66,"./_iobject":77}],104:[function(require,module,exports){
 // 7.1.15 ToLength
 var toInteger = require('./_to-integer');
 var min = Math.min;
@@ -15024,14 +15294,14 @@ module.exports = function (it) {
   return it > 0 ? min(toInteger(it), 0x1fffffffffffff) : 0; // pow(2, 53) - 1 == 9007199254740991
 };
 
-},{"./_to-integer":103}],106:[function(require,module,exports){
+},{"./_to-integer":102}],105:[function(require,module,exports){
 // 7.1.13 ToObject(argument)
 var defined = require('./_defined');
 module.exports = function (it) {
   return Object(defined(it));
 };
 
-},{"./_defined":67}],107:[function(require,module,exports){
+},{"./_defined":66}],106:[function(require,module,exports){
 // 7.1.1 ToPrimitive(input [, PreferredType])
 var isObject = require('./_is-object');
 // instead of the ES6 spec version, we didn't implement @@toPrimitive case
@@ -15045,14 +15315,14 @@ module.exports = function (it, S) {
   throw TypeError("Can't convert object to primitive value");
 };
 
-},{"./_is-object":80}],108:[function(require,module,exports){
+},{"./_is-object":79}],107:[function(require,module,exports){
 var id = 0;
 var px = Math.random();
 module.exports = function (key) {
   return 'Symbol('.concat(key === undefined ? '' : key, ')_', (++id + px).toString(36));
 };
 
-},{}],109:[function(require,module,exports){
+},{}],108:[function(require,module,exports){
 var store = require('./_shared')('wks');
 var uid = require('./_uid');
 var Symbol = require('./_global').Symbol;
@@ -15065,7 +15335,7 @@ var $exports = module.exports = function (name) {
 
 $exports.store = store;
 
-},{"./_global":73,"./_shared":100,"./_uid":108}],110:[function(require,module,exports){
+},{"./_global":72,"./_shared":99,"./_uid":107}],109:[function(require,module,exports){
 var classof = require('./_classof');
 var ITERATOR = require('./_wks')('iterator');
 var Iterators = require('./_iterators');
@@ -15075,7 +15345,7 @@ module.exports = require('./_core').getIteratorMethod = function (it) {
     || Iterators[classof(it)];
 };
 
-},{"./_classof":62,"./_core":64,"./_iterators":86,"./_wks":109}],111:[function(require,module,exports){
+},{"./_classof":61,"./_core":63,"./_iterators":85,"./_wks":108}],110:[function(require,module,exports){
 var anObject = require('./_an-object');
 var get = require('./core.get-iterator-method');
 module.exports = require('./_core').getIterator = function (it) {
@@ -15084,7 +15354,7 @@ module.exports = require('./_core').getIterator = function (it) {
   return anObject(iterFn.call(it));
 };
 
-},{"./_an-object":60,"./_core":64,"./core.get-iterator-method":110}],112:[function(require,module,exports){
+},{"./_an-object":59,"./_core":63,"./core.get-iterator-method":109}],111:[function(require,module,exports){
 var classof = require('./_classof');
 var ITERATOR = require('./_wks')('iterator');
 var Iterators = require('./_iterators');
@@ -15096,7 +15366,7 @@ module.exports = require('./_core').isIterable = function (it) {
     || Iterators.hasOwnProperty(classof(O));
 };
 
-},{"./_classof":62,"./_core":64,"./_iterators":86,"./_wks":109}],113:[function(require,module,exports){
+},{"./_classof":61,"./_core":63,"./_iterators":85,"./_wks":108}],112:[function(require,module,exports){
 'use strict';
 var ctx = require('./_ctx');
 var $export = require('./_export');
@@ -15135,7 +15405,7 @@ $export($export.S + $export.F * !require('./_iter-detect')(function (iter) { Arr
   }
 });
 
-},{"./_create-property":65,"./_ctx":66,"./_export":71,"./_is-array-iter":79,"./_iter-call":81,"./_iter-detect":84,"./_to-length":105,"./_to-object":106,"./core.get-iterator-method":110}],114:[function(require,module,exports){
+},{"./_create-property":64,"./_ctx":65,"./_export":70,"./_is-array-iter":78,"./_iter-call":80,"./_iter-detect":83,"./_to-length":104,"./_to-object":105,"./core.get-iterator-method":109}],113:[function(require,module,exports){
 'use strict';
 var addToUnscopables = require('./_add-to-unscopables');
 var step = require('./_iter-step');
@@ -15171,12 +15441,12 @@ addToUnscopables('keys');
 addToUnscopables('values');
 addToUnscopables('entries');
 
-},{"./_add-to-unscopables":59,"./_iter-define":83,"./_iter-step":85,"./_iterators":86,"./_to-iobject":104}],115:[function(require,module,exports){
+},{"./_add-to-unscopables":58,"./_iter-define":82,"./_iter-step":84,"./_iterators":85,"./_to-iobject":103}],114:[function(require,module,exports){
 var $export = require('./_export');
 // 19.1.2.4 / 15.2.3.6 Object.defineProperty(O, P, Attributes)
 $export($export.S + $export.F * !require('./_descriptors'), 'Object', { defineProperty: require('./_object-dp').f });
 
-},{"./_descriptors":68,"./_export":71,"./_object-dp":90}],116:[function(require,module,exports){
+},{"./_descriptors":67,"./_export":70,"./_object-dp":89}],115:[function(require,module,exports){
 // 19.1.2.5 Object.freeze(O)
 var isObject = require('./_is-object');
 var meta = require('./_meta').onFreeze;
@@ -15187,7 +15457,7 @@ require('./_object-sap')('freeze', function ($freeze) {
   };
 });
 
-},{"./_is-object":80,"./_meta":88,"./_object-sap":95}],117:[function(require,module,exports){
+},{"./_is-object":79,"./_meta":87,"./_object-sap":94}],116:[function(require,module,exports){
 'use strict';
 var $at = require('./_string-at')(true);
 
@@ -15206,7 +15476,7 @@ require('./_iter-define')(String, 'String', function (iterated) {
   return { value: point, done: false };
 });
 
-},{"./_iter-define":83,"./_string-at":101}],118:[function(require,module,exports){
+},{"./_iter-define":82,"./_string-at":100}],117:[function(require,module,exports){
 require('./es6.array.iterator');
 var global = require('./_global');
 var hide = require('./_hide');
@@ -15227,7 +15497,7 @@ for (var i = 0; i < DOMIterables.length; i++) {
   Iterators[NAME] = Iterators.Array;
 }
 
-},{"./_global":73,"./_hide":75,"./_iterators":86,"./_wks":109,"./es6.array.iterator":114}],119:[function(require,module,exports){
+},{"./_global":72,"./_hide":74,"./_iterators":85,"./_wks":108,"./es6.array.iterator":113}],118:[function(require,module,exports){
 function getRelocatable(re) {
   // In the future, this could use a WeakMap instead of an expando.
   if (!re.__matchAtRelocatable) {
@@ -15266,7 +15536,7 @@ function matchAt(re, str, pos) {
 }
 
 module.exports = matchAt;
-},{}],120:[function(require,module,exports){
+},{}],119:[function(require,module,exports){
 /*global define:false */
 /**
  * Copyright 2012-2017 Craig Campbell
@@ -16312,7 +16582,7 @@ module.exports = matchAt;
     }
 }) (typeof window !== 'undefined' ? window : null, typeof  window !== 'undefined' ? document : null);
 
-},{}],121:[function(require,module,exports){
+},{}],120:[function(require,module,exports){
 'use strict';
 var propIsEnumerable = Object.prototype.propertyIsEnumerable;
 
@@ -16353,7 +16623,7 @@ module.exports = Object.assign || function (target, source) {
 	return to;
 };
 
-},{}],122:[function(require,module,exports){
+},{}],121:[function(require,module,exports){
 /* eslint-disable no-undefined */
 
 var throttle = require('./throttle');
@@ -16376,7 +16646,7 @@ module.exports = function ( delay, atBegin, callback ) {
 	return callback === undefined ? throttle(delay, atBegin, false) : throttle(delay, callback, atBegin !== false);
 };
 
-},{"./throttle":123}],123:[function(require,module,exports){
+},{"./throttle":122}],122:[function(require,module,exports){
 /* eslint-disable no-undefined,no-param-reassign,no-shadow */
 
 /**
@@ -16469,7 +16739,7 @@ module.exports = function ( delay, noTrailing, callback, debounceMode ) {
 
 };
 
-},{}],124:[function(require,module,exports){
+},{}],123:[function(require,module,exports){
 (function (global){
 (function(){'use strict';var k=this;
 function aa(a){var b=typeof a;if("object"==b)if(a){if(a instanceof Array)return"array";if(a instanceof Object)return b;var c=Object.prototype.toString.call(a);if("[object Window]"==c)return"object";if("[object Array]"==c||"number"==typeof a.length&&"undefined"!=typeof a.splice&&"undefined"!=typeof a.propertyIsEnumerable&&!a.propertyIsEnumerable("splice"))return"array";if("[object Function]"==c||"undefined"!=typeof a.call&&"undefined"!=typeof a.propertyIsEnumerable&&!a.propertyIsEnumerable("call"))return"function"}else return"null";else if("function"==
@@ -16550,5 +16820,5 @@ H(a);c=[];for(var e=I(d);e;e=I(d))c.push(e instanceof x?e.a:e);this.snapshotLeng
 function Pb(a,b){var c=a||k,d=c.Document&&c.Document.prototype||c.document;if(!d.evaluate||b)c.XPathResult=Y,d.evaluate=function(a,b,c,d){return(new Nb(a,c)).evaluate(b,d)},d.createExpression=function(a,b){return new Nb(a,b)},d.createNSResolver=function(a){return new Ob(a)}}var Qb=["wgxpath","install"],Z=k;Qb[0]in Z||!Z.execScript||Z.execScript("var "+Qb[0]);for(var Rb;Qb.length&&(Rb=Qb.shift());)Qb.length||void 0===Pb?Z[Rb]?Z=Z[Rb]:Z=Z[Rb]={}:Z[Rb]=Pb;module.exports.install=Pb;module.exports.XPathResultType={ANY_TYPE:0,NUMBER_TYPE:1,STRING_TYPE:2,BOOLEAN_TYPE:3,UNORDERED_NODE_ITERATOR_TYPE:4,ORDERED_NODE_ITERATOR_TYPE:5,UNORDERED_NODE_SNAPSHOT_TYPE:6,ORDERED_NODE_SNAPSHOT_TYPE:7,ANY_UNORDERED_NODE_TYPE:8,FIRST_ORDERED_NODE_TYPE:9};}).call(global)
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}]},{},[1])(1)
+},{}]},{},[3])(3)
 });

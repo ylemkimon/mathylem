@@ -35,7 +35,7 @@ function flash_help(){
     $("#help_card").fadeIn(100).fadeOut(100).fadeIn(100).fadeOut(100).fadeIn(100);
 }
 
-function completion(target, data) {
+function completion(data) {
     $('#stuff')[0].innerHTML = "INFO: <br />"+data.candidates.join(", ");
 }
 
