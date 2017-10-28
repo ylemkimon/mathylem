@@ -27,7 +27,8 @@
   },
   "homepage": "https://github.com/ylemkimon/mathylem",
   "browser": {
-    "./js/xmldom/node": "./js/xmldom/browser.js"
+    "./js/xmldom/node.js": "./js/xmldom/browser.js",
+    "./mathylem.js": "./js/mathylem.js"
   },
   "dependencies": {
     "katex": "github:ylemkimon/katex",
