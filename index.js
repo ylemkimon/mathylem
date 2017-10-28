@@ -1,7 +1,7 @@
 var mathylem;
 
 $('document').ready(function () {
-  MathYlem.staticRenderAll();
+  // MathYlem.staticRenderAll();
   $('#xml_btn').on('click', function () {
     createText('xml');
   });
