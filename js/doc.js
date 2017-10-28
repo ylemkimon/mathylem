@@ -1,4 +1,4 @@
-require('wicked-good-xpath').install();
+var xmldom = require('./xmldom/node');
 
 var Doc = function (doc) {
   doc = doc || '<m><e></e></m>';
@@ -47,24 +47,24 @@ Doc.prototype.getContent = function (t, r) {
   if (t !== 'xml') {
     return this.render(t, this.root(), r);
   } else {
-    return (new XMLSerializer()).serializeToString(this.base);
+    return (new xmldom.XMLSerializer()).serializeToString(this.base);
   }
 };
 
 Doc.prototype.XPathNode = function (xpath, node) {
   node = node || this.root();
   return this.base.evaluate(xpath, node, null,
-    XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+    xmldom.XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
 };
 
 Doc.prototype.XPathList = function (xpath, node) {
   node = node || this.root();
   return this.base.evaluate(xpath, node, null,
-    XPathResult.ORDERED_NODE_ITERATOR_TYPE, null);
+    xmldom.XPathResult.ORDERED_NODE_ITERATOR_TYPE, null);
 };
 
 Doc.prototype.setContent = function (data) {
-  this.base = (new DOMParser()).parseFromString(data, 'text/xml');
+  this.base = (new xmldom.DOMParser()).parseFromString(data, 'text/xml');
   this.ensureTextNodes();
 };
 
@@ -180,7 +180,7 @@ Doc.prototype.render = function (t, n, r) {
     if (t === 'latex' &&
                 n.getAttribute('bracket') === 'yes' &&
                 this.base.evaluate(BRACKET_XPATH, n, null,
-                  XPathResult.BOOLEAN_TYPE, null).booleanValue) {
+                  xmldom.XPathResult.BOOLEAN_TYPE, null).booleanValue) {
       ans = '\\left(' + ans + '\\right)';
     }
   }

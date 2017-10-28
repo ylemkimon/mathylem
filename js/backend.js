@@ -7,10 +7,6 @@ var Backend = function (config) {
   var options = config['options'] || {};
   this.parent = config['parent'];
 
-  if (!this.parent) {
-    throw new Error('No MathYlem editor provided.');
-  }
-
   this.blacklist = [];
   this.autoreplace = true;
   this.events = {};
@@ -90,7 +86,7 @@ Backend.prototype.setContent = function (xmlData) {
 
 Backend.prototype.fireEvent = function (event, args) {
   args = args || {};
-  args.target = this.parent;
+  args.target = this.parent || this;
   if (this.events[event]) {
     this.events[event](args);
   }
@@ -1252,7 +1248,7 @@ Backend.prototype.checkpoint = function () {
     'new': this.undoData[this.undoCurrent] });
   this.current.removeAttribute('current');
   this.current.removeAttribute('caret');
-  if (this.parent.ready) {
+  if (this.parent && this.parent.ready) {
     this.parent.render(true);
   }
 };

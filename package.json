@@ -6,6 +6,7 @@
     "doc": "doc",
     "test": "test"
   },
+  "main": "mathylem.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "rebuild": "./make"
@@ -25,12 +26,16 @@
     "url": "https://github.com/ylemkimon/mathylem/issues"
   },
   "homepage": "https://github.com/ylemkimon/mathylem",
+  "browser": {
+    "./js/xmldom/node": "./js/xmldom/browser.js"
+  },
   "dependencies": {
     "katex": "github:ylemkimon/katex",
     "match-at": "^0.1.1",
     "mousetrap": "^1.6.0",
     "throttle-debounce": "^1.0.1",
-    "wicked-good-xpath": "^1.3.0"
+    "wicked-good-xpath": "^1.3.0",
+    "xmldom": "^0.1.27"
   },
   "devDependencies": {
     "babel-plugin-transform-class-properties": "^6.23.0",

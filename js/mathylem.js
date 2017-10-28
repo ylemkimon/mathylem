@@ -1,3 +1,4 @@
+/* eslint-env browser */
 var Mousetrap = require('mousetrap');
 var katex = require('katex');
 var Backend = require('./backend.js');

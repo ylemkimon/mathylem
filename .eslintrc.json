@@ -12,8 +12,5 @@
     "no-multi-str": "off",
     "no-extra-semi": "error",
     "semi": ["error", "always"]
-  },
-  "env": {
-    "browser": 1
   }
 }
