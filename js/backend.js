@@ -1,5 +1,6 @@
 var Doc = require('./doc.js');
 var Symbols = require('./symbols.js');
+var EventEmitter = require('eventemitter3');
 
 var Backend = function (config) {
   config = config || {};
@@ -9,16 +10,10 @@ var Backend = function (config) {
 
   this.blacklist = [];
   this.autoreplace = true;
-  this.events = {};
 
-  var evts = ['ready', 'change', 'leftEnd', 'rightEnd', 'done', 'completion',
-    'focus'];
-
-  for (var i = 0; i < evts.length; i++) {
-    var e = evts[i];
-    if (e in events) {
-      this.events[e] = e in events ? events[e] : null;
-    }
+  EventEmitter.call(this);
+  for (var e in events) {
+    this.on(e, events[e]);
   }
 
   var opts = ['blankCaret', 'emptyContent', 'blacklist', 'autoreplace'];
@@ -41,6 +36,10 @@ var Backend = function (config) {
   this.selStatus = Backend.SEL_NONE;
   this.checkpoint();
 };
+
+Backend.prototype = Object.create(EventEmitter.prototype, {
+  constructor: { value: Backend }
+});
 
 Backend.CARET = '\\cursor{-0.2ex}{0.7em}';
 Backend.TEMP_SMALL_CARET = '\\cursor{0em}{0.6em}';
@@ -82,14 +81,6 @@ Backend.prototype.setContent = function (xmlData) {
   this.undoCurrent = -1;
   this.selStatus = Backend.SEL_NONE;
   this.checkpoint();
-};
-
-Backend.prototype.fireEvent = function (event, args) {
-  args = args || {};
-  args.target = this.parent || this;
-  if (this.events[event]) {
-    this.events[event](args);
-  }
 };
 
 Backend.prototype.selectTo = function (loc, selCursor, selCaret, mouse) {
@@ -1011,7 +1002,7 @@ Backend.prototype.right = function () {
       this.current = nn;
       this.caret = 0;
     } else {
-      this.fireEvent('rightEnd');
+      this.emit('rightEnd');
     }
   } else {
     this.caret += 1;
@@ -1032,7 +1023,7 @@ Backend.prototype.left = function () {
       this.current = pn;
       this.caret = this.current.textContent.length;
     } else {
-      this.fireEvent('leftEnd');
+      this.emit('leftEnd');
     }
   } else {
     this.caret -= 1;
@@ -1174,7 +1165,7 @@ Backend.prototype.tab = function () {
     this.current.firstChild.textContent = candidates[0];
     this.caret = candidates[0].length;
   } else {
-    this.fireEvent('completion', { 'candidates': candidates });
+    this.emit('completion', { 'candidates': candidates });
   }
 };
 
@@ -1244,7 +1235,7 @@ Backend.prototype.checkpoint = function () {
   this.undoCurrent++;
   this.undoData[this.undoCurrent] = base.cloneNode(true);
   this.undoData.splice(this.undoCurrent + 1, this.undoData.length);
-  this.fireEvent('change', { 'old': this.undoData[this.undoCurrent - 1],
+  this.emit('change', { 'old': this.undoData[this.undoCurrent - 1],
     'new': this.undoData[this.undoCurrent] });
   this.current.removeAttribute('current');
   this.current.removeAttribute('caret');
@@ -1287,7 +1278,7 @@ Backend.prototype.done = function (s) {
   if (this.current.parentNode.getAttribute('mode') === 'symbol') {
     this.completeSymbol();
   } else {
-    this.fireEvent('done');
+    this.emit('done');
   }
 };
 

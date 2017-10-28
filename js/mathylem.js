@@ -125,7 +125,7 @@ var MathYlem = function (el, config) {
   });
   if (Backend.ready) {
     this.ready = true;
-    this.backend.fireEvent('ready');
+    this.backend.emit('ready');
     this.render(true);
   }
   this.deactivate(true);
@@ -150,7 +150,7 @@ MathYlem.initialize = function (symbols) {
     for (var i in MathYlem.instances) {
       MathYlem.instances[i].ready = true;
       MathYlem.instances[i].render(true);
-      MathYlem.instances[i].backend.fireEvent('ready');
+      MathYlem.instances[i].backend.emit('ready');
     }
     Backend.ready = true;
   };
@@ -504,7 +504,7 @@ MathYlem.prototype.activate = function (focus) {
   }
   if (this.ready) {
     this.render(true);
-    this.backend.fireEvent('focus', { 'focused': true });
+    this.backend.emit('focus', { 'focused': true });
   }
 };
 
@@ -523,7 +523,7 @@ MathYlem.prototype.deactivate = function (blur) {
   }
   if (this.ready) {
     this.render();
-    this.backend.fireEvent('focus', { 'focused': false });
+    this.backend.emit('focus', { 'focused': false });
   }
 };
 
