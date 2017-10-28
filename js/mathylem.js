@@ -132,6 +132,11 @@ var MathYlem = function (el, config) {
   this.computeLocations();
 };
 
+MathYlem.Backend = Backend;
+MathYlem.Doc = Doc;
+MathYlem.Symbols = Symbols;
+MathYlem.katex = katex;
+
 MathYlem.maxUid = 0;
 MathYlem.maxTabIndex = 0;
 
