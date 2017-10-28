@@ -181,30 +181,6 @@ MathYlem.initialize = function (symbols) {
   calls[0](cb);
 };
 
-MathYlem.staticRenderAll = function () {
-  var l = document.getElementsByTagName('script');
-  var ans = [];
-  for (var i = 0; i < l.length; i++) {
-    if (l[i].getAttribute('type') === 'text/mathylem_xml') {
-      var n = l[i];
-      var d = new Doc(n.innerHTML);
-      var s = document.createElement('span');
-      s.setAttribute('id', 'eqn1_render');
-      katex.render(d.getContent('latex'), s);
-      n.parentNode.insertBefore(s, n);
-      ans.push({ 'container': s, 'doc': d });
-    }
-  }
-  return ans;
-};
-
-MathYlem.staticRender = function (doc, id) {
-  var d = new Doc(doc);
-  var target = document.getElementById(id);
-  katex.render(d.getContent('latex'), target);
-  return { 'container': target, 'doc': d };
-};
-
 MathYlem.prototype.isChanged = function () {
   var bb = this.editor.getElementsByClassName('katex')[0];
   if (!bb) {
