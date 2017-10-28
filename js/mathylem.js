@@ -1,5 +1,5 @@
 var Mousetrap = require('mousetrap');
-var katex = require('../lib/katex/katex.js');
+var katex = require('katex');
 var Backend = require('./backend.js');
 var Symbols = require('./symbols.js');
 var Doc = require('./doc.js');

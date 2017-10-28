@@ -1,3 +1,0 @@
-[submodule "lib/katex"]
-	path = lib/katex
-	url = https://github.com/ylemkimon/KaTeX.git

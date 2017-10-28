@@ -1,9 +1,6 @@
 var browserify = require('browserify');
-var babelify = require('babelify');
 var gulp = require('gulp');
 var concat = require('gulp-concat');
-var less = require('gulp-less');
-var merge = require('merge-stream');
 var cleancss = require('gulp-clean-css');
 var source = require('vinyl-source-stream');
 var buffer = require('vinyl-buffer');
@@ -18,16 +15,7 @@ gulp.task('js', function () {
   return browserify({
     entries: ['./js/mathylem.js'],
     standalone: 'MathYlem'
-  }).transform(babelify.configure({
-    // from /lib/katex/.babelrc
-    presets: ['es2015', 'flow'],
-    plugins: [
-      'transform-runtime',
-      'transform-class-properties'
-    ],
-    only: /lib\/katex/
-  }))
-    .bundle()
+  }).bundle()
     .on('error', gutil.log)
     .pipe(source('mathylem.js'))
     .pipe(buffer())
@@ -47,16 +35,7 @@ gulp.task('js-debug', function () {
     entries: ['./js/mathylem.js'],
     standalone: 'MathYlem',
     debug: true
-  }).transform(babelify.configure({
-    // from /lib/katex/.babelrc
-    presets: ['es2015', 'flow'],
-    plugins: [
-      'transform-runtime',
-      'transform-class-properties'
-    ],
-    only: /lib\/katex/
-  }))
-    .bundle()
+  }).bundle()
     .on('error', gutil.log)
     .pipe(source('mathylem.min.js'))
     .pipe(buffer())
@@ -72,10 +51,7 @@ gulp.task('js-debug', function () {
 });
 
 gulp.task('css', function () {
-  var katex = gulp.src('lib/katex/static/katex.less')
-    .pipe(less());
-
-  return merge(katex, gulp.src(['./css/*.css']))
+  return gulp.src(['node_modules/katex/static/katex.css', './css/*.css'])
     .pipe(concat('mathylem.css'))
     .pipe(gulp.dest(BUILD))
     .pipe(rename({ extname: '.min.css' }))

@@ -26,6 +26,7 @@
   },
   "homepage": "https://github.com/ylemkimon/mathylem",
   "dependencies": {
+    "katex": "github:ylemkimon/katex",
     "match-at": "^0.1.1",
     "mousetrap": "^1.6.0",
     "throttle-debounce": "^1.0.1",
@@ -47,12 +48,10 @@
     "gulp": "^3.9.1",
     "gulp-clean-css": "^3.9.0",
     "gulp-concat": "^2.6.1",
-    "gulp-less": "^3.3.2",
     "gulp-rename": "^1.2.2",
     "gulp-sourcemaps": "^2.6.1",
     "gulp-uglify": "^3.0.0",
     "gulp-util": "^3.0.8",
-    "merge-stream": "^1.0.1",
     "vinyl-buffer": "^1.0.0",
     "vinyl-source-stream": "^1.1.0"
   }
