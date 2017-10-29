@@ -1,4 +1,5 @@
 var xmldom = require('./xmldom/node');
+var Symbols = require('./symbols.js');
 
 var Doc = function (doc) {
   doc = doc || '<m><e></e></m>';
@@ -112,8 +113,8 @@ Doc.prototype.render = function (t, n, r) {
     } else if (t === 'text') {
       ans = n.textContent;
       if (n.previousSibling && n.nextSibling && ans === '' &&
-          n.previousSibling.getAttribute('group') !== 'operators' &&
-          n.nextSibling.getAttribute('group') !== 'operators') {
+          Symbols.symbols[n.previousSibling.getAttribute('type')].operator &&
+          Symbols.symbols[n.nextSibling.getAttribute('type')].operator) {
         ans = '*';
       } else {
         ans = ans.replace(/([a-zA-Z])(?=\.)/g, '$1*');
@@ -121,10 +122,11 @@ Doc.prototype.render = function (t, n, r) {
         ans = ans.replace(/([a-zA-Z])(?=[a-zA-Z0-9])/g, '$1*');
         ans = ans.replace(/([a-zA-Z0-9])(?=[a-zA-Z])/g, '$1*');
         if (n.previousSibling &&
-            n.previousSibling.getAttribute('group') !== 'operators') {
+            Symbols.symbols[n.previousSibling.getAttribute('type')].operator) {
           ans = ans.replace(/^([a-zA-Z0-9])/g, '*$1');
         }
-        if (n.nextSibling && n.nextSibling.getAttribute('group') !== 'operators') {
+        if (n.nextSibling &&
+            Symbols.symbols[n.nextSibling.getAttribute('type')].operator) {
           ans = ans.replace(/([a-zA-Z0-9])$/g, '$1*');
         }
       }

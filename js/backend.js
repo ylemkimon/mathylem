@@ -329,9 +329,6 @@ Backend.prototype.symbolToNode = function (name, content) {
   var s = Symbols.symbols[name];
   var f = base.createElement('f');
   f.setAttribute('type', name);
-  if ('group' in s) {
-    f.setAttribute('group', s['group']);
-  }
   if (s['char']) {
     f.setAttribute('c', 'yes');
   }

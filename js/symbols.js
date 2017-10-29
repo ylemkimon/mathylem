@@ -1,21 +1,27 @@
 var Symbols = { 'symbols': {} };
 
-Symbols.makeRawSymbol = function (name, latex, group) {
+Symbols.makeRawSymbol = function (name, latex) {
   return {
     'output': { 'latex': latex, 'text': name },
-    'group': group,
     'char': true
   };
 };
 
-Symbols.makeFunctionSymbol = function (name, group, nonLaTeX) {
+Symbols.makeOperatorSymbol = function (name, latex) {
+  return {
+    'output': { 'latex': latex, 'text': name },
+    'char': true,
+    'operator': true
+  };
+};
+
+Symbols.makeFunctionSymbol = function (name, nonLaTeX) {
   return {
     'output': {
       'latex': '\\' + (!nonLaTeX ? name : 'mathrm{' + name + '}') +
         '\\left({$1}\\right)',
       'text': name + '({$1})'
     },
-    'group': 'functions',
     'attrs': [{ 'delete': '1' }]
   };
 };
@@ -30,20 +36,20 @@ Symbols.addSymbols = function (symbols) {
     switch (name) {
       case '_operator':
         for (var t in symbol) {
-          Symbols.symbols[t] = Symbols.makeRawSymbol(t, symbol[t], 'operators');
+          Symbols.symbols[t] = Symbols.makeOperatorSymbol(t, symbol[t]);
         }
         break;
       case '_greek':
         for (var i = 0; i < symbol.length; i++) {
           Symbols.symbols[symbol[i]] = Symbols.makeRawSymbol(symbol[i],
-            '\\' + symbol[i], 'greek');
+            '\\' + symbol[i]);
         }
         break;
       case '_func':
       case '_func_nonlatex':
         for (var i = 0; i < symbol.length; i++) { // eslint-disable-line no-redeclare
           Symbols.symbols[symbol[i]] = Symbols.makeFunctionSymbol(symbol[i],
-            'functions', name === '_func_nonlatex');
+            name === '_func_nonlatex');
         }
         break;
       default:
