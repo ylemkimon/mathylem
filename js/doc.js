@@ -134,38 +134,35 @@ Doc.prototype.render = function (t, n, r) {
       ans = n.textContent;
     }
   } else if (n.nodeName === 'f') {
-    var type = (t === 'latex' && Doc.isSmall(n)) ? 'small_latex' : t;
-    var nn = this.XPathNode("./b[@p='" + type + "']", n) ||
-      this.XPathNode("./b[@p='" + t + "']", n);
-    if (nn) {
-      ans = this.render(t, nn, r);
-    }
-  } else if (n.nodeName === 'b') {
     var cs = [];
-    var i = 1;
-    var par = n.parentNode;
-    for (var nn = par.firstChild; nn != null; nn = nn.nextSibling) { // eslint-disable-line no-redeclare
-      if (nn.nodeName === 'c' || nn.nodeName === 'l') {
-        cs[i++] = this.render(t, nn, r);
-      }
-    }
     for (var nn = n.firstChild; nn != null; nn = nn.nextSibling) { // eslint-disable-line no-redeclare
-      if (nn.nodeType === 3) {
-        ans += nn.textContent;
-      } else if (nn.nodeType === 1) {
-        if (nn.hasAttribute('d')) {
-          var dim = parseInt(nn.getAttribute('d'));
+      cs.push(this.render(t, nn, r));
+    }
+
+    var s = Symbols.symbols[n.getAttribute('type')];
+    var type = t;
+    if (t === 'latex' && Doc.isSmall(n) && 'small_latex' in s['output']) {
+      type = 'small_latex';
+    }
+    var out = s['output'][type].split(/(\{\$[0-9]+(?:\{[^}]+\})*\})/g);
+    for (var i = 0; i < out.length; i++) {
+      var m = out[i].match(/^\{\$([0-9]+)((?:\{[^}]+\})*)\}$/);
+      if (!m) {
+        ans += out[i];
+      } else {
+        if (m[2].length === 0) {
+          ans += cs[parseInt(m[1]) - 1];
+        } else {
+          var mm = m[2].match(/\{[^}]*\}/g);
           var joiner = function (d, l) {
             if (d > 1) {
               for (var k = 0; k < l.length; k++) {
                 l[k] = joiner(d - 1, l[k]);
               }
             }
-            return l.join(nn.getAttribute('sep' + (d - 1)));
+            return l.join(mm[d - 1].substring(1, mm[d - 1].length - 1));
           };
-          ans += joiner(dim, cs[parseInt(nn.getAttribute('ref'))]);
-        } else {
-          ans += cs[parseInt(nn.getAttribute('ref'))];
+          ans += joiner(mm.length, cs[parseInt(m[1]) - 1]);
         }
       }
     }

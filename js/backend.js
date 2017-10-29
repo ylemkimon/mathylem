@@ -263,10 +263,7 @@ Backend.prototype.addCursorClasses = function (n, path) {
     n.removeAttribute('path');
   } else {
     for (var c = n.firstChild; c != null; c = c.nextSibling) {
-      if (c.nodeName === 'c' || c.nodeName === 'l' || c.nodeName === 'f' ||
-          c.nodeName === 'e') {
-        this.addCursorClasses(c);
-      }
+      this.addCursorClasses(c);
     }
   }
 };
@@ -288,20 +285,15 @@ Backend.prototype.removeCursorClasses = function (n) {
 
 Backend.prototype.downFromF = function () {
   var nn = this.current.firstChild;
-  while (nn != null && nn.nodeName !== 'c' && nn.nodeName !== 'l') {
-    nn = nn.nextSibling;
+  while (nn.nodeName === 'l') {
+    nn = nn.firstChild;
   }
-  if (nn != null) {
-    while (nn.nodeName === 'l') {
-      nn = nn.firstChild;
-    }
-    this.current = nn.firstChild;
-  }
+  this.current = nn.firstChild;
 };
 
 Backend.prototype.downFromFToBlank = function () {
   var nn = this.current.firstChild;
-  while (nn != null && !(nn.nodeName === 'c' && nn.childNodes.length === 1 &&
+  while (nn != null && !(nn.childNodes.length === 1 &&
       nn.firstChild.textContent.length === 0)) {
     nn = nn.nextSibling;
   }
@@ -344,52 +336,21 @@ Backend.prototype.symbolToNode = function (name, content) {
   var lists = {};
   var first;
 
-  // Make the b nodes for rendering each output    
-  for (var t in s['output']) {
-    var b = base.createElement('b');
-    b.setAttribute('p', t);
-
-    var out = s['output'][t];
-    if (typeof out === 'string') {
-      out = out.split(/(\{\$[0-9]+(?:\{[^}]+\})*\})/g);
-      for (var i = 0; i < out.length; i++) {
-        var m = out[i].match(/^\{\$([0-9]+)((?:\{[^}]+\})*)\}$/);
-        if (m) {
-          out[i] = { 'ref': parseInt(m[1]) };
-          if (m[2].length > 0) {
-            var mm = m[2].match(/\{[^}]*\}/g);
-            out[i]['d'] = mm.length;
-            for (var j = 0; j < mm.length; j++) {
-              out[i]['sep' + j] = mm[j].substring(1, mm[j].length - 1);
-            }
-          }
-        }
+  // Make the b nodes for rendering each output
+  var out = s['output']['latex'].split(/(\{\$[0-9]+(?:\{[^}]+\})*\})/g);
+  for (var i = 0; i < out.length; i++) {
+    var m = out[i].match(/^\{\$([0-9]+)((?:\{[^}]+\})*)\}$/);
+    if (m) {
+      if (firstRef === -1) {
+        firstRef = parseInt(m[1]);
       }
-    }
-    for (var i = 0; i < out.length; i++) { // eslint-disable-line no-redeclare
-      var nt;
-      if (typeof out[i] === 'string' || out[i] instanceof String) {
-        nt = base.createTextNode(out[i]);
-        b.appendChild(nt);
-      } else {
-        nt = base.createElement('r');
-        for (var attr in out[i]) {
-          nt.setAttribute(attr, out[i][attr]);
-        }
-        if (t === 'latex') {
-          if (firstRef === -1) {
-            firstRef = out[i]['ref'];
-          }
-          if ('d' in out[i]) {
-            lists[refsCount] = out[i]['d'];
-          }
-          refsCount++;
-        }
-        b.appendChild(nt);
+      if (m[2].length > 0) {
+        lists[refsCount] = m[2].match(/\{[^}]*\}/g).length;
       }
+      refsCount++;
     }
-    f.appendChild(b);
   }
+
   // Now make the c nodes for storing the content
   for (var i = 0; i < refsCount; i++) { // eslint-disable-line no-redeclare
     var nc = base.createElement('c');
@@ -1036,7 +997,7 @@ Backend.prototype.left = function () {
 Backend.prototype.deleteFromC = function () {
   var pos = 0;
   var c = this.current.parentNode;
-  while (c && c.nodeName === 'c') {
+  while (c) {
     pos++;
     c = c.previousSibling;
   }
@@ -1072,8 +1033,7 @@ Backend.prototype.deleteFromE = function () {
       // Move back into the f node (delete it?)
       this.left();
       return false;
-    } else if (this.current.parentNode.previousSibling != null &&
-        this.current.parentNode.previousSibling.nodeName === 'c') {
+    } else if (this.current.parentNode.previousSibling != null) {
       // We're in a c child of an f node, but not the first one.
       // Go to the previous c
       if (this.current.parentNode.hasAttribute('delete')) {
@@ -1083,8 +1043,7 @@ Backend.prototype.deleteFromE = function () {
         return false;
       }
     } else if (this.current.previousSibling == null && this.current.parentNode
-      .nodeName === 'c' && (this.current.parentNode.previousSibling == null ||
-        this.current.parentNode.previousSibling.nodeName !== 'c')) {
+      .nodeName === 'c' && this.current.parentNode.previousSibling == null) {
       // We're in the first c child of an f node and at the beginning
       // delete the f node
       var par = this.current.parentNode;
@@ -1185,13 +1144,8 @@ Backend.prototype.up = function () {
     var t = parseInt(this.current.parentNode.getAttribute('up'));
     var f = this.current.parentNode.parentNode;
     var n = f.firstChild;
-    while (n != null && t > 0) {
-      if (n.nodeName === 'c') {
-        t--;
-      }
-      if (t > 0) {
-        n = n.nextSibling;
-      }
+    for (var i = 0; i < t - 1; i++) {
+      n = n.nextSibling;
     }
     this.current = n.lastChild;
     this.caret = this.current.textContent.length;
@@ -1206,13 +1160,8 @@ Backend.prototype.down = function () {
     var t = parseInt(this.current.parentNode.getAttribute('down'));
     var f = this.current.parentNode.parentNode;
     var n = f.firstChild;
-    while (n != null && t > 0) {
-      if (n.nodeName === 'c') {
-        t--;
-      }
-      if (t > 0) {
-        n = n.nextSibling;
-      }
+    for (var i = 0; i < t - 1; i++) {
+      n = n.nextSibling;
     }
     this.current = n.lastChild;
     this.caret = this.current.textContent.length;
