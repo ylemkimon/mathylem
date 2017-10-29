@@ -3,15 +3,13 @@
     "output": {
       "latex": "\\text{{$1}}",
       "text": "text({$1})"
-    },
-    "current": 0,
+    }
   },
   "symbol": {
     "output": {
       "latex": "\\backslash\\texttt{{$1}}",
       "text": "SYMBOL({$1})"
-    },
-    "current": 0,
+    }
   },
   "abs": {
     "output": {
@@ -30,7 +28,6 @@
       "latex": "\\sqrt{{$1}}",
       "text": "sqrt({$1})"
     },
-    "current": 0,
     "attrs": [
       {
         "delete": "1"
@@ -42,7 +39,6 @@
       "latex": "e^{{$1}}",
       "text": "exp({$1})"
     },
-    "current": 0,
     "attrs": [
       {
         "delete": "1",
@@ -70,7 +66,6 @@
       "small_latex": "\\binom{{$1}}{{$2}}",
       "text": "binomial({$1},{$2})"
     },
-    "current": 0,
     "attrs": [
       {
         "up": "1",
@@ -100,7 +95,6 @@
       "latex": "\\lfloor{$1}\\rfloor",
       "text": "floor({$1})"
     },
-    "current": 0,
     "attrs": [
       {
         "delete": "1"
@@ -199,7 +193,6 @@
       "small_latex": "\\int{{$1}}d{$2}",
       "text": "Integral({$1},{$2})"
     },
-    "current": 0,
     "attrs": [
       {
         "delete": "1"
@@ -216,7 +209,6 @@
       "small_latex": "\\int_{{$1}}^{{$2}}{$3}d{$4}",
       "text": "Integral({$3},({$4},{$1},{$2}))"
     },
-    "current": 0,
     "attrs": [
       {
         "down": "1",
@@ -247,7 +239,6 @@
       "small_latex": "\\frac{d}{d{$1}}{$2}",
       "text": "Derivative({$2},{$1})"
     },
-    "current": 0,
     "attrs": [
       {
         "down": "1",
@@ -267,7 +258,6 @@
       "small_latex": "\\sum_{{$1}={$2}}^{{$3}}{$4}",
       "text": "Sum({$4},({$1},{$2},{$3}))"
     },
-    "current": 0,
     "attrs": [
       {
         "down": "1",
@@ -298,7 +288,6 @@
       "small_latex": "\\prod_{{$1}={$2}}^{{$3}}{$4}",
       "text": "Product({$4},({$1},{$2},{$3}))"
     },
-    "current": 0,
     "attrs": [
       {
         "down": "1",
@@ -328,7 +317,6 @@
       "latex": "\\sqrt[{$1}]{{$2}}",
       "text": "root({$2},{$1})"
     },
-    "current": 0,
     "attrs": [
       {
         "down": "2",
@@ -355,8 +343,7 @@
     "output": {
       "latex": "\\left(\\begin{matrix} {$1{ & }{\\\\}} \\end{matrix}\\right)",
       "text": "Matrix([[{$1{,}{],[}}]])"
-    },
-    "current": 0,
+    }
   },
   "_func_nonlatex": [
     "sech",
