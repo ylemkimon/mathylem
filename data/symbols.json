@@ -74,13 +74,11 @@
     "attrs": [
       {
         "up": "1",
-        "down": "2",
-        "name": "n"
+        "down": "2"
       },
       {
         "up": "1",
-        "down": "2",
-        "name": "k"
+        "down": "2"
       }
     ]
   },
@@ -120,13 +118,11 @@
       {
         "up": "2",
         "bracket": "yes",
-        "delete": "1",
-        "name": "base"
+        "delete": "1"
       },
       {
         "down": "1",
         "delete": "1",
-        "name": "exponent",
         "small": "yes"
       }
     ]
@@ -142,13 +138,11 @@
       {
         "down": "2",
         "bracket": "yes",
-        "delete": "1",
-        "name": "base"
+        "delete": "1"
       },
       {
         "up": "1",
         "delete": "1",
-        "name": "subscript",
         "small": "yes"
       }
     ]
@@ -164,13 +158,11 @@
     "attrs": [
       {
         "up": "1",
-        "down": "2",
-        "name": "numerator"
+        "down": "2"
       },
       {
         "up": "1",
-        "down": "2",
-        "name": "denominator"
+        "down": "2"
       }
     ]
   },
@@ -185,14 +177,12 @@
       {
         "up": "1",
         "down": "2",
-        "bracket": "yes",
-        "name": "dividend"
+        "bracket": "yes"
       },
       {
         "up": "1",
         "down": "2",
-        "bracket": "yes",
-        "name": "divisor"
+        "bracket": "yes"
       }
     ]
   },
@@ -212,13 +202,11 @@
     "current": 0,
     "attrs": [
       {
-        "delete": "1",
-        "name": "integrand"
+        "delete": "1"
       },
       {
         "delete": "1",
-        "bracket": "yes",
-        "name": "variable"
+        "bracket": "yes"
       }
     ]
   },
@@ -233,27 +221,23 @@
       {
         "down": "1",
         "up": "2",
-        "small": "yes",
-        "name": "lower_limit"
+        "small": "yes"
       },
       {
         "down": "1",
         "up": "2",
-        "small": "yes",
-        "name": "upper_limit"
+        "small": "yes"
       },
       {
         "down": "1",
         "up": "2",
-        "delete": "3",
-        "name": "integrand"
+        "delete": "3"
       },
       {
         "down": "1",
         "up": "2",
         "bracket": "yes",
-        "delete": "4",
-        "name": "variable"
+        "delete": "4"
       }
     ]
   },
@@ -268,14 +252,12 @@
       {
         "down": "1",
         "up": "2",
-        "bracket": "yes",
-        "name": "function"
+        "bracket": "yes"
       },
       {
         "down": "1",
         "up": "2",
-        "bracket": "yes",
-        "name": "variable"
+        "bracket": "yes"
       }
     ]
   },
@@ -290,27 +272,23 @@
       {
         "down": "1",
         "up": "3",
-        "small": "yes",
-        "name": "index"
+        "small": "yes"
       },
       {
         "down": "1",
         "up": "3",
-        "small": "yes",
-        "name": "lower_limit"
+        "small": "yes"
       },
       {
         "down": "1",
         "up": "3",
-        "small": "yes",
-        "name": "upper_limit"
+        "small": "yes"
       },
       {
         "down": "1",
         "up": "3",
         "delete": "4",
-        "bracket": "yes",
-        "name": "summand"
+        "bracket": "yes"
       }
     ]
   },
@@ -325,27 +303,23 @@
       {
         "down": "1",
         "up": "3",
-        "small": "yes",
-        "name": "index"
+        "small": "yes"
       },
       {
         "down": "1",
         "up": "3",
-        "small": "yes",
-        "name": "lower_limit"
+        "small": "yes"
       },
       {
         "down": "1",
         "up": "3",
-        "small": "yes",
-        "name": "upper_limit"
+        "small": "yes"
       },
       {
         "down": "1",
         "up": "3",
         "delete": "4",
-        "bracket": "yes",
-        "name": "factor"
+        "bracket": "yes"
       }
     ]
   },
@@ -360,14 +334,12 @@
         "down": "2",
         "up": "1",
         "small": "yes",
-        "delete": "1",
-        "name": "index"
+        "delete": "1"
       },
       {
         "down": "2",
         "up": "1",
-        "delete": "1",
-        "name": "radicand"
+        "delete": "1"
       }
     ]
   },
