@@ -5,23 +5,13 @@
       "text": "text({$1})"
     },
     "current": 0,
-    "attrs": [
-      {
-        "mode": "text"
-      }
-    ]
   },
-  "sym_name": {
+  "symbol": {
     "output": {
       "latex": "\\backslash\\texttt{{$1}}",
       "text": "SYMBOL({$1})"
     },
     "current": 0,
-    "attrs": [
-      {
-        "mode": "symbol"
-      }
-    ]
   },
   "abs": {
     "output": {

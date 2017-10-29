@@ -55,6 +55,12 @@ Backend.SEL_CURSOR_AT_END = 2;
 
 Backend.Clipboard = null;
 
+Backend.getENodeType = function (n) {
+  if (n.parentNode.parentNode.nodeName === 'f') {
+    return n.parentNode.parentNode.getAttribute('type');
+  }
+};
+
 Backend.prototype.getContent = function (t, r) {
   return this.doc.getContent(t, r);
 };
@@ -142,8 +148,8 @@ Backend.prototype.addCursorClasses = function (n, path) {
     var text = n.textContent;
     var ans = '';
     var selCursor;
-    var isTextNode = n.parentNode.getAttribute('mode') === 'text' ||
-      n.parentNode.getAttribute('mode') === 'symbol';
+    var isTextNode = Backend.getENodeType(n) === 'text' ||
+      Backend.getENodeType(n) === 'symbol';
     if (this.selStatus === Backend.SEL_CURSOR_AT_START) {
       selCursor = this.selEnd;
     }
@@ -1007,7 +1013,7 @@ Backend.prototype.right = function () {
 };
 
 Backend.prototype.spacebar = function () {
-  if (this.current.parentNode.getAttribute('mode') === 'text') {
+  if (Backend.getENodeType(this.current) === 'text') {
     this.insertString(' ');
   }
 };
@@ -1140,14 +1146,14 @@ Backend.prototype.deleteKey = function () {
 };
 
 Backend.prototype.backslash = function () {
-  if (this.current.parentNode.getAttribute('mode') !== 'text' &&
-      this.current.parentNode.getAttribute('mode') !== 'symbol') {
-    this.insertSymbol('sym_name');
+  if (Backend.getENodeType(this.current) !== 'text' &&
+      Backend.getENodeType(this.current) !== 'symbol') {
+    this.insertSymbol('symbol');
   }
 };
 
 Backend.prototype.tab = function () {
-  if (this.current.parentNode.getAttribute('mode') !== 'symbol') {
+  if (Backend.getENodeType(this.current) !== 'symbol') {
     this.checkForSymbol();
     return;
   }
@@ -1272,7 +1278,7 @@ Backend.prototype.redo = function () {
 };
 
 Backend.prototype.done = function (s) {
-  if (this.current.parentNode.getAttribute('mode') === 'symbol') {
+  if (Backend.getENodeType(this.current) === 'symbol') {
     this.completeSymbol();
   } else {
     this.emit('done');
@@ -1337,8 +1343,8 @@ Backend.prototype.checkForIneq = function () {
 };
 
 Backend.prototype.checkForSymbol = function () {
-  if (this.current.parentNode.getAttribute('mode') === 'text' ||
-      this.current.parentNode.getAttribute('mode') === 'symbol') {
+  if (Backend.getENodeType(this.current) === 'text' ||
+      Backend.getENodeType(this.current) === 'symbol') {
     return;
   }
   var value = this.current.textContent;
