@@ -105,8 +105,8 @@ var BRACKET_XPATH = "(count(./*) != 1 and not \
                   or\
                   (\
                     f/@c='yes' and \
-                count(./e[@current='yes'])=0 and \
-                count(./e[@temp='yes'])=0 \
+                count(./e[@current])=0 and \
+                count(./e[@temp])=0 \
                   )\
                 )\
               )\
@@ -120,12 +120,12 @@ var BRACKET_XPATH = "(count(./*) != 1 and not \
             or \
                 ( \
               count(./*) = 1 and \
-              ./e/@current = 'yes' \
+              ./e/@current \
             ) \
             or \
                 ( \
               count(./*) = 1 and \
-              ./e/@temp = 'yes' \
+              ./e/@temp \
             )";
 
 Doc.prototype.render = function (t, n, r) {

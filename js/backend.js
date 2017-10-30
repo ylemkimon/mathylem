@@ -1160,7 +1160,7 @@ Backend.prototype.end = function () {
 
 Backend.prototype.checkpoint = function () {
   var base = this.doc.base;
-  this.current.setAttribute('current', 'yes');
+  this.current.setAttribute('current', '');
   this.current.setAttribute('caret', this.caret.toString());
   this.undoCurrent++;
   this.undoData[this.undoCurrent] = base.cloneNode(true);
@@ -1182,7 +1182,7 @@ Backend.prototype.restore = function (t) {
 };
 
 Backend.prototype.findCurrent = function () {
-  this.current = this.doc.XPathNode("//*[@current='yes']");
+  this.current = this.doc.XPathNode('//*[@current]');
   this.caret = parseInt(this.current.getAttribute('caret'));
 };
 

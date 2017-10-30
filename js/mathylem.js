@@ -455,9 +455,9 @@ MathYlem.prototype.renderNode = function (t) {
     this.backend.addPaths(root, 'm');
     this.backend.tempCursor = this.tempCursor;
     this.backend.addCursorClasses(root);
-    this.backend.current.setAttribute('current', 'yes');
+    this.backend.current.setAttribute('current', '');
     if (this.tempCursor.node) {
-      this.tempCursor.node.setAttribute('temp', 'yes');
+      this.tempCursor.node.setAttribute('temp', '');
     }
     output = this.backend.getContent('latex', true);
     this.backend.removeCursorClasses(root);
