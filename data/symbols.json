@@ -189,6 +189,28 @@
     },
     "char": true
   },
+  "lim": {
+    "output": {
+      "latex": "\\displaystyle\\lim_{{$1}\\to{$2}}{$3}",
+      "small_latex": "\\lim_{{$1}\\to{$2}}{$3}",
+      "text": "Limit({$3},{$1},{$2})"
+    },
+    "attrs": [
+      {
+        "up": 3,
+        "small": true
+      },
+      {
+        "up": 3,
+        "small": true
+      },
+      {
+        "down": 2,
+        "delete": 3,
+        "bracket": true
+      }
+    ]
+  },
   "int": {
     "output": {
       "latex": "\\displaystyle\\int{{$1}}d{$2}",
