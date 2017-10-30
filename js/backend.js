@@ -18,7 +18,7 @@ var Backend = function (config) {
 
   var opts = ['blankCaret', 'emptyContent', 'blacklist', 'autoreplace'];
 
-  for (var i = 0; i < opts.length; i++) { // eslint-disable-line no-redeclare
+  for (var i = 0; i < opts.length; i++) {
     var p = opts[i];
     if (p in options) {
       this[p] = options[p];
