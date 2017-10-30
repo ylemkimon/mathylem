@@ -75,58 +75,10 @@ Doc.prototype.getContent = function (t, r) {
   }
 };
 
-Doc.prototype.XPathNode = function (xpath, node) {
-  node = node || this.root();
-  return this.base.evaluate(xpath, node, null,
-    xmldom.XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
-};
-
-Doc.prototype.XPathList = function (xpath, node) {
-  node = node || this.root();
-  return this.base.evaluate(xpath, node, null,
-    xmldom.XPathResult.ORDERED_NODE_ITERATOR_TYPE, null);
-};
-
 Doc.prototype.setContent = function (data) {
   this.base = (new xmldom.DOMParser()).parseFromString(data, 'text/xml');
   this.ensureTextNodes();
 };
-
-var BRACKET_XPATH = "(count(./*) != 1 and not \
-                  ( \
-                            count(./e)=2 and \
-                count(./f)=1 and \
-                count(./e[string-length(text())=0])=2 and \
-                ( \
-                  (\
-                                count(./f/c)=1 and\
-                    count(./f[@type='paren'])=1\
-                  )\
-                  or\
-                  (\
-                    f/@c='yes' and \
-                count(./e[@current])=0 and \
-                count(./e[@temp])=0 \
-                  )\
-                )\
-              )\
-            )  \
-            or\
-                (\
-              count(./*) = 1 and \
-              string-length(./e/text()) != 1 and \
-              number(./e/text()) != ./e/text() \
-            ) \
-            or \
-                ( \
-              count(./*) = 1 and \
-              ./e/@current \
-            ) \
-            or \
-                ( \
-              count(./*) = 1 and \
-              ./e/@temp \
-            )";
 
 Doc.prototype.render = function (t, n, r) {
   var ans = '';
@@ -199,11 +151,27 @@ Doc.prototype.render = function (t, n, r) {
     for (var nn = n.firstChild; nn != null; nn = nn.nextSibling) { // eslint-disable-line no-redeclare
       ans += this.render(t, nn, r);
     }
-    if (t === 'latex' &&
-                Doc.getCAttribute(n, 'bracket') &&
-                this.base.evaluate(BRACKET_XPATH, n, null,
-                  xmldom.XPathResult.BOOLEAN_TYPE, null).booleanValue) {
-      ans = '\\left(' + ans + '\\right)';
+    if (t === 'latex' && Doc.getCAttribute(n, 'bracket')) {
+      var bracket = true;
+      var first = n.firstChild;
+      if (n.childElementCount === 3 && first.textContent === '' &&
+          n.lastChild.textContent === '') {
+        var name = first.nextSibling.getAttribute('type');
+        if ((Symbols.symbols[name]['char'] && !first.hasAttribute('temp') &&
+            !first.hasAttribute('current') && !n.lastChild.hasAttribute('temp') &&
+            !n.lastChild.hasAttribute('current')) || name === 'paren') {
+          bracket = false;
+        }
+      } else if (n.childElementCount === 1) {
+        var value = first.textContent;
+        if ((value.length === 1 || !isNaN(value - parseFloat(value))) &&
+            !first.hasAttribute('current') && !first.hasAttribute('temp')) {
+          bracket = false;
+        }
+      }
+      if (bracket) {
+        ans = '\\left(' + ans + '\\right)';
+      }
     }
   }
   return ans;

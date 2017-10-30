@@ -304,18 +304,27 @@ MathYlem.getLocation = function (x, y, currentNode, currentCaret) {
       opt = box;
     }
   }
-  var loc = opt.path.substring('mathylem_loc'.length);
-  loc = loc.replace(/_/g, '/');
-  loc = loc.replace(/([0-9]+)(?=.*?\/)/g, '[$1]');
-  var cur = g.backend.doc.XPathNode(loc.substring(0, loc.lastIndexOf('/')),
-    g.backend.doc.root());
-  var car = parseInt(loc.substring(loc.lastIndexOf('/') + 1));
+  var loc = opt.path.substring('mathylem_loc_m_'.length).split(/_/);
+  var node = g.backend.doc.root();
+  for (var i = 0; i < loc.length - 1; i++) { // eslint-disable-line no-redeclare
+    var name = loc[i][0];
+    var index = parseInt(loc[i].substring(1));
+    for (node = node.firstChild; ; node = node.nextSibling) {
+      if (node.nodeName === name) {
+        index--;
+      }
+      if (index === 0) {
+        break;
+      }
+    }
+  }
+  var car = parseInt(loc[loc.length - 1]);
   // Check if we want the cursor before or after the element
   if (midDist > 0 && !opt.blank) {
     car++;
   }
   var ans = {
-    'current': cur,
+    'current': node,
     'caret': car,
     'pos': 'none'
   };

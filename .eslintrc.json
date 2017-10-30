@@ -9,7 +9,6 @@
     "max-len": ["error", 84, 4, { "ignoreUrls": true, "ignorePattern": "eslint-disable" }],
     "no-alert": "error",
     "no-console": "error",
-    "no-multi-str": "off",
     "no-extra-semi": "error",
     "semi": ["error", "always"]
   }

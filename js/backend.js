@@ -796,18 +796,16 @@ Backend.prototype.extendList = function (direction, copy) {
   if (!vertical && n.parentNode.parentNode.nodeName === 'l') {
     toInsert = base.createElement('c');
     toInsert.appendChild(this.makeE(''));
-    var pos = 1;
+    var pos = 0;
     var cc = n;
     while (cc.previousSibling != null) {
       pos++;
       cc = cc.previousSibling;
     }
     var toModify = [];
-    var iterator = this.doc.XPathList('./l/c[position()=' + pos + ']',
-      n.parentNode.parentNode);
-    for (var nn = iterator.iterateNext(); nn != null; nn =
-        iterator.iterateNext()) {
-      toModify.push(nn);
+    for (var nn = n.parentNode.parentNode.firstChild; nn != null; nn =
+        nn.nextSibling) {
+      toModify.push(nn.childNodes[pos]);
     }
     for (var j = 0; j < toModify.length; j++) {
       var node = toModify[j];
@@ -871,7 +869,7 @@ Backend.prototype.removeListColumn = function () {
     return;
   }
 
-  var pos = 1;
+  var pos = 0;
   var cc = n;
 
   // Find position of column
@@ -880,10 +878,9 @@ Backend.prototype.removeListColumn = function () {
     cc = cc.previousSibling;
   }
   var toModify = [];
-  var iterator = this.doc.XPathList('./l/c[position()=' + pos + ']',
-    n.parentNode.parentNode);
-  for (var nn = iterator.iterateNext(); nn != null; nn = iterator.iterateNext()) {
-    toModify.push(nn);
+  for (var nn = n.parentNode.parentNode.firstChild; nn != null; nn =
+      nn.nextSibling) {
+    toModify.push(nn.childNodes[pos]);
   }
   for (var j = 0; j < toModify.length; j++) {
     var node = toModify[j];
@@ -939,9 +936,10 @@ Backend.prototype.removeListItem = function () {
 Backend.prototype.right = function () {
   this.clearSelection();
   if (this.caret >= this.current.textContent.length) {
-    var nn = this.doc.XPathNode('following::e[1]', this.current);
-    if (nn != null) {
-      this.current = nn;
+    var nodes = this.doc.root().getElementsByTagName('e');
+    var index = Array.prototype.indexOf.call(nodes, this.current);
+    if (index < nodes.length - 1) {
+      this.current = nodes[index + 1];
       this.caret = 0;
     } else {
       this.emit('rightEnd');
@@ -960,9 +958,10 @@ Backend.prototype.spacebar = function () {
 Backend.prototype.left = function () {
   this.clearSelection();
   if (this.caret <= 0) {
-    var pn = this.doc.XPathNode('preceding::e[1]', this.current);
-    if (pn != null) {
-      this.current = pn;
+    var nodes = this.doc.root().getElementsByTagName('e');
+    var index = Array.prototype.indexOf.call(nodes, this.current);
+    if (index > 0) {
+      this.current = nodes[index - 1];
       this.caret = this.current.textContent.length;
     } else {
       this.emit('leftEnd');
@@ -975,13 +974,11 @@ Backend.prototype.left = function () {
 Backend.prototype.deleteFromC = function () {
   var pos = 0;
   var c = this.current.parentNode;
-  while (c) {
+  while ((c = c.previousSibling) != null) {
     pos++;
-    c = c.previousSibling;
   }
   var idx = Doc.getCAttribute(this.current, 'delete');
-  var node = this.doc.XPathNode('./c[position()=' + idx + ']',
-    this.current.parentNode.parentNode);
+  var node = this.current.parentNode.parentNode.childNodes[pos];
   var remaining = [];
   for (var n = node.firstChild; n != null; n = n.nextSibling) {
     remaining.push(n);
@@ -1182,7 +1179,7 @@ Backend.prototype.restore = function (t) {
 };
 
 Backend.prototype.findCurrent = function () {
-  this.current = this.doc.XPathNode('//*[@current]');
+  this.current = this.doc.root().querySelector('e[current]');
   this.caret = parseInt(this.current.getAttribute('caret'));
 };
 
