@@ -941,8 +941,6 @@ Backend.prototype.right = function () {
     if (index < nodes.length - 1) {
       this.current = nodes[index + 1];
       this.caret = 0;
-    } else {
-      this.emit('rightEnd');
     }
   } else {
     this.caret += 1;
@@ -963,8 +961,6 @@ Backend.prototype.left = function () {
     if (index > 0) {
       this.current = nodes[index - 1];
       this.caret = this.current.textContent.length;
-    } else {
-      this.emit('leftEnd');
     }
   } else {
     this.caret -= 1;
