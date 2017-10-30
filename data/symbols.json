@@ -182,6 +182,13 @@
     },
     "char": true
   },
+  "zoo": {
+    "output": {
+      "latex": "\\tilde{\\infty}",
+      "text": "zoo"
+    },
+    "char": true
+  },
   "int": {
     "output": {
       "latex": "\\displaystyle\\int{{$1}}d{$2}",
