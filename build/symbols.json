@@ -3,27 +3,13 @@
     "output": {
       "latex": "\\text{{$1}}",
       "text": "text({$1})"
-    },
-    "current": 0,
-    "group": "editor",
-    "attrs": [
-      {
-        "mode": "text"
-      }
-    ]
+    }
   },
-  "sym_name": {
+  "symbol": {
     "output": {
       "latex": "\\backslash\\texttt{{$1}}",
       "text": "SYMBOL({$1})"
-    },
-    "current": 0,
-    "group": "editor",
-    "attrs": [
-      {
-        "mode": "symbol"
-      }
-    ]
+    }
   },
   "abs": {
     "output": {
@@ -31,10 +17,9 @@
       "text": "abs({$1})"
     },
     "current": 1,
-    "group": "functions",
     "attrs": [
       {
-        "delete": "1"
+        "delete": 1
       }
     ]
   },
@@ -43,11 +28,9 @@
       "latex": "\\sqrt{{$1}}",
       "text": "sqrt({$1})"
     },
-    "current": 0,
-    "group": "functions",
     "attrs": [
       {
-        "delete": "1"
+        "delete": 1
       }
     ]
   },
@@ -56,12 +39,10 @@
       "latex": "e^{{$1}}",
       "text": "exp({$1})"
     },
-    "current": 0,
-    "group": "functions",
     "attrs": [
       {
-        "delete": "1",
-        "small": "yes"
+        "delete": 1,
+        "small": true
       }
     ]
   },
@@ -72,11 +53,10 @@
     },
     "current": 1,
     "current_type": "token",
-    "group": "functions",
     "attrs": [
       {
-        "delete": "1",
-        "bracket": "yes"
+        "delete": 1,
+        "bracket": true
       }
     ]
   },
@@ -86,18 +66,12 @@
       "small_latex": "\\binom{{$1}}{{$2}}",
       "text": "binomial({$1},{$2})"
     },
-    "current": 0,
-    "group": "functions",
     "attrs": [
       {
-        "up": "1",
-        "down": "2",
-        "name": "n"
+        "down": 2
       },
       {
-        "up": "1",
-        "down": "2",
-        "name": "k"
+        "up": 1
       }
     ]
   },
@@ -107,11 +81,9 @@
       "text": "({$1})"
     },
     "current": 1,
-    "group": "functions",
     "attrs": [
       {
-        "delete": "1",
-        "is_bracket": "yes"
+        "delete": 1
       }
     ]
   },
@@ -120,11 +92,9 @@
       "latex": "\\lfloor{$1}\\rfloor",
       "text": "floor({$1})"
     },
-    "current": 0,
-    "group": "functions",
     "attrs": [
       {
-        "delete": "1"
+        "delete": 1
       }
     ]
   },
@@ -135,42 +105,36 @@
     },
     "current": 1,
     "current_type": "token",
-    "group": "functions",
     "attrs": [
       {
-        "up": "2",
-        "bracket": "yes",
-        "delete": "1",
-        "name": "base"
+        "up": 2,
+        "bracket": true,
+        "delete": 1
       },
       {
-        "down": "1",
-        "delete": "1",
-        "name": "exponent",
-        "small": "yes"
+        "down": 1,
+        "delete": 1,
+        "small": true
       }
     ]
   },
   "sub": {
     "output": {
       "latex": "{{$1}}_{{$2}}",
-      "text": "{$1}{$2}"
+      "text": "{$1}_{$2}"
     },
     "current": 1,
     "current_type": "token",
-    "group": "functions",
     "attrs": [
       {
-        "down": "2",
-        "bracket": "yes",
-        "delete": "1",
-        "name": "base"
+        "down": 2,
+        "bracket": true,
+        "delete": 1
       },
       {
-        "up": "1",
-        "delete": "1",
-        "name": "subscript",
-        "small": "yes"
+        "up": 1,
+        "delete": 1,
+        "small": true
       }
     ]
   },
@@ -182,17 +146,12 @@
     },
     "current": 1,
     "current_type": "token",
-    "group": "functions",
     "attrs": [
       {
-        "up": "1",
-        "down": "2",
-        "name": "numerator"
+        "down": 2
       },
       {
-        "up": "1",
-        "down": "2",
-        "name": "denominator"
+        "up": 1
       }
     ]
   },
@@ -203,19 +162,16 @@
     },
     "current": 1,
     "current_type": "token",
-    "group": "functions",
     "attrs": [
       {
-        "up": "1",
-        "down": "2",
-        "bracket": "yes",
-        "name": "dividend"
+        "down": 2,
+        "delete": 1,
+        "bracket": true
       },
       {
-        "up": "1",
-        "down": "2",
-        "bracket": "yes",
-        "name": "divisor"
+        "up": 1,
+        "delete": 1,
+        "bracket": true
       }
     ]
   },
@@ -224,8 +180,36 @@
       "latex": "\\infty",
       "text": "oo"
     },
-    "group": "operators",
     "char": true
+  },
+  "zoo": {
+    "output": {
+      "latex": "\\tilde{\\infty}",
+      "text": "zoo"
+    },
+    "char": true
+  },
+  "lim": {
+    "output": {
+      "latex": "\\displaystyle\\lim_{{$1}\\to{$2}}{$3}",
+      "small_latex": "\\lim_{{$1}\\to{$2}}{$3}",
+      "text": "Limit({$3},{$1},{$2})"
+    },
+    "attrs": [
+      {
+        "up": 3,
+        "small": true
+      },
+      {
+        "up": 3,
+        "small": true
+      },
+      {
+        "down": 2,
+        "delete": 3,
+        "bracket": true
+      }
+    ]
   },
   "int": {
     "output": {
@@ -233,17 +217,13 @@
       "small_latex": "\\int{{$1}}d{$2}",
       "text": "Integral({$1},{$2})"
     },
-    "current": 0,
-    "group": "calculus",
     "attrs": [
       {
-        "delete": "1",
-        "name": "integrand"
+        "delete": 1
       },
       {
-        "delete": "1",
-        "bracket": "yes",
-        "name": "variable"
+        "delete": 1,
+        "bracket": true
       }
     ]
   },
@@ -253,33 +233,25 @@
       "small_latex": "\\int_{{$1}}^{{$2}}{$3}d{$4}",
       "text": "Integral({$3},({$4},{$1},{$2}))"
     },
-    "current": 0,
-    "group": "calculus",
     "attrs": [
       {
-        "down": "1",
-        "up": "2",
-        "small": "yes",
-        "name": "lower_limit"
+        "up": 2,
+        "small": true
       },
       {
-        "down": "1",
-        "up": "2",
-        "small": "yes",
-        "name": "upper_limit"
+        "down": 1,
+        "small": true
       },
       {
-        "down": "1",
-        "up": "2",
-        "delete": "3",
-        "name": "integrand"
+        "down": 1,
+        "up": 2,
+        "delete": 3
       },
       {
-        "down": "1",
-        "up": "2",
-        "bracket": "yes",
-        "delete": "4",
-        "name": "variable"
+        "down": 1,
+        "up": 2,
+        "bracket": true,
+        "delete": 3
       }
     ]
   },
@@ -289,20 +261,15 @@
       "small_latex": "\\frac{d}{d{$1}}{$2}",
       "text": "Derivative({$2},{$1})"
     },
-    "current": 0,
-    "group": "calculus",
     "attrs": [
       {
-        "down": "1",
-        "up": "2",
-        "bracket": "yes",
-        "name": "function"
+        "up": 2,
+        "bracket": true
       },
       {
-        "down": "1",
-        "up": "2",
-        "bracket": "yes",
-        "name": "variable"
+        "down": 1,
+        "delete": 2,
+        "bracket": true
       }
     ]
   },
@@ -312,33 +279,24 @@
       "small_latex": "\\sum_{{$1}={$2}}^{{$3}}{$4}",
       "text": "Sum({$4},({$1},{$2},{$3}))"
     },
-    "current": 0,
-    "group": "functions",
     "attrs": [
       {
-        "down": "1",
-        "up": "3",
-        "small": "yes",
-        "name": "index"
+        "up": 3,
+        "small": true
       },
       {
-        "down": "1",
-        "up": "3",
-        "small": "yes",
-        "name": "lower_limit"
+        "up": 3,
+        "small": true
       },
       {
-        "down": "1",
-        "up": "3",
-        "small": "yes",
-        "name": "upper_limit"
+        "down": 2,
+        "small": true
       },
       {
-        "down": "1",
-        "up": "3",
-        "delete": "4",
-        "bracket": "yes",
-        "name": "summand"
+        "down": 2,
+        "up": 3,
+        "delete": 4,
+        "bracket": true
       }
     ]
   },
@@ -348,33 +306,24 @@
       "small_latex": "\\prod_{{$1}={$2}}^{{$3}}{$4}",
       "text": "Product({$4},({$1},{$2},{$3}))"
     },
-    "current": 0,
-    "group": "functions",
     "attrs": [
       {
-        "down": "1",
-        "up": "3",
-        "small": "yes",
-        "name": "index"
+        "up": 3,
+        "small": true
       },
       {
-        "down": "1",
-        "up": "3",
-        "small": "yes",
-        "name": "lower_limit"
+        "up": 3,
+        "small": true
       },
       {
-        "down": "1",
-        "up": "3",
-        "small": "yes",
-        "name": "upper_limit"
+        "down": 2,
+        "small": true
       },
       {
-        "down": "1",
-        "up": "3",
-        "delete": "4",
-        "bracket": "yes",
-        "name": "factor"
+        "down": 2,
+        "up": 3,
+        "delete": 4,
+        "bracket": true
       }
     ]
   },
@@ -383,39 +332,23 @@
       "latex": "\\sqrt[{$1}]{{$2}}",
       "text": "root({$2},{$1})"
     },
-    "current": 0,
-    "group": "functions",
     "attrs": [
       {
-        "down": "2",
-        "up": "1",
-        "small": "yes",
-        "delete": "1",
-        "name": "index"
+        "down": 2,
+        "small": true,
+        "delete": 2
       },
       {
-        "down": "2",
-        "up": "1",
-        "delete": "1",
-        "name": "radicand"
+        "up": 1,
+        "delete": 2
       }
     ]
-  },
-  "vec": {
-    "output": {
-      "latex": "\\left\\langle {$1{,}} \\right\\rangle",
-      "text": "Matrix([{$1{,}}])"
-    },
-    "current": 0,
-    "group": "array"
   },
   "mat": {
     "output": {
       "latex": "\\left(\\begin{matrix} {$1{ & }{\\\\}} \\end{matrix}\\right)",
       "text": "Matrix([[{$1{,}{],[}}]])"
-    },
-    "current": 0,
-    "group": "array"
+    }
   },
   "_func_nonlatex": [
     "sech",
