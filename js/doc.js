@@ -20,6 +20,15 @@ Doc.isSmall = function (nn) {
   return false;
 };
 
+Doc.getFName = function (n) {
+  if (n.nodeName === 'e') {
+    n = n.parentNode;
+  }
+  if (n.parentNode.nodeName === 'f') {
+    return n.parentNode.getAttribute('type');
+  }
+};
+
 Doc.prototype.ensureTextNodes = function () {
   var l = this.base.getElementsByTagName('e');
   for (var i = 0; i < l.length; i++) {

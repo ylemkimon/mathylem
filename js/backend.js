@@ -55,12 +55,6 @@ Backend.SEL_CURSOR_AT_END = 2;
 
 Backend.Clipboard = null;
 
-Backend.getENodeType = function (n) {
-  if (n.parentNode.parentNode.nodeName === 'f') {
-    return n.parentNode.parentNode.getAttribute('type');
-  }
-};
-
 Backend.prototype.getContent = function (t, r) {
   return this.doc.getContent(t, r);
 };
@@ -148,8 +142,7 @@ Backend.prototype.addCursorClasses = function (n, path) {
     var text = n.textContent;
     var ans = '';
     var selCursor;
-    var isTextNode = Backend.getENodeType(n) === 'text' ||
-      Backend.getENodeType(n) === 'symbol';
+    var isTextNode = Doc.getFName(n) === 'text' || Doc.getFName(n) === 'symbol';
     if (this.selStatus === Backend.SEL_CURSOR_AT_START) {
       selCursor = this.selEnd;
     }
@@ -974,7 +967,7 @@ Backend.prototype.right = function () {
 };
 
 Backend.prototype.spacebar = function () {
-  if (Backend.getENodeType(this.current) === 'text') {
+  if (Doc.getFName(this.current) === 'text') {
     this.insertString(' ');
   }
 };
@@ -1105,14 +1098,14 @@ Backend.prototype.deleteKey = function () {
 };
 
 Backend.prototype.backslash = function () {
-  if (Backend.getENodeType(this.current) !== 'text' &&
-      Backend.getENodeType(this.current) !== 'symbol') {
+  if (Doc.getFName(this.current) !== 'text' &&
+      Doc.getFName(this.current) !== 'symbol') {
     this.insertSymbol('symbol');
   }
 };
 
 Backend.prototype.tab = function () {
-  if (Backend.getENodeType(this.current) !== 'symbol') {
+  if (Doc.getFName(this.current) !== 'symbol') {
     this.checkForSymbol();
     return;
   }
@@ -1227,7 +1220,7 @@ Backend.prototype.redo = function () {
 };
 
 Backend.prototype.done = function (s) {
-  if (Backend.getENodeType(this.current) === 'symbol') {
+  if (Doc.getFName(this.current) === 'symbol') {
     this.completeSymbol();
   } else {
     this.emit('done');
@@ -1292,8 +1285,8 @@ Backend.prototype.checkForIneq = function () {
 };
 
 Backend.prototype.checkForSymbol = function () {
-  if (Backend.getENodeType(this.current) === 'text' ||
-      Backend.getENodeType(this.current) === 'symbol') {
+  if (Doc.getFName(this.current) === 'text' ||
+      Doc.getFName(this.current) === 'symbol') {
     return;
   }
   var value = this.current.textContent;
