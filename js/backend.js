@@ -42,7 +42,7 @@ Backend.prototype = Object.create(EventEmitter.prototype, {
 });
 
 Backend.CARET = '\\cursor{-0.2ex}{0.7em}';
-Backend.TEMP_SMALL_CARET = '\\cursor{0em}{0.6em}';
+Backend.TEMP_SMALL_CARET = '\\cursor{-0.05em}{0.5em}';
 Backend.TEMP_CARET = '\\cursor{-0.2ex}{0.7em}';
 Backend.SMALL_CARET = '\\cursor{-0.05em}{0.5em}';
 Backend.SEL_CARET = '\\cursor{-0.2ex}{0.7em}';
