@@ -362,7 +362,6 @@ Backend.prototype.symbolToNode = function (name, content) {
       var par = f;
       for (var j = 0; j < lists[i]; j++) {
         var nl = base.createElement('l');
-        nl.setAttribute('s', '1');
         par.appendChild(nl);
         par = nl;
         if (j === lists[i] - 1) {
@@ -819,8 +818,6 @@ Backend.prototype.extendList = function (direction, copy) {
         node.parentNode.insertBefore(toInsert.cloneNode(true),
           before ? node : node.nextSibling);
       }
-      node.parentNode.setAttribute('s',
-        parseInt(node.parentNode.getAttribute('s')) + 1);
     }
     this.current = before ? n.previousSibling.lastChild : n.nextSibling.firstChild;
     this.caret = this.current.textContent.length;
@@ -833,8 +830,7 @@ Backend.prototype.extendList = function (direction, copy) {
   } else {
     if (vertical) {
       toInsert = base.createElement('l');
-      toInsert.setAttribute('s', n.getAttribute('s'));
-      for (var i = 0; i < parseInt(n.getAttribute('s')); i++) {
+      for (var i = 0; i < n.childElementCount; i++) {
         var c = base.createElement('c');
         c.appendChild(this.makeE(''));
         toInsert.appendChild(c);
@@ -844,7 +840,6 @@ Backend.prototype.extendList = function (direction, copy) {
       toInsert.appendChild(this.makeE(''));
     }
   }
-  n.parentNode.setAttribute('s', parseInt(n.parentNode.getAttribute('s')) + 1);
   n.parentNode.insertBefore(toInsert, before ? n : n.nextSibling);
   if (vertical) {
     this.current = toInsert.firstChild.firstChild;
@@ -892,8 +887,6 @@ Backend.prototype.removeListColumn = function () {
   }
   for (var j = 0; j < toModify.length; j++) {
     var node = toModify[j];
-    node.parentNode.setAttribute('s',
-      parseInt(node.parentNode.getAttribute('s')) - 1);
     node.parentNode.removeChild(node);
   }
 };
@@ -916,8 +909,6 @@ Backend.prototype.removeListRow = function () {
   } else {
     return;
   }
-
-  n.parentNode.setAttribute('s', parseInt(n.parentNode.getAttribute('s')) - 1);
   n.parentNode.removeChild(n);
 };
 
@@ -942,7 +933,6 @@ Backend.prototype.removeListItem = function () {
   } else {
     return;
   }
-  n.parentNode.setAttribute('s', parseInt(n.parentNode.getAttribute('s')) - 1);
   n.parentNode.removeChild(n);
 };
 
