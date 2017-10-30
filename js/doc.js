@@ -9,7 +9,7 @@ var Doc = function (doc) {
 Doc.isSmall = function (nn) {
   var n = nn.parentNode;
   while (n != null && n.nodeName !== 'm') {
-    if (n.getAttribute('small') === 'yes') {
+    if (Doc.getCAttribute(n, 'small')) {
       return true;
     }
     n = n.parentNode;
@@ -26,6 +26,20 @@ Doc.getFName = function (n) {
   }
   if (n.parentNode.nodeName === 'f') {
     return n.parentNode.getAttribute('type');
+  }
+};
+
+Doc.getCAttribute = function (n, attr) {
+  if (n.nodeName === 'e') {
+    n = n.parentNode;
+  }
+  var name = Doc.getFName(n);
+  if (name) {
+    var index = Array.prototype.indexOf.call(n.parentNode.childNodes, n);
+    var s = Symbols.symbols[name];
+    if (s['attrs'] && s['attrs'][index] && s['attrs'][index][attr]) {
+      return s['attrs'][index][attr];
+    }
   }
 };
 
@@ -86,7 +100,7 @@ var BRACKET_XPATH = "(count(./*) != 1 and not \
                 ( \
                   (\
                                 count(./f/c)=1 and\
-                    count(./f/c[@is_bracket='yes'])=1\
+                    count(./f[@type='paren'])=1\
                   )\
                   or\
                   (\
@@ -144,7 +158,7 @@ Doc.prototype.render = function (t, n, r) {
     }
   } else if (n.nodeName === 'f') {
     var cs = [];
-    for (var nn = n.firstChild; nn != null; nn = nn.nextSibling) { // eslint-disable-line no-redeclare
+    for (var nn = n.firstChild; nn != null; nn = nn.nextSibling) {
       cs.push(this.render(t, nn, r));
     }
 
@@ -186,7 +200,7 @@ Doc.prototype.render = function (t, n, r) {
       ans += this.render(t, nn, r);
     }
     if (t === 'latex' &&
-                n.getAttribute('bracket') === 'yes' &&
+                Doc.getCAttribute(n, 'bracket') &&
                 this.base.evaluate(BRACKET_XPATH, n, null,
                   xmldom.XPathResult.BOOLEAN_TYPE, null).booleanValue) {
       ans = '\\left(' + ans + '\\right)';

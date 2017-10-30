@@ -22,7 +22,7 @@ Symbols.makeFunctionSymbol = function (name, nonLaTeX) {
         '\\left({$1}\\right)',
       'text': name + '({$1})'
     },
-    'attrs': [{ 'delete': '1' }]
+    'attrs': [{ 'delete': 1 }]
   };
 };
 

@@ -358,14 +358,9 @@ Backend.prototype.symbolToNode = function (name, content) {
     if (i + 1 === firstRef) {
       first = nc.lastChild;
     }
-    if (s['attrs']) {
-      for (var a in (s['attrs'][i] || {})) {
-        nc.setAttribute(a, s['attrs'][i][a]);
-      }
-    }
     if (i in lists) {
       var par = f;
-      for (var j = 0; j < lists[i]; j++) { // eslint-disable-line no-redeclare
+      for (var j = 0; j < lists[i]; j++) {
         var nl = base.createElement('l');
         nl.setAttribute('s', '1');
         par.appendChild(nl);
@@ -994,7 +989,7 @@ Backend.prototype.deleteFromC = function () {
     pos++;
     c = c.previousSibling;
   }
-  var idx = this.current.parentNode.getAttribute('delete');
+  var idx = Doc.getCAttribute(this.current, 'delete');
   var node = this.doc.XPathNode('./c[position()=' + idx + ']',
     this.current.parentNode.parentNode);
   var remaining = [];
@@ -1029,7 +1024,7 @@ Backend.prototype.deleteFromE = function () {
     } else if (this.current.parentNode.previousSibling != null) {
       // We're in a c child of an f node, but not the first one.
       // Go to the previous c
-      if (this.current.parentNode.hasAttribute('delete')) {
+      if (Doc.getCAttribute(this.current, 'delete')) {
         this.deleteFromC();
       } else {
         this.left();
@@ -1043,7 +1038,7 @@ Backend.prototype.deleteFromE = function () {
       while (par.parentNode.nodeName === 'l' || par.parentNode.nodeName === 'c') {
         par = par.parentNode;
       }
-      if (par.hasAttribute('delete')) {
+      if (Doc.getCAttribute(par, 'delete')) {
         this.deleteFromC();
       } else {
         this.current = par.parentNode;
@@ -1133,8 +1128,8 @@ Backend.prototype.rightParen = function () {
 
 Backend.prototype.up = function () {
   this.clearSelection();
-  if (this.current.parentNode.hasAttribute('up')) {
-    var t = parseInt(this.current.parentNode.getAttribute('up'));
+  var t = Doc.getCAttribute(this.current, 'up');
+  if (t) {
     var f = this.current.parentNode.parentNode;
     var n = f.firstChild;
     for (var i = 0; i < t - 1; i++) {
@@ -1149,8 +1144,8 @@ Backend.prototype.up = function () {
 
 Backend.prototype.down = function () {
   this.clearSelection();
-  if (this.current.parentNode.hasAttribute('down')) {
-    var t = parseInt(this.current.parentNode.getAttribute('down'));
+  var t = Doc.getCAttribute(this.current, 'down');
+  if (t) {
     var f = this.current.parentNode.parentNode;
     var n = f.firstChild;
     for (var i = 0; i < t - 1; i++) {
