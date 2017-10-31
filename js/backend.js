@@ -1096,7 +1096,11 @@ Backend.prototype.tab = function () {
         this.candidates.push(n);
       }
     }
-    this.tab();
+    if (this.candidates.length > 0) {
+      this.tab();
+    } else {
+      this.candidates = null;
+    }
   }
 };
 
