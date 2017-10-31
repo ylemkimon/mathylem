@@ -380,7 +380,7 @@ Backend.prototype.insertSymbol = function (name) {
     return false;
   }
 
-  if (name === 'power' && this.caret === 0 && this.current.parentNode.parentNode
+  if (name === 'pow' && this.caret === 0 && this.current.parentNode.parentNode
     .nodeName === 'f' && this.current.parentNode.childNodes.length === 1) {
     this.current = this.current.parentNode.parentNode.nextSibling;
   }
@@ -530,7 +530,7 @@ Backend.prototype.insertString = function (s) {
     this.deleteSelection();
     this.clearSelection();
   }
-  if ((s === '*' && this.checkForPower()) || (s === '=' && this.checkForIneq())) {
+  if ((s === '*' && this.checkForPow()) || (s === '=' && this.checkForIneq())) {
     return;
   }
   var value = this.current.textContent;
@@ -1236,13 +1236,13 @@ Backend.prototype.replaceSymbol = function (node, name) {
   return true;
 };
 
-Backend.prototype.checkForPower = function () {
+Backend.prototype.checkForPow = function () {
   if (this.autoreplace && this.caret === 0 && this.current.previousSibling &&
       this.current.previousSibling.nodeName === 'f' &&
       this.current.previousSibling.getAttribute('type') === '*') {
     this.current = this.current.previousSibling;
     this.deleteFromF();
-    this.insertSymbol('power');
+    this.insertSymbol('pow');
     return true;
   }
   return false;

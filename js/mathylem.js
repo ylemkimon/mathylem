@@ -560,13 +560,13 @@ MathYlem.kb.chars = {
 MathYlem.kb.symbols = {
   '/': 'frac',
   '%': 'mod',
-  '^': 'power',
   '(': 'paren',
+  '^': 'pow',
   '_': 'sub',
   '|': 'abs',
   '!': 'fact',
-  'shift+up': 'power',
   '\\': 'symbol',
+  'shift+up': 'pow',
   'shift+down': 'sub'
 };
 MathYlem.kb.controls = {
