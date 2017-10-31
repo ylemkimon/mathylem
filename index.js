@@ -22,8 +22,7 @@ $('document').ready(function () {
       'left_end': function () {},
       'done': function () {
         createText('text');
-      },
-      'completion': completion
+      }
     },
     'options': {
       'emptyContent': '\\gray{\\text{Click here to start' +
@@ -31,10 +30,6 @@ $('document').ready(function () {
     }
   });
 });
-
-function completion (data) {
-  $('#stuff').text('INFO:\n' + data.candidates.join(', '));
-}
 
 function createText (texttype) {
   if (!mathylem) {

@@ -950,6 +950,8 @@ Backend.prototype.right = function () {
 Backend.prototype.spacebar = function () {
   if (Doc.getFName(this.current) === 'text') {
     this.insertString(' ');
+  } else if (Doc.getFName(this.current) === 'symbol') {
+    this.tab();
   }
 };
 
@@ -1087,18 +1089,21 @@ Backend.prototype.tab = function () {
     this.checkForSymbol();
     return;
   }
-  var name = this.current.firstChild.textContent;
-  var candidates = [];
-  for (var n in Symbols.symbols) {
-    if (n.substr(0, name.length) === name) {
-      candidates.push(n);
-    }
-  }
-  if (candidates.length === 1) {
-    this.current.firstChild.textContent = candidates[0];
-    this.caret = candidates[0].length;
+  if (this.candidates != null) {
+    var suggestion = this.candidates.shift();
+    this.candidates.push(suggestion);
+    this.current.textContent = suggestion;
+    this.caret = suggestion.length;
   } else {
-    this.emit('completion', { 'candidates': candidates });
+    this.checkpoint();
+    var name = this.current.textContent;
+    this.candidates = [];
+    for (var n in Symbols.symbols) {
+      if (n.substr(0, name.length) === name) {
+        this.candidates.push(n);
+      }
+    }
+    this.tab();
   }
 };
 
@@ -1162,6 +1167,7 @@ Backend.prototype.checkpoint = function () {
     'new': this.undoData[this.undoCurrent] });
   this.current.removeAttribute('current');
   this.current.removeAttribute('caret');
+  this.candidates = null;
   if (this.parent && this.parent.ready) {
     this.parent.render(true);
   }
@@ -1206,7 +1212,7 @@ Backend.prototype.done = function (s) {
 };
 
 Backend.prototype.completeSymbol = function () {
-  var name = this.current.firstChild.textContent;
+  var name = this.current.textContent;
   if (!Symbols.symbols[name]) {
     return;
   }
