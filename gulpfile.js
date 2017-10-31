@@ -22,7 +22,6 @@ gulp.task('js', function () {
     .pipe(gulp.dest(BUILD))
     .pipe(rename({ extname: '.min.js' }))
     .pipe(uglify({
-      mangle: false,
       output: {
         ascii_only: true
       }
@@ -41,7 +40,6 @@ gulp.task('js-debug', function () {
     .pipe(buffer())
     .pipe(sourcemaps.init({loadMaps: true}))
     .pipe(uglify({
-      mangle: false,
       output: {
         ascii_only: true
       }
