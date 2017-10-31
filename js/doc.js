@@ -1,9 +1,8 @@
 var xmldom = require('./xmldom/node');
 var Symbols = require('./symbols.js');
 
-var Doc = function (doc) {
-  doc = doc || '<m><e></e></m>';
-  this.setContent(doc);
+var Doc = function (data) {
+  this.setContent(data);
 };
 
 Doc.isSmall = function (nn) {
@@ -43,15 +42,6 @@ Doc.getCAttribute = function (n, attr) {
   }
 };
 
-Doc.prototype.ensureTextNodes = function () {
-  var l = this.base.getElementsByTagName('e');
-  for (var i = 0; i < l.length; i++) {
-    if (!l[i].firstChild) {
-      l[i].appendChild(this.base.createTextNode(''));
-    }
-  }
-};
-
 Doc.prototype.isBlank = function () {
   if (this.base.getElementsByTagName('f').length > 0) {
     return false;
@@ -77,7 +67,7 @@ Doc.prototype.getContent = function (t, r) {
 
 Doc.prototype.setContent = function (data) {
   this.base = (new xmldom.DOMParser()).parseFromString(data, 'text/xml');
-  this.ensureTextNodes();
+  data = data || '<m><e></e></m>';
 };
 
 Doc.prototype.render = function (t, n, r) {

@@ -533,13 +533,9 @@ Backend.prototype.insertString = function (s) {
   if ((s === '*' && this.checkForPower()) || (s === '=' && this.checkForIneq())) {
     return;
   }
-  if (this.current.firstChild) {
-    var value = this.current.textContent;
-    this.current.textContent = value.slice(0, this.caret) + s +
-      value.slice(this.caret);
-  } else {
-    this.current.appendChild(this.doc.base.createTextNode(s));
-  }
+  var value = this.current.textContent;
+  this.current.textContent = value.slice(0, this.caret) + s +
+    value.slice(this.caret);
   this.caret += s.length;
   this.checkpoint();
   if (this.autoreplace) {
@@ -578,9 +574,6 @@ Backend.prototype.insertNodes = function (nodeList, moveCursor) {
     clipboard.push(nodeList[i].cloneNode(true));
   }
 
-  if (!this.current.firstChild) {
-    this.current.appendChild(this.doc.base.createTextNode(''));
-  }
   if (clipboard.length === 1) {
     if (clipboard[0].firstChild) {
       this.current.textContent = this.current.textContent.substring(0, this.caret) +
