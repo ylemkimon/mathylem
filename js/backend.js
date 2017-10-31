@@ -1097,6 +1097,15 @@ Backend.prototype.tab = function () {
   }
 };
 
+Backend.prototype.leftParen = function () {
+  if (Doc.getFName(this.current) === 'symbol') {
+    this.replaceSymbol(this.current.parentNode.parentNode, 'func',
+      [[this.current]]);
+  } else {
+    this.insertSymbol('paren');
+  }
+};
+
 Backend.prototype.rightParen = function () {
   if (this.current.nodeName !== 'e' ||
       this.caret === this.current.textContent.length) {
@@ -1220,12 +1229,12 @@ Backend.prototype.isBlacklisted = function (type) {
   return false;
 };
 
-Backend.prototype.replaceSymbol = function (node, name) {
+Backend.prototype.replaceSymbol = function (node, name, content) {
   var symbol = Symbols.symbols[name];
   if (!symbol || this.isBlacklisted(name)) {
     return false;
   }
-  var f = this.symbolToNode(name, []).f;
+  var f = this.symbolToNode(name, content || []).f;
   node.parentNode.replaceChild(f, node);
   if (!symbol['char']) {
     this.caret = 0;

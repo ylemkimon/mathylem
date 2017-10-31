@@ -560,7 +560,6 @@ MathYlem.kb.chars = {
 MathYlem.kb.symbols = {
   '/': 'frac',
   '%': 'mod',
-  '(': 'paren',
   '^': 'pow',
   '_': 'sub',
   '|': 'abs',
@@ -602,6 +601,7 @@ MathYlem.kb.controls = {
   'mod+shift+backspace': 'removeListRow',
   'shift+left': 'selectLeft',
   'shift+right': 'selectRight',
+  '(': 'leftParen',
   ')': 'rightParen',
   'tab': 'tab'
 };

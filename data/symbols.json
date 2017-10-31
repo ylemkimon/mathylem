@@ -21,6 +21,17 @@
       }
     ]
   },
+  "func": {
+    "output": {
+      "latex": "\\backslash\\mathrm{{$1}}\\left( {$2{ , }} \\right)",
+      "text": "$1({$2{,}})"
+    },
+    "attrs": [
+      {
+        "text": true
+      }
+    ]
+  },
   "abs": {
     "output": {
       "latex": "\\left|{$1}\\right|",
