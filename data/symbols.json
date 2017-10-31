@@ -354,13 +354,23 @@
       }
     ]
   },
-  "vec": {
+  "list": {
     "output": {
-      "latex": "\\left\\langle {$1{,}} \\right\\rangle",
-      "text": "Matrix([{$1{,}}])"
-    },
-    "current": 0,
-    "group": "array"
+      "latex": "\\left[ {$1{ , }} \\right]",
+      "text": "[{$1{,}}]"
+    }
+  },
+  "set": {
+    "output": {
+      "latex": "\\left\\{ {$1{ , }} \\right\\}",
+      "text": "{{$1{,}}}"
+    }
+  },
+  "tuple": {
+    "output": {
+      "latex": "\\left\\langle {$1{ , }} \\right\\rangle",
+      "text": "({$1{,}})"
+    }
   },
   "mat": {
     "output": {
