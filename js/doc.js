@@ -66,8 +66,8 @@ Doc.prototype.getContent = function (t, r) {
 };
 
 Doc.prototype.setContent = function (data) {
-  this.base = (new xmldom.DOMParser()).parseFromString(data, 'text/xml');
   data = data || '<m><e></e></m>';
+  this.base = (new xmldom.DOMParser()).parseFromString(data, 'text/xml');
 };
 
 Doc.prototype.render = function (t, n, r) {
@@ -81,7 +81,7 @@ Doc.prototype.render = function (t, n, r) {
           !Symbols.symbols[n.previousSibling.getAttribute('type')].operator &&
           !Symbols.symbols[n.nextSibling.getAttribute('type')].operator) {
         ans = '*';
-      } else {
+      } else if (!Doc.getCAttribute(n, 'text')) {
         ans = ans.replace(/([a-zA-Z])(?=\.)/g, '$1*');
         ans = ans.replace(/(\.)(?=[a-zA-Z])/g, '$1*');
         ans = ans.replace(/([a-zA-Z])(?=[a-zA-Z0-9])/g, '$1*');

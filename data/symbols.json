@@ -2,14 +2,24 @@
   "text": {
     "output": {
       "latex": "\\text{{$1}}",
-      "text": "text({$1})"
-    }
+      "text": "'{$1}'"
+    },
+    "attrs": [
+      {
+        "text": true
+      }
+    ]
   },
   "symbol": {
     "output": {
       "latex": "\\backslash\\texttt{{$1}}",
-      "text": "SYMBOL({$1})"
-    }
+      "text": "{$1}"
+    },
+    "attrs": [
+      {
+        "text": true
+      }
+    ]
   },
   "abs": {
     "output": {

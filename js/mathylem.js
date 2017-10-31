@@ -566,6 +566,7 @@ MathYlem.kb.symbols = {
   '|': 'abs',
   '!': 'fact',
   'shift+up': 'power',
+  '\\': 'symbol',
   'shift+down': 'sub'
 };
 MathYlem.kb.controls = {
@@ -602,7 +603,6 @@ MathYlem.kb.controls = {
   'shift+left': 'selectLeft',
   'shift+right': 'selectRight',
   ')': 'rightParen',
-  '\\': 'backslash',
   'tab': 'tab'
 };
 

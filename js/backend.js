@@ -142,7 +142,7 @@ Backend.prototype.addCursorClasses = function (n, path) {
     var text = n.textContent;
     var ans = '';
     var selCursor;
-    var isTextNode = Doc.getFName(n) === 'text' || Doc.getFName(n) === 'symbol';
+    var isTextNode = Doc.getCAttribute(n, 'text');
     if (this.selStatus === Backend.SEL_CURSOR_AT_START) {
       selCursor = this.selEnd;
     }
@@ -249,7 +249,7 @@ Backend.prototype.addCursorClasses = function (n, path) {
           '_' + i + '}{' + text[i] + '}';
       }
     }
-    if (isTextNode && n === this.current) {
+    if (isTextNode && (n === this.current || Doc.getFName(n) === 'text')) {
       ans = '\\xmlClass{mathylem_text_current}{{' + ans + '}}';
     }
     n.setAttribute('render', ans);
@@ -376,7 +376,7 @@ Backend.prototype.symbolToNode = function (name, content) {
 };
 
 Backend.prototype.insertSymbol = function (name) {
-  if (this.isBlacklisted(name)) {
+  if (Doc.getCAttribute(this.current, 'text') || this.isBlacklisted(name)) {
     return false;
   }
 
@@ -1070,13 +1070,6 @@ Backend.prototype.deleteKey = function () {
   }
 };
 
-Backend.prototype.backslash = function () {
-  if (Doc.getFName(this.current) !== 'text' &&
-      Doc.getFName(this.current) !== 'symbol') {
-    this.insertSymbol('symbol');
-  }
-};
-
 Backend.prototype.tab = function () {
   if (Doc.getFName(this.current) !== 'symbol') {
     this.checkForSymbol();
@@ -1266,8 +1259,7 @@ Backend.prototype.checkForIneq = function () {
 };
 
 Backend.prototype.checkForSymbol = function () {
-  if (Doc.getFName(this.current) === 'text' ||
-      Doc.getFName(this.current) === 'symbol') {
+  if (Doc.getCAttribute(this.current, 'text')) {
     return;
   }
   var value = this.current.textContent;
