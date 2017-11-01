@@ -7,13 +7,11 @@ var Doc = require('./doc.js');
 var debounce = require('throttle-debounce/debounce');
 
 var MathYlem = function (el, config) {
-  var self = this;
   config = config || {};
 
   if (typeof el === 'string' || el instanceof String) {
     el = document.getElementById(el);
   }
-
   if (!el) {
     throw new Error('Invalid element.');
   } else if (el.mathylem) {
@@ -28,105 +26,28 @@ var MathYlem = function (el, config) {
     MathYlem.maxUid = i;
     el.id = 'mathylem_' + i;
   }
-  el.className += ' mathylem';
-  el.tabIndex = MathYlem.maxTabIndex++;
-
-  this.active = true;
-  this.editor = el;
-  this._focus = false;
-  this._processedFakeInput = 20;
-  this.ready = false;
 
   MathYlem.instances[el.id] = this;
   el.mathylem = this;
 
-  if (/Mobi/.test(navigator.userAgent)) {
-    var fakeInput = document.createElement('textarea');
-    this.fakeInput = fakeInput;
-
-    fakeInput.setAttribute('autocapitalize', 'none');
-    fakeInput.setAttribute('autocomplete', 'off');
-    fakeInput.setAttribute('autocorrect', 'off');
-    fakeInput.setAttribute('spellcheck', 'false');
-    el.insertAdjacentElement('afterend', fakeInput);
-
-    fakeInput.style.position = 'absolute';
-    fakeInput.style.top = el.offsetTop + 'px';
-    fakeInput.style.left = el.offsetLeft + 'px';
-    fakeInput.style.width = '1px';
-    fakeInput.style.height = '1px';
-    fakeInput.style.opacity = 0;
-    fakeInput.style.padding = 0;
-    fakeInput.style.margin = 0;
-    fakeInput.style.border = 0;
-    fakeInput.addEventListener('input', debounce(100, function () {
-      for (; self._processedFakeInput >
-          self.fakeInput.value.length; self._processedFakeInput--) {
-        Mousetrap.trigger('backspace');
-      }
-      if (self.fakeInput.value.length === 0) {
-        self._processedFakeInput = 20;
-        self.fakeInput.value = '____________________';
-      }
-      for (; self._processedFakeInput <
-          self.fakeInput.value.length; self._processedFakeInput++) {
-        var c = self.fakeInput.value[self._processedFakeInput];
-        if (c !== c.toLowerCase()) {
-          Mousetrap.trigger('shift+' + c.toLowerCase());
-        } else if (c === ' ') {
-          Mousetrap.trigger('space');
-        } else {
-          Mousetrap.trigger(c);
-        }
-      }
-    }));
-    fakeInput.addEventListener('keydown', function (e) {
-      if (e.keycode === 8) {
-        Mousetrap.trigger('backspace');
-        e.preventDefault();
-      } else if (e.keycode === 13) {
-        Mousetrap.trigger('enter');
-        e.preventDefault();
-      }
-    });
-    fakeInput.addEventListener('focus', function () {
-      self.activate(false);
-    });
-    fakeInput.addEventListener('blur', function () {
-      if (self._focus) {
-        self._focus = false;
-        this.focus();
-      } else {
-        self.deactivate(false);
-      }
-    });
-    fakeInput.value = '____________________';
+  this.editor = this.createEditor(el);
+  if (/Mobi/.test(navigator.userAgent)) { // TODO: Better unfocusable div detection
+    this.fakeInput = this.createFakeInput(el);
   }
 
+  this.active = true;
   this.emptyContent = config['emptyContent'] || '\\red{[?]}';
+  this._focus = false;
+  this.ready = false;
+
   this.backend = new Backend(config, this);
   this.tempCursor = { 'node': null, 'caret': 0 };
-  this.editor.addEventListener('click', function () {
-    var g = this.mathylem;
-    var b = g.backend;
-    if (g.active) {
-      return;
-    }
-    g._focus = true;
-    setTimeout(function () {
-      g._focus = false;
-    }, 500);
-    b.clearSelection();
-    b.end();
-    g.activate(true);
-  });
   if (Backend.ready) {
     this.ready = true;
     this.backend.emit('ready');
     this.render(true);
   }
   this.deactivate(true);
-  this.computeLocations();
 };
 
 MathYlem.Backend = Backend;
@@ -176,6 +97,96 @@ MathYlem.initialize = function (symbols) {
     calls[j](cb);
   };
   calls[0](cb);
+};
+
+MathYlem.prototype.createEditor = function (el) {
+  var self = this;
+  var editor = document.createElement('div');
+  editor.className = 'mathylem';
+  editor.tabIndex = MathYlem.maxTabIndex++;
+
+  editor.addEventListener('click', function () {
+    if (self.active) {
+      return;
+    }
+    self._focus = true;
+    setTimeout(function () {
+      self._focus = false;
+    }, 500);
+    self.backend.end();
+    self.activate(true);
+  });
+
+  el.appendChild(editor);
+  return editor;
+};
+
+MathYlem.prototype.createFakeInput = function (el) {
+  var self = this;
+
+  var fakeInput = document.createElement('textarea');
+  fakeInput.setAttribute('autocapitalize', 'none');
+  fakeInput.setAttribute('autocomplete', 'off');
+  fakeInput.setAttribute('autocorrect', 'off');
+  fakeInput.setAttribute('spellcheck', 'false');
+  fakeInput.value = '____________________';
+
+  fakeInput.style.position = 'absolute';
+  fakeInput.style.top = el.offsetTop + 'px';
+  fakeInput.style.left = el.offsetLeft + 'px';
+  fakeInput.style.width = '1px';
+  fakeInput.style.height = '1px';
+  fakeInput.style.opacity = 0;
+  fakeInput.style.padding = 0;
+  fakeInput.style.margin = 0;
+  fakeInput.style.border = 0;
+
+  this._processedFakeInput = 20;
+  fakeInput.addEventListener('input', debounce(100, function () {
+    for (; self._processedFakeInput >
+        self.fakeInput.value.length; self._processedFakeInput--) {
+      Mousetrap.trigger('backspace');
+    }
+    if (self.fakeInput.value.length === 0) {
+      self._processedFakeInput = 20;
+      self.fakeInput.value = '____________________';
+    }
+    for (; self._processedFakeInput <
+        self.fakeInput.value.length; self._processedFakeInput++) {
+      var c = self.fakeInput.value[self._processedFakeInput];
+      console.log(c);
+      if (c !== c.toLowerCase()) {
+        Mousetrap.trigger('shift+' + c.toLowerCase());
+      } else if (c === ' ') {
+        Mousetrap.trigger('space');
+      } else {
+        Mousetrap.trigger(c);
+      }
+    }
+  }));
+  fakeInput.addEventListener('keydown', function (e) {
+    if (e.keycode === 8) {
+      Mousetrap.trigger('backspace');
+      e.preventDefault();
+    } else if (e.keycode === 13) {
+      Mousetrap.trigger('enter');
+      e.preventDefault();
+    }
+  });
+  fakeInput.addEventListener('focus', function () {
+    self.activate(false);
+  });
+  fakeInput.addEventListener('blur', function () {
+    if (self._focus) {
+      self._focus = false;
+      this.focus();
+    } else {
+      self.deactivate(false);
+    }
+  });
+
+  el.appendChild(fakeInput);
+  return fakeInput;
 };
 
 MathYlem.prototype.isChanged = function () {
@@ -352,14 +363,10 @@ MathYlem.mouseUp = function (e) {
 MathYlem.mouseDown = function (e) {
   var n = e.target;
   MathYlem.kb.isMouseDown = true;
-  while (n != null) {
-    if (n.mathylem) {
-      var g = MathYlem.activeMathYlem;
-      if (n.mathylem === g) {
-        g._focus = true;
-        setTimeout(function () {
-          g._focus = false;
-        }, 500);
+  var g = MathYlem.activeMathYlem;
+  if (g) {
+    while (n != null) {
+      if (n === g.editor) {
         if (e.shiftKey) {
           g.selectTo(e.clientX, e.clientY);
         } else {
@@ -374,10 +381,18 @@ MathYlem.mouseDown = function (e) {
           b.selStatus = Backend.SEL_NONE;
         }
         g.render(true);
-      } else if (g) {
-        g.deactivate(true);
+      } else if (n.mathylem) {
+        if (n.mathylem === g) {
+          g._focus = true;
+          setTimeout(function () {
+            g._focus = false;
+          }, 500);
+        } else {
+          g.deactivate(true);
+        }
+        return;
       }
-      return;
+      n = n.parentNode;
     }
     n = n.parentNode;
   }
