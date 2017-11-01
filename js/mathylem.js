@@ -9,7 +9,6 @@ var debounce = require('throttle-debounce/debounce');
 var MathYlem = function (el, config) {
   var self = this;
   config = config || {};
-  var options = config['options'] || {};
 
   if (typeof el === 'string' || el instanceof String) {
     el = document.getElementById(el);
@@ -33,7 +32,6 @@ var MathYlem = function (el, config) {
   el.tabIndex = MathYlem.maxTabIndex++;
 
   this.active = true;
-  this.emptyContent = options['emptyContent'] || '\\red{[?]}';
   this.editor = el;
   this._focus = false;
   this._processedFakeInput = 20;
@@ -41,8 +39,6 @@ var MathYlem = function (el, config) {
 
   MathYlem.instances[el.id] = this;
   el.mathylem = this;
-
-  config['parent'] = self;
 
   if (/Mobi/.test(navigator.userAgent)) {
     var fakeInput = document.createElement('textarea');
@@ -107,7 +103,8 @@ var MathYlem = function (el, config) {
     fakeInput.value = '____________________';
   }
 
-  this.backend = new Backend(config);
+  this.emptyContent = config['emptyContent'] || '\\red{[?]}';
+  this.backend = new Backend(config, this);
   this.tempCursor = { 'node': null, 'caret': 0 };
   this.editor.addEventListener('click', function () {
     var g = this.mathylem;

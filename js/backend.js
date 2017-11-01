@@ -2,12 +2,11 @@ var Doc = require('./doc.js');
 var Symbols = require('./symbols.js');
 var EventEmitter = require('eventemitter3');
 
-var Backend = function (config) {
+var Backend = function (config, editor) {
   config = config || {};
   var events = config['events'] || {};
-  var options = config['options'] || {};
-  this.parent = config['parent'];
 
+  this.editor = editor;
   this.blacklist = [];
   this.autoreplace = true;
 
@@ -20,12 +19,12 @@ var Backend = function (config) {
 
   for (var i = 0; i < opts.length; i++) {
     var p = opts[i];
-    if (p in options) {
-      this[p] = options[p];
+    if (p in config) {
+      this[p] = config[p];
     }
   }
 
-  this.doc = new Doc(options['xmlContent']);
+  this.doc = new Doc(config['xmlContent']);
 
   this.current = this.doc.root().firstChild;
   this.caret = 0;
@@ -1167,8 +1166,8 @@ Backend.prototype.checkpoint = function () {
   this.current.removeAttribute('current');
   this.current.removeAttribute('caret');
   this.candidates = null;
-  if (this.parent && this.parent.ready) {
-    this.parent.render(true);
+  if (this.editor && this.editor.ready) {
+    this.editor.render(true);
   }
 };
 
