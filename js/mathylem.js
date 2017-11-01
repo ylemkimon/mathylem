@@ -364,7 +364,7 @@ MathYlem.mouseDown = function (e) {
           g._focus = false;
         }, 500);
         if (e.shiftKey) {
-          g.selectTo(e.clientX, e.clientY, true);
+          g.selectTo(e.clientX, e.clientY);
         } else {
           var loc = e.touches ? MathYlem.getLocation(e.touches[0].clientX,
             e.touches[0].clientY) : MathYlem.getLocation(e.clientX, e.clientY);
@@ -400,39 +400,56 @@ MathYlem.mouseMove = function (e) {
     var rect = bb.getBoundingClientRect();
     if (e.clientX < rect.left || e.clientX > rect.right ||
         e.clientY > rect.bottom || e.clientY < rect.top) {
+      if (g.tempCursor.node == null) {
+        return;
+      }
       g.tempCursor = {
         'node': null,
         'caret': 0
       };
     } else {
       var loc = MathYlem.getLocation(e.clientX, e.clientY);
-      if (!loc) {
+      if (!loc || (loc.current === g.tempCursor.node &&
+          loc.caret === g.tempCursor.caret)) {
         return;
       }
-      g.tempCursor = {
-        'node': loc.current,
-        'caret': loc.caret
-      };
+      if (loc.current === g.backend.current && loc.caret === g.backend.caret) {
+        if (g.tempCursor.node == null) {
+          return;
+        }
+        g.tempCursor = {
+          'node': null,
+          'caret': 0
+        };
+      } else {
+        g.tempCursor = {
+          'node': loc.current,
+          'caret': loc.caret
+        };
+      }
     }
-  } else {
-    g.selectTo(e.clientX, e.clientY, true);
+  } else if (!g.selectTo(e.clientX, e.clientY)) {
+    return;
   }
   g.render(g.isChanged());
 };
 
 MathYlem.touchMove = function (e) {
   var g = MathYlem.activeMathYlem;
-  if (!g) {
+  if (!g || !g.selectTo(e.touches[0].clientX, e.touches[0].clientY)) {
     return;
   }
-  g.selectTo(e.touches[0].clientX, e.touches[0].clientY, true);
   g.render(g.isChanged());
 };
 
-MathYlem.prototype.selectTo = function (x, y, mouse) {
-  var selCaret = this.backend.caret;
-  var selCursor = this.backend.current;
-  if (this.backend.selStatus === Backend.SEL_CURSOR_AT_START) {
+MathYlem.prototype.selectTo = function (x, y) {
+  var b = this.backend;
+  var selCaret;
+  var selCursor;
+  if (this.backend.selStatus === Backend.SEL_NONE) {
+    selCaret = this.backend.caret;
+    selCursor = this.backend.current;
+  } else if (this.backend.selStatus === Backend.SEL_CURSOR_AT_START) {
     selCursor = this.backend.selEnd.node;
     selCaret = this.backend.selEnd.caret;
   } else if (this.backend.selStatus === Backend.SEL_CURSOR_AT_END) {
@@ -440,10 +457,11 @@ MathYlem.prototype.selectTo = function (x, y, mouse) {
     selCaret = this.backend.selStart.caret;
   }
   var loc = MathYlem.getLocation(x, y, selCursor, selCaret);
-  if (!loc) {
-    return;
+  if (!loc || (loc.current === b.current && loc.caret === b.caret)) {
+    return false;
   }
-  this.backend.selectTo(loc, selCursor, selCaret, mouse);
+  this.backend.selectTo(loc, selCursor, selCaret, true);
+  return true;
 };
 
 if ('ontouchstart' in window) {
@@ -658,7 +676,6 @@ MathYlem.registerKeyboardHandlers = function () {
         MathYlem.activeMathYlem.tempCursor.node = null;
         MathYlem.activeMathYlem.render(['up', 'down', 'right', 'left', 'home',
           'end', 'selectLeft', 'selectRight'].indexOf(i) < 0);
-        MathYlem.activeMathYlem.render(false);
         return false;
       };
     }(i)));
