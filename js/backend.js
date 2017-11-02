@@ -41,12 +41,7 @@ Backend.prototype = Object.create(EventEmitter.prototype, {
 });
 
 Backend.CARET = '\\cursor{-0.2ex}{0.7em}';
-Backend.TEMP_SMALL_CARET = '\\cursor{-0.05em}{0.5em}';
-Backend.TEMP_CARET = '\\cursor{-0.2ex}{0.7em}';
 Backend.SMALL_CARET = '\\cursor{-0.05em}{0.5em}';
-Backend.SEL_CARET = '\\cursor{-0.2ex}{0.7em}';
-Backend.SMALL_SEL_CARET = '\\cursor{-0.05em}{0.5em}';
-Backend.SEL_COLOR = 'red';
 
 Backend.SEL_NONE = 0;
 Backend.SEL_CURSOR_AT_START = 1;
@@ -141,115 +136,72 @@ Backend.prototype.addCursorClasses = function (n, path) {
     var text = n.textContent;
     var ans = '';
     var selCursor;
-    var isTextNode = Doc.getCAttribute(n, 'text');
     if (this.selStatus === Backend.SEL_CURSOR_AT_START) {
       selCursor = this.selEnd;
-    }
-    if (this.selStatus === Backend.SEL_CURSOR_AT_END) {
+    } else if (this.selStatus === Backend.SEL_CURSOR_AT_END) {
       selCursor = this.selStart;
     }
-    if (this.selStatus !== Backend.SEL_NONE) {
-      var selCaretText = Doc.isSmall(selCursor.node)
-        ? Backend.SMALL_SEL_CARET : Backend.SEL_CARET;
-      if (!isTextNode && text.length === 0 && n.parentNode.childElementCount > 1) {
-        selCaretText = '\\blue{\\xmlClass{mathylem_elt mathylem_blank ' +
-          'mathylem_loc_' + n.getAttribute('path') + '_0}{' + selCaretText + '}}';
-      } else {
-        selCaretText = '\\blue{' + selCaretText + '}';
-      }
-      if (this.selStatus === Backend.SEL_CURSOR_AT_END) {
-        selCaretText = isTextNode ? '[' : selCaretText + '\\' +
-          Backend.SEL_COLOR + '{';
-      }
-      if (this.selStatus === Backend.SEL_CURSOR_AT_START) {
-        selCaretText = isTextNode ? ']' : '}' + selCaretText;
-      }
-    }
-    var caretText = '';
-    var tempCaretText = '';
-    if (text.length === 0) {
-      if (isTextNode) {
-        caretText = '\\_';
-      } else if (n.parentNode.childElementCount === 1) {
-        if (this.current === n) {
-          var blankCaret = this.blankCaret || (Doc.isSmall(this.current)
-            ? Backend.SMALL_CARET : Backend.CARET);
-          ans = '\\red{\\xmlClass{main_cursor mathylem_elt mathylem_blank ' +
-            'mathylem_loc_' + n.getAttribute('path') + '_0}{' + blankCaret + '}}';
-        } else if (this.tempCursor.node === n) {
-          ans = '\\gray{\\xmlClass{mathylem_elt mathylem_blank mathylem_loc_' +
-            n.getAttribute('path') + '_0}{[?]}}';
-        } else {
-          ans = '\\blue{\\xmlClass{mathylem_elt mathylem_blank mathylem_loc_' +
-            n.getAttribute('path') + '_0}{[?]}}';
-        }
-      } else if (this.tempCursor.node !== n && this.current !== n &&
-          (!selCursor || selCursor.node !== n)) {
-        // These are the empty e elements at either end of
-        // a c or m node, such as the space before and
-        // after both the sin and x^2 in sin(x^2)
-        //
-        // Here, we add in a small element so that we can
-        // use the mouse to select these areas
-        ans = '\\phantom{\\xmlClass{mathylem_elt mathylem_blank mathylem_loc_' +
-          n.getAttribute('path') + '_0}{\\cursor{0.1ex}{1ex}}}';
-      }
-    }
+
+    var caret = Doc.isSmall(this.current) ? Backend.SMALL_CARET : Backend.CARET;
     for (var i = 0; i < text.length + 1; i++) {
-      if (n === this.current && i === this.caret &&
-          (text.length > 0 || n.parentNode.childElementCount > 1)) {
-        if (isTextNode) {
-          if (this.selStatus === Backend.SEL_CURSOR_AT_START) {
-            caretText = '[';
-          } else if (this.selStatus === Backend.SEL_CURSOR_AT_END) {
-            caretText = ']';
+      if (n === this.current && i === this.caret) {
+        if (this.selStatus === Backend.SEL_CURSOR_AT_END) {
+          ans += '}';
+        }
+        if (text.length === 0) {
+          ans += '\\xmlClass{main-cursor my-elem my-blank loc_' +
+            n.getAttribute('path') + '_0}{' + caret + '}';
+        } else {
+          ans += '\\xmlClass{main-cursor}{' + caret + '}';
+        }
+        if (this.selStatus === Backend.SEL_CURSOR_AT_START) {
+          ans += '\\xmlClass{selection}{';
+        }
+      } else if (selCursor && n === selCursor.node && i === selCursor.caret) {
+        if (this.selStatus === Backend.SEL_CURSOR_AT_START) {
+          ans += '}';
+        }
+        var selCaret = Doc.isSmall(selCursor.node)
+          ? Backend.SMALL_CARET : Backend.CARET;
+        if (text.length === 0 && n.parentNode.childElementCount > 1) {
+          ans += '\\xmlClass{sel-cursor my-elem my-blank loc_' +
+            n.getAttribute('path') + '_0}{' + selCaret + '}';
+        } else {
+          ans += '\\xmlClass{sel-cursor}{' + selCaret + '}';
+        }
+        if (this.selStatus === Backend.SEL_CURSOR_AT_END) {
+          ans += '\\xmlClass{selection}{';
+        }
+      } else if (n === this.tempCursor.node && i === this.tempCursor.caret) {
+        if (text.length === 0) {
+          if (n.parentNode.childElementCount === 1) {
+            ans += '\\xmlClass{temp-cursor my-elem my-blank loc_' +
+              n.getAttribute('path') + '_0}{[?]}';
           } else {
-            caretText = '\\_';
+            ans += '\\xmlClass{temp-cursor my-elem my-blank loc_' +
+              n.getAttribute('path') + '_0}{' + caret + '}';
           }
         } else {
-          caretText = Doc.isSmall(this.current) ? Backend.SMALL_CARET
-            : Backend.CARET;
-          if (text.length === 0) {
-            caretText = '\\red{\\xmlClass{main_cursor mathylem_elt mathylem_blank' +
-              ' mathylem_loc_' + n.getAttribute('path') + '_0}{' + caretText + '}}';
-          } else {
-            caretText = '\\red{\\xmlClass{main_cursor}{' + caretText + '}}';
-          }
-          if (this.selStatus === Backend.SEL_CURSOR_AT_START) {
-            caretText = caretText + '\\' + Backend.SEL_COLOR + '{';
-          } else if (this.selStatus === Backend.SEL_CURSOR_AT_END) {
-            caretText = '}' + caretText;
-          }
+          ans += '\\xmlClass{temp-cursor}{' + caret + '}';
         }
-        ans += caretText;
-      } else if (n === this.current && i === this.caret && isTextNode) {
-        ans += caretText;
-      } else if (this.selStatus !== Backend.SEL_NONE &&
-          selCursor.node === n && i === selCursor.caret) {
-        ans += selCaretText;
-      } else if (this.tempCursor.node === n && i === this.tempCursor.caret &&
-          (text.length > 0 || n.parentNode.childElementCount > 1)) {
-        if (isTextNode) {
-          tempCaretText = '.';
+      } else if (text.length === 0) {
+        if (n.parentNode.childElementCount === 1) {
+          ans = '\\xmlClass{placeholder my-elem my-blank loc_' +
+            n.getAttribute('path') + '_0}{[?]}';
         } else {
-          tempCaretText = Doc.isSmall(this.current)
-            ? Backend.TEMP_SMALL_CARET : Backend.TEMP_CARET;
-          if (text.length === 0) {
-            tempCaretText = '\\gray{\\xmlClass{mathylem_elt mathylem_blank math' +
-              'ylem_loc_' + n.getAttribute('path') + '_0}{' + tempCaretText + '}}';
-          } else {
-            tempCaretText = '\\gray{' + tempCaretText + '}';
-          }
+          // Here, we add in a small element so that we can
+          // use the mouse to select these areas
+          ans = '\\phantom{\\xmlClass{my-elem my-blank loc_' +
+            n.getAttribute('path') + '_0}{\\cursor{0.1ex}{1ex}}}';
         }
-        ans += tempCaretText;
       }
       if (i < text.length) {
-        ans += '\\xmlClass{mathylem_elt mathylem_loc_' + n.getAttribute('path') +
-          '_' + i + '}{' + text[i] + '}';
+        ans += '\\xmlClass{my-elem loc_' + n.getAttribute('path') + '_' + i +
+          '}{' + text[i] + '}';
       }
     }
-    if (isTextNode && (n === this.current || Doc.getFName(n) === 'text')) {
-      ans = '\\xmlClass{mathylem_text_current}{{' + ans + '}}';
+    if (Doc.getCAttribute(n, 'text') && n === this.current) {
+      ans = '\\xmlClass{my-text}{{' + ans + '}}';
     }
     n.setAttribute('render', ans);
     n.removeAttribute('path');
