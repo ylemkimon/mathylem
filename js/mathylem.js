@@ -38,15 +38,10 @@ var MathYlem = function (el, config) {
   this.active = true;
   this.emptyContent = config['emptyContent'] || '\\red{[?]}';
   this._focus = false;
-  this.ready = false;
+  this.tempCursor = { 'node': null, 'caret': 0 };
 
   this.backend = new Backend(config, this);
-  this.tempCursor = { 'node': null, 'caret': 0 };
-  if (Backend.ready) {
-    this.ready = true;
-    this.backend.emit('ready');
-    this.render(true);
-  }
+  this.backend.checkpoint();
   this.deactivate(true);
 };
 
@@ -61,43 +56,6 @@ MathYlem.maxTabIndex = 0;
 MathYlem.instances = {};
 
 MathYlem.activeMathYlem = null;
-
-MathYlem.initialize = function (symbols) {
-  var allReady = function () {
-    MathYlem.registerKeyboardHandlers();
-    for (var i in MathYlem.instances) {
-      MathYlem.instances[i].ready = true;
-      MathYlem.instances[i].render(true);
-      MathYlem.instances[i].backend.emit('ready');
-    }
-    Backend.ready = true;
-  };
-  if (!Array.isArray(symbols)) {
-    symbols = [symbols];
-  }
-  var calls = [];
-  for (var i = 0; i < symbols.length; i++) {
-    var x = (function outer (j) {
-      return function (callback) {
-        var req = new XMLHttpRequest();
-        req.onload = function () {
-          Symbols.addSymbols(this.responseText);
-          callback();
-        };
-        req.open('get', symbols[j], true);
-        req.send();
-      };
-    }(i));
-    calls.push(x);
-  }
-  calls.push(allReady);
-  var j = 0;
-  var cb = function () {
-    j++;
-    calls[j](cb);
-  };
-  calls[0](cb);
-};
 
 MathYlem.prototype.createEditor = function (el) {
   var self = this;
@@ -517,7 +475,7 @@ MathYlem.prototype.render = function (updated) {
   } catch (e) {
     console.log(e); // eslint-disable-line no-console
     this.backend.undo();
-    this.render(false);
+    this.render();
   }
   if (updated) {
     this.computeLocations();
@@ -539,10 +497,8 @@ MathYlem.prototype.activate = function (focus) {
       this.editor.focus();
     }
   }
-  if (this.ready) {
-    this.render(true);
-    this.backend.emit('focus', { 'focused': true });
-  }
+  this.render(true);
+  this.backend.emit('focus', { 'focused': true });
 };
 
 MathYlem.prototype.deactivate = function (blur) {
@@ -552,10 +508,8 @@ MathYlem.prototype.deactivate = function (blur) {
   if (blur && this.fakeInput) {
     this.fakeInput.blur();
   }
-  if (this.ready) {
-    this.render();
-    this.backend.emit('focus', { 'focused': false });
-  }
+  this.render();
+  this.backend.emit('focus', { 'focused': false });
 };
 
 // Keyboard stuff
@@ -641,49 +595,47 @@ for (var i = 48; i <= 57; i++) { // eslint-disable-line no-redeclare
   MathYlem.kb.chars[String.fromCharCode(i)] = String.fromCharCode(i);
 }
 
-MathYlem.registerKeyboardHandlers = function () {
-  // Firefox's special minus (needed for _ = sub binding)
-  Mousetrap.addKeycodes({ 173: '-' });
-  for (var i in MathYlem.kb.chars) { // eslint-disable-line no-redeclare
-    Mousetrap.bind(i, (function (i) {
-      return function () {
-        if (!MathYlem.activeMathYlem) {
-          return true;
-        }
-        MathYlem.activeMathYlem.tempCursor.node = null;
-        MathYlem.activeMathYlem.backend.insertString(MathYlem.kb.chars[i]);
-        MathYlem.activeMathYlem.render(true);
-        return false;
-      };
-    }(i)));
-  }
-  for (var i in MathYlem.kb.symbols) { // eslint-disable-line no-redeclare
-    Mousetrap.bind(i, (function (i) {
-      return function () {
-        if (!MathYlem.activeMathYlem) {
-          return true;
-        }
-        MathYlem.activeMathYlem.tempCursor.node = null;
-        MathYlem.activeMathYlem.backend.insertSymbol(MathYlem.kb.symbols[i]);
-        MathYlem.activeMathYlem.render(true);
-        return false;
-      };
-    }(i)));
-  }
-  for (var i in MathYlem.kb.controls) { // eslint-disable-line no-redeclare
-    Mousetrap.bind(i, (function (i) {
-      return function () {
-        if (!MathYlem.activeMathYlem) {
-          return true;
-        }
-        MathYlem.activeMathYlem.backend[MathYlem.kb.controls[i]]();
-        MathYlem.activeMathYlem.tempCursor.node = null;
-        MathYlem.activeMathYlem.render(['up', 'down', 'right', 'left', 'home',
-          'end', 'selectLeft', 'selectRight'].indexOf(i) < 0);
-        return false;
-      };
-    }(i)));
-  }
-};
+// Firefox's special minus (needed for _ = sub binding)
+Mousetrap.addKeycodes({ 173: '-' });
+for (var i in MathYlem.kb.chars) { // eslint-disable-line no-redeclare
+  Mousetrap.bind(i, (function (i) {
+    return function () {
+      if (!MathYlem.activeMathYlem) {
+        return true;
+      }
+      MathYlem.activeMathYlem.tempCursor.node = null;
+      MathYlem.activeMathYlem.backend.insertString(MathYlem.kb.chars[i]);
+      MathYlem.activeMathYlem.render(true);
+      return false;
+    };
+  }(i)));
+}
+for (var i in MathYlem.kb.symbols) { // eslint-disable-line no-redeclare
+  Mousetrap.bind(i, (function (i) {
+    return function () {
+      if (!MathYlem.activeMathYlem) {
+        return true;
+      }
+      MathYlem.activeMathYlem.tempCursor.node = null;
+      MathYlem.activeMathYlem.backend.insertSymbol(MathYlem.kb.symbols[i]);
+      MathYlem.activeMathYlem.render(true);
+      return false;
+    };
+  }(i)));
+}
+for (var i in MathYlem.kb.controls) { // eslint-disable-line no-redeclare
+  Mousetrap.bind(i, (function (i) {
+    return function () {
+      if (!MathYlem.activeMathYlem) {
+        return true;
+      }
+      MathYlem.activeMathYlem.backend[MathYlem.kb.controls[i]]();
+      MathYlem.activeMathYlem.tempCursor.node = null;
+      MathYlem.activeMathYlem.render(['up', 'down', 'right', 'left', 'home',
+        'end', 'selectLeft', 'selectRight'].indexOf(i) < 0);
+      return false;
+    };
+  }(i)));
+}
 
 module.exports = MathYlem;

@@ -33,7 +33,6 @@ var Backend = function (config, editor) {
   this.undoData = [];
   this.undoCurrent = -1;
   this.selStatus = Backend.SEL_NONE;
-  this.checkpoint();
 };
 
 Backend.prototype = Object.create(EventEmitter.prototype, {
@@ -1120,7 +1119,7 @@ Backend.prototype.checkpoint = function () {
   this.current.removeAttribute('current');
   this.current.removeAttribute('caret');
   this.candidates = null;
-  if (this.editor && this.editor.ready) {
+  if (this.editor) {
     this.editor.render(true);
   }
 };

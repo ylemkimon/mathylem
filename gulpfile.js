@@ -55,8 +55,8 @@ gulp.task('css', function () {
   var scss = gulp.src('./css/*.scss')
     .on('error', gutil.log)
     .pipe(sass())
-    .pipe(prefix())
-  
+    .pipe(prefix());
+
   return merge(scss, gulp.src('node_modules/katex/static/katex.css'))
     .pipe(concat('mathylem.css'))
     .pipe(gulp.dest(BUILD))
@@ -70,9 +70,4 @@ gulp.task('fonts', function () {
     .pipe(gulp.dest(BUILD + 'fonts/'));
 });
 
-gulp.task('symbols', function () {
-  return gulp.src('data/*.json')
-    .pipe(gulp.dest(BUILD));
-});
-
-gulp.task('default', ['js', 'css', 'fonts', 'symbols']);
+gulp.task('default', ['js', 'css', 'fonts']);

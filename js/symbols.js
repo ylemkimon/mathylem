@@ -1,4 +1,5 @@
 var Symbols = { 'symbols': {} };
+var defaultSymbols = require('../data/symbols.json');
 
 Symbols.makeRawSymbol = function (name, latex) {
   return {
@@ -59,4 +60,5 @@ Symbols.addSymbols = function (symbols) {
   }
 };
 
+Symbols.addSymbols(defaultSymbols);
 module.exports = Symbols;

@@ -15,7 +15,6 @@ $('document').ready(function () {
     $('#stuff')[0].innerHTML = '';
   });
 
-  MathYlem.initialize(['build/symbols.json']);
   mathylem = new MathYlem('mathylem1', {
     'events': {
       'right_end': function () {},
