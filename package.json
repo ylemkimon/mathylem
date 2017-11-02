@@ -30,6 +30,11 @@
     "./js/xmldom/node.js": "./js/xmldom/browser.js",
     "./mathylem.js": "./js/mathylem.js"
   },
+  "browserslist": [
+    "last 5 versions",
+    "> 1%",
+    "not ie < 9"
+  ],
   "dependencies": {
     "eventemitter3": "^2.0.3",
     "katex": "github:ylemkimon/katex",
@@ -52,12 +57,15 @@
     "eslint-plugin-promise": "^3.6.0",
     "eslint-plugin-standard": "^3.0.1",
     "gulp": "^3.9.1",
+    "gulp-autoprefixer": "^4.0.0",
     "gulp-clean-css": "^3.9.0",
     "gulp-concat": "^2.6.1",
     "gulp-rename": "^1.2.2",
+    "gulp-sass": "^3.1.0",
     "gulp-sourcemaps": "^2.6.1",
     "gulp-uglify": "^3.0.0",
     "gulp-util": "^3.0.8",
+    "merge-stream": "^1.0.1",
     "vinyl-buffer": "^1.0.0",
     "vinyl-source-stream": "^1.1.0"
   }
