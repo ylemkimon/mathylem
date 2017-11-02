@@ -83,6 +83,8 @@ Backend.prototype.setContent = function (xmlData) {
 };
 
 Backend.prototype.selectTo = function (loc, selCursor, selCaret, mouse) {
+  this.current = loc.current;
+  this.caret = loc.caret;
   if (loc.current === selCursor && loc.caret === selCaret) {
     this.selStatus = Backend.SEL_NONE;
   } else if (loc.pos === 'left') {
@@ -98,8 +100,6 @@ Backend.prototype.selectTo = function (loc, selCursor, selCaret, mouse) {
     };
     this.setSelection(Backend.SEL_CURSOR_AT_END, mouse);
   }
-  this.current = loc.current;
-  this.caret = loc.caret;
 };
 
 Backend.prototype.setSelStart = function () {
