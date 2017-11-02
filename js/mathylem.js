@@ -154,7 +154,6 @@ MathYlem.prototype.createFakeInput = function (el) {
     for (; self._processedFakeInput <
         self.fakeInput.value.length; self._processedFakeInput++) {
       var c = self.fakeInput.value[self._processedFakeInput];
-      console.log(c);
       if (c !== c.toLowerCase()) {
         Mousetrap.trigger('shift+' + c.toLowerCase());
       } else if (c === ' ') {
@@ -517,6 +516,7 @@ MathYlem.prototype.render = function (updated) {
   try {
     katex.render(tex, this.editor);
   } catch (e) {
+    console.log(e); // eslint-disable-line no-console
     this.backend.undo();
     this.render(false);
   }
