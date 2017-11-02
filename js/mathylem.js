@@ -363,24 +363,24 @@ MathYlem.mouseDown = function (e) {
   var n = e.target;
   MathYlem.kb.isMouseDown = true;
   var g = MathYlem.activeMathYlem;
-  if (g) {
-    while (n != null) {
-      if (n === g.editor) {
-        if (e.shiftKey) {
-          g.selectTo(e.clientX, e.clientY);
-        } else {
-          var loc = e.touches ? MathYlem.getLocation(e.touches[0].clientX,
-            e.touches[0].clientY) : MathYlem.getLocation(e.clientX, e.clientY);
-          if (!loc) {
-            return;
-          }
-          var b = g.backend;
-          b.current = loc.current;
-          b.caret = loc.caret;
-          b.selStatus = Backend.SEL_NONE;
+  while (n != null) {
+    if (g && n === g.editor) {
+      if (e.shiftKey) {
+        g.selectTo(e.clientX, e.clientY);
+      } else {
+        var loc = e.touches ? MathYlem.getLocation(e.touches[0].clientX,
+          e.touches[0].clientY) : MathYlem.getLocation(e.clientX, e.clientY);
+        if (!loc) {
+          return;
         }
-        g.render(true);
-      } else if (n.mathylem) {
+        var b = g.backend;
+        b.current = loc.current;
+        b.caret = loc.caret;
+        b.selStatus = Backend.SEL_NONE;
+      }
+      g.render(true);
+    } else if (n.mathylem) {
+      if (g) {
         if (n.mathylem === g) {
           g._focus = true;
           setTimeout(function () {
@@ -389,9 +389,8 @@ MathYlem.mouseDown = function (e) {
         } else {
           g.deactivate(true);
         }
-        return;
       }
-      n = n.parentNode;
+      return;
     }
     n = n.parentNode;
   }
@@ -458,8 +457,8 @@ MathYlem.prototype.selectTo = function (x, y) {
   var selCaret;
   var selCursor;
   if (this.backend.selStatus === Backend.SEL_NONE) {
-    selCaret = this.backend.caret;
     selCursor = this.backend.current;
+    selCaret = this.backend.caret;
   } else if (this.backend.selStatus === Backend.SEL_CURSOR_AT_START) {
     selCursor = this.backend.selEnd.node;
     selCaret = this.backend.selEnd.caret;
