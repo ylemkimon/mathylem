@@ -1,0 +1,47 @@
+.mathylem {
+  border: 2px solid #bdc3c7;
+  background-color: #fafafa;
+  border-radius: 5px;
+  box-shadow: 1px 1px 1px 0 lightgray inset;
+  cursor: text;
+  min-height:60px;
+  overflow: auto;
+  padding: 10px;
+  -webkit-touch-callout: none;
+  user-select: none;
+
+  .main-cursor {
+    color: #df0030;
+  }
+  .sel-cursor {
+    color: #ffa500;
+  }
+  .temp-cursor {
+    color: gray;
+  }
+
+  .placeholder {
+    color: #6495ed;
+  }
+  .selection {
+    color: #df0030;
+  }
+  .my-text {
+    border: 1px solid #ccc;
+    margin: 1px;
+  }
+}
+
+.my-active {
+  background-color: #fff;
+
+  .main-cursor {
+    animation: blink-animation 1s steps(2, start) infinite;
+  }
+}
+
+@keyframes blink-animation {
+  to {
+    visibility: hidden;
+  }
+}

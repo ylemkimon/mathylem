@@ -216,7 +216,7 @@ MathYlem.prototype.computeLocations = function () {
     'left': rect.left,
     'right': rect.right
   });
-  var elts = this.editor.getElementsByClassName('mathylem_elt');
+  var elts = this.editor.getElementsByClassName('my-elem');
   for (var i = 0; i < elts.length; i++) {
     var elt = elts[i];
     if (elt.nodeName === 'mstyle') {
@@ -229,7 +229,7 @@ MathYlem.prototype.computeLocations = function () {
     }
     var cl = elt.className.split(/\s+/);
     for (var j = 0; j < cl.length; j++) {
-      if (cl[j].substr(0, 12) === 'mathylem_loc') {
+      if (cl[j].substr(0, 3) === 'loc') {
         ans.push({
           'path': cl[j],
           'top': rect.top,
@@ -238,7 +238,7 @@ MathYlem.prototype.computeLocations = function () {
           'right': rect.right,
           'midX': (rect.left + rect.right) / 2,
           'midY': (rect.bottom + rect.top) / 2,
-          'blank': cl.indexOf('mathylem_blank') >= 0
+          'blank': cl.indexOf('my-blank') >= 0
         });
         break;
       }
@@ -250,7 +250,7 @@ MathYlem.prototype.computeLocations = function () {
 MathYlem.getPath = function (n) {
   var name = n.nodeName;
   if (name === 'm') {
-    return 'mathylem_loc_m';
+    return 'loc_m';
   }
   var ns = 0;
   for (var nn = n; nn != null; nn = nn.previousSibling) {
@@ -299,7 +299,7 @@ MathYlem.getLocation = function (x, y, currentNode, currentCaret) {
     var box = boxes[i];
     if (box.path === 'all') {
       if (!opt) {
-        opt = { 'path': 'mathylem_loc_m_e1_0' };
+        opt = { 'path': 'loc_m_e1_0' };
       }
       continue;
     }
@@ -312,7 +312,7 @@ MathYlem.getLocation = function (x, y, currentNode, currentCaret) {
       opt = box;
     }
   }
-  var loc = opt.path.substring('mathylem_loc_m_'.length).split(/_/);
+  var loc = opt.path.substring('loc_m_'.length).split(/_/);
   var node = g.backend.doc.root();
   for (var i = 0; i < loc.length - 1; i++) { // eslint-disable-line no-redeclare
     var name = loc[i][0];
@@ -528,8 +528,7 @@ MathYlem.prototype.render = function (updated) {
 MathYlem.prototype.activate = function (focus) {
   MathYlem.activeMathYlem = this;
   this.active = true;
-  this.editor.className = this.editor.className.replace(
-    new RegExp('(\\s|^)mathylem_inactive(\\s|$)'), ' mathylem_active ');
+  this.editor.className += ' my-active';
   if (focus) {
     if (this.fakeInput) {
       this.fakeInput.style.top = this.editor.offsetTop + 'px';
@@ -549,14 +548,8 @@ MathYlem.prototype.activate = function (focus) {
 
 MathYlem.prototype.deactivate = function (blur) {
   this.active = false;
-  var r1 = new RegExp('(?:\\s|^)mathylem_active(?:\\s|$)');
-  var r2 = new RegExp('(?:\\s|^)mathylem_inactive(?:\\s|$)');
-  if (this.editor.className.match(r1)) {
-    this.editor.className = this.editor.className.replace(r1,
-      ' mathylem_inactive ');
-  } else if (!this.editor.className.match(r2)) {
-    this.editor.className += ' mathylem_inactive ';
-  }
+  this.editor.className = this.editor.className.replace(new RegExp(
+    '(\\s+|^)my-active(\\s+|$)'), ' ');
   if (blur && this.fakeInput) {
     this.fakeInput.blur();
   }

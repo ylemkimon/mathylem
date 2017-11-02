@@ -1,6 +1,9 @@
 var browserify = require('browserify');
 var gulp = require('gulp');
 var concat = require('gulp-concat');
+var merge = require('merge-stream');
+var sass = require('gulp-sass');
+var prefix = require('gulp-autoprefixer');
 var cleancss = require('gulp-clean-css');
 var source = require('vinyl-source-stream');
 var buffer = require('vinyl-buffer');
@@ -49,7 +52,12 @@ gulp.task('js-debug', function () {
 });
 
 gulp.task('css', function () {
-  return gulp.src(['node_modules/katex/static/katex.css', './css/*.css'])
+  var scss = gulp.src('./css/*.scss')
+    .on('error', gutil.log)
+    .pipe(sass())
+    .pipe(prefix())
+  
+  return merge(scss, gulp.src('node_modules/katex/static/katex.css'))
     .pipe(concat('mathylem.css'))
     .pipe(gulp.dest(BUILD))
     .pipe(rename({ extname: '.min.css' }))
