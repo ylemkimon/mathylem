@@ -1097,11 +1097,13 @@ Backend.prototype.down = function () {
 };
 
 Backend.prototype.home = function () {
+  this.clearSelection();
   this.current = this.doc.root().firstChild;
   this.caret = 0;
 };
 
 Backend.prototype.end = function () {
+  this.clearSelection();
   this.current = this.doc.root().lastChild;
   this.caret = this.current.textContent.length;
 };
