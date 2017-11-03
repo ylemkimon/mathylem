@@ -334,7 +334,7 @@ MathYlem.mouseDown = function (e) {
         var b = g.backend;
         b.current = loc.current;
         b.caret = loc.caret;
-        b.selStatus = Backend.SEL_NONE;
+        b.clearSelection();
       }
       g.render(true);
     } else if (n.mathylem) {

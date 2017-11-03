@@ -28,11 +28,9 @@ var Backend = function (config, editor) {
 
   this.current = this.doc.root().firstChild;
   this.caret = 0;
-  this.selStart = null;
-  this.selEnd = null;
+  this.clearSelection();
   this.undoData = [];
   this.undoCurrent = -1;
-  this.selStatus = Backend.SEL_NONE;
 };
 
 Backend.prototype = Object.create(EventEmitter.prototype, {
@@ -68,11 +66,9 @@ Backend.prototype.setContent = function (xmlData) {
   this.doc = new Doc(xmlData);
   this.current = this.doc.root().lastChild;
   this.caret = this.current.textContent.length;
-  this.selStart = null;
-  this.selEnd = null;
+  this.clearSelection();
   this.undoData = [];
   this.undoCurrent = -1;
-  this.selStatus = Backend.SEL_NONE;
   this.checkpoint();
 };
 
@@ -80,7 +76,7 @@ Backend.prototype.selectTo = function (loc, selCursor, selCaret, mouse) {
   this.current = loc.current;
   this.caret = loc.caret;
   if (loc.current === selCursor && loc.caret === selCaret) {
-    this.selStatus = Backend.SEL_NONE;
+    this.clearSelection();
   } else if (loc.pos === 'left') {
     this.selEnd = {
       'node': selCursor,
@@ -478,7 +474,6 @@ Backend.prototype.makeE = function (text) {
 Backend.prototype.insertString = function (s) {
   if (this.selStatus !== Backend.SEL_NONE) {
     this.deleteSelection();
-    this.clearSelection();
   }
   if ((s === '*' && this.checkForPow()) || (s === '=' && this.checkForIneq())) {
     return;
@@ -514,7 +509,6 @@ Backend.prototype.cutSelection = function () {
   for (var i = 0; i < nodeList.length; i++) {
     Backend.Clipboard.push(nodeList[i].cloneNode(true));
   }
-  this.clearSelection();
   this.checkpoint();
 };
 
@@ -554,7 +548,6 @@ Backend.prototype.insertNodes = function (nodeList, moveCursor) {
 
 Backend.prototype.paste = function () {
   this.deleteSelection();
-  this.clearSelection();
   if (!Backend.Clipboard || Backend.Clipboard.length === 0) {
     return;
   }
@@ -594,13 +587,14 @@ Backend.prototype.deleteSelection = function () {
   }
   this.current = sel.remnant;
   this.caret = this.selStart.caret;
+  this.clearSelection();
   return sel.nodeList;
 };
 
 Backend.prototype.selectAll = function () {
-  this.home();
+  this.home(true);
   this.setSelStart();
-  this.end();
+  this.end(true);
   this.setSelEnd();
   if (this.selStart.node !== this.selEnd.node ||
       this.selStart.caret !== this.selEnd.caret) {
@@ -628,7 +622,7 @@ Backend.prototype.selectRight = function () {
   }
   if (this.selStart.node === this.selEnd.node &&
       this.selStart.caret === this.selEnd.caret) {
-    this.selStatus = Backend.SEL_NONE;
+    this.clearSelection();
   }
 };
 
@@ -663,7 +657,7 @@ Backend.prototype.selectLeft = function () {
   }
   if (this.selStart.node === this.selEnd.node &&
       this.selStart.caret === this.selEnd.caret) {
-    this.selStatus = Backend.SEL_NONE;
+    this.clearSelection();
   }
 };
 
@@ -733,6 +727,7 @@ Backend.prototype.extendList = function (direction, copy) {
   if (!n.parentNode) {
     return;
   }
+  this.clearSelection();
   var toInsert;
 
   // check if 2D and horizontal and extend all the other rows if so 
@@ -811,6 +806,7 @@ Backend.prototype.removeListColumn = function () {
   } else {
     return;
   }
+  this.clearSelection();
 
   var pos = 0;
   var cc = n;
@@ -849,6 +845,7 @@ Backend.prototype.removeListRow = function () {
   } else {
     return;
   }
+  this.clearSelection();
   n.parentNode.removeChild(n);
 };
 
@@ -873,6 +870,7 @@ Backend.prototype.removeListItem = function () {
   } else {
     return;
   }
+  this.clearSelection();
   n.parentNode.removeChild(n);
 };
 
@@ -1003,7 +1001,6 @@ Backend.prototype.deleteForwardFromE = function () {
 Backend.prototype.backspace = function () {
   if (this.selStatus !== Backend.SEL_NONE) {
     this.deleteSelection();
-    this.selStatus = Backend.SEL_NONE;
     this.checkpoint();
   } else if (this.deleteFromE()) {
     this.checkpoint();
@@ -1013,7 +1010,6 @@ Backend.prototype.backspace = function () {
 Backend.prototype.deleteKey = function () {
   if (this.selStatus !== Backend.SEL_NONE) {
     this.deleteSelection();
-    this.selStatus = Backend.SEL_NONE;
     this.checkpoint();
   } else if (this.deleteForwardFromE()) {
     this.checkpoint();
@@ -1023,11 +1019,13 @@ Backend.prototype.deleteKey = function () {
 Backend.prototype.tab = function () {
   if (Doc.getFName(this.current) !== 'symbol') {
     this.checkForSymbol();
+    this.clearSelection();
     return;
   }
   if (this.candidates != null) {
     var suggestion = this.candidates.shift();
     this.candidates.push(suggestion);
+    this.clearSelection();
     this.current.textContent = suggestion;
     this.caret = suggestion.length;
   } else {
@@ -1049,6 +1047,7 @@ Backend.prototype.tab = function () {
 
 Backend.prototype.leftParen = function () {
   if (Doc.getFName(this.current) === 'symbol') {
+    this.clearSelection();
     this.replaceSymbol(this.current.parentNode.parentNode, 'func',
       [[this.current]]);
   } else {
@@ -1095,14 +1094,18 @@ Backend.prototype.down = function () {
   }
 };
 
-Backend.prototype.home = function () {
-  this.clearSelection();
+Backend.prototype.home = function (select) {
+  if (!select) {
+    this.clearSelection();
+  }
   this.current = this.doc.root().firstChild;
   this.caret = 0;
 };
 
-Backend.prototype.end = function () {
-  this.clearSelection();
+Backend.prototype.end = function (select) {
+  if (!select) {
+    this.clearSelection();
+  }
   this.current = this.doc.root().lastChild;
   this.caret = this.current.textContent.length;
 };
@@ -1168,6 +1171,7 @@ Backend.prototype.completeSymbol = function () {
     return;
   }
   this.current = this.current.parentNode.parentNode;
+  this.clearSelection();
   this.deleteFromF();
   this.insertSymbol(name);
 };
