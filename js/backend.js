@@ -1007,8 +1007,8 @@ Backend.prototype.deleteKey = function () {
 
 Backend.prototype.tab = function () {
   if (Doc.getFName(this.current) !== 'symbol') {
-    this.checkForSymbol(true);
     this.clearSelection();
+    this.checkForSymbol(true);
     return;
   }
   if (this.candidates != null) {
