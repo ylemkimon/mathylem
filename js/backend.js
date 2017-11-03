@@ -15,7 +15,7 @@ var Backend = function (config, editor) {
     this.on(e, events[e]);
   }
 
-  var opts = ['blankCaret', 'emptyContent', 'blacklist', 'autoreplace'];
+  var opts = ['blacklist', 'autoreplace'];
 
   for (var i = 0; i < opts.length; i++) {
     var p = opts[i];
