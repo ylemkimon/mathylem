@@ -270,19 +270,14 @@ Backend.prototype.symbolToNode = function (name, content) {
     f.setAttribute('c', 'yes');
   }
 
-  var firstRef = -1;
   var refsCount = 0;
   var lists = {};
-  var first;
 
   // Make the b nodes for rendering each output
   var out = s['output']['latex'].split(/(\{\$[0-9]+(?:\{[^}]+\})*\})/g);
   for (var i = 0; i < out.length; i++) {
     var m = out[i].match(/^\{\$([0-9]+)((?:\{[^}]+\})*)\}$/);
     if (m) {
-      if (firstRef === -1) {
-        firstRef = parseInt(m[1]);
-      }
       if (m[2].length > 0) {
         lists[refsCount] = m[2].match(/\{[^}]*\}/g).length;
       }
@@ -301,9 +296,6 @@ Backend.prototype.symbolToNode = function (name, content) {
     } else {
       nc.appendChild(this.makeE(''));
     }
-    if (i + 1 === firstRef) {
-      first = nc.lastChild;
-    }
     if (i in lists) {
       var par = f;
       for (var j = 0; j < lists[i]; j++) {
@@ -318,7 +310,7 @@ Backend.prototype.symbolToNode = function (name, content) {
       f.appendChild(nc);
     }
   }
-  return { 'f': f, 'first': first };
+  return f;
 };
 
 Backend.prototype.insertSymbol = function (name) {
@@ -389,8 +381,7 @@ Backend.prototype.insertSymbol = function (name) {
   // rightPiece in that order.
   var currentParent = this.current.parentNode;
 
-  var symbol = this.symbolToNode(name, content);
-  var f = symbol.f;
+  var f = this.symbolToNode(name, content);
 
   var next = this.current.nextSibling;
 
@@ -1190,7 +1181,7 @@ Backend.prototype.replaceSymbol = function (node, name, content) {
   if (!symbol || this.isBlacklisted(name)) {
     return false;
   }
-  var f = this.symbolToNode(name, content || []).f;
+  var f = this.symbolToNode(name, content || []);
   node.parentNode.replaceChild(f, node);
   if (!symbol['char']) {
     this.caret = 0;
