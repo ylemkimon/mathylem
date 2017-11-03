@@ -266,9 +266,6 @@ Backend.prototype.symbolToNode = function (name, content) {
   var s = Symbols.symbols[name];
   var f = base.createElement('f');
   f.setAttribute('type', name);
-  if (s['char']) {
-    f.setAttribute('c', 'yes');
-  }
 
   var refsCount = 0;
   var lists = {};
@@ -927,18 +924,20 @@ Backend.prototype.deleteFromE = function () {
     this.caret--;
   } else {
     // The order of these is important
-    if (this.current.previousSibling != null &&
-        this.current.previousSibling.getAttribute('c') === 'yes') {
-      // The previous node is an f node but is really just a character.  Delete it.
-      this.current = this.current.previousSibling;
-      this.deleteFromF();
-    } else if (this.current.previousSibling != null &&
-        this.current.previousSibling.nodeName === 'f') {
+    var prev = this.current.previousSibling;
+    var par = this.current.parentNode;
+    if (prev != null && prev.nodeName === 'f') {
       // We're in an e node just after an f node. 
       // Move back into the f node (delete it?)
+      if (Symbols.symbols[prev.getAttribute('type')]['char']) {
+        // The previous node is an f node but is really just a character. Delete it.
+        this.current = prev;
+        this.deleteFromF();
+        return true;
+      }
       this.left();
       return false;
-    } else if (this.current.parentNode.previousSibling != null) {
+    } else if (par.previousSibling != null) {
       // We're in a c child of an f node, but not the first one.
       // Go to the previous c
       if (Doc.getCAttribute(this.current, 'delete')) {
@@ -947,11 +946,10 @@ Backend.prototype.deleteFromE = function () {
         this.left();
         return false;
       }
-    } else if (this.current.previousSibling == null && this.current.parentNode
-      .nodeName === 'c' && this.current.parentNode.previousSibling == null) {
+    } else if (prev == null && par.nodeName === 'c' &&
+        par.previousSibling == null) {
       // We're in the first c child of an f node and at the beginning
       // delete the f node
-      var par = this.current.parentNode;
       while (par.parentNode.nodeName === 'l' || par.parentNode.nodeName === 'c') {
         par = par.parentNode;
       }
