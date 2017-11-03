@@ -1007,7 +1007,7 @@ Backend.prototype.deleteKey = function () {
 
 Backend.prototype.tab = function () {
   if (Doc.getFName(this.current) !== 'symbol') {
-    this.checkForSymbol();
+    this.checkForSymbol(true);
     this.clearSelection();
     return;
   }
@@ -1212,7 +1212,7 @@ Backend.prototype.checkForIneq = function () {
   return false;
 };
 
-Backend.prototype.checkForSymbol = function () {
+Backend.prototype.checkForSymbol = function (force) {
   if (Doc.getCAttribute(this.current, 'text')) {
     return;
   }
@@ -1225,7 +1225,7 @@ Backend.prototype.checkForSymbol = function () {
     return;
   }
   for (var s in Symbols.symbols) {
-    if (['psi', 'xi'].indexOf(s) > -1) {
+    if (!force && ['psi', 'xi'].indexOf(s) > -1) {
       continue;
     }
     if (this.current.nodeName === 'e' &&
