@@ -1,14 +1,484 @@
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.MathYlem = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+module.exports={
+  "text": {
+    "output": {
+      "latex": "\\text{{$1}}",
+      "text": "'{$1}'"
+    },
+    "attrs": [
+      {
+        "text": true
+      }
+    ]
+  },
+  "symbol": {
+    "output": {
+      "latex": "\\backslash\\texttt{{$1}}",
+      "text": "{$1}"
+    },
+    "attrs": [
+      {
+        "text": true
+      }
+    ]
+  },
+  "func": {
+    "output": {
+      "latex": "\\backslash\\mathrm{{$1}}\\left( {$2{ , }} \\right)",
+      "text": "$1({$2{,}})"
+    },
+    "attrs": [
+      {
+        "text": true
+      }
+    ]
+  },
+  "abs": {
+    "output": {
+      "latex": "\\left|{$1}\\right|",
+      "text": "abs({$1})"
+    },
+    "current": 1,
+    "attrs": [
+      {
+        "delete": 1
+      }
+    ]
+  },
+  "sqrt": {
+    "output": {
+      "latex": "\\sqrt{{$1}}",
+      "text": "sqrt({$1})"
+    },
+    "attrs": [
+      {
+        "delete": 1
+      }
+    ]
+  },
+  "exp": {
+    "output": {
+      "latex": "e^{{$1}}",
+      "text": "exp({$1})"
+    },
+    "attrs": [
+      {
+        "delete": 1,
+        "small": true
+      }
+    ]
+  },
+  "fact": {
+    "output": {
+      "latex": "{{$1}}!",
+      "text": "factorial({$1})"
+    },
+    "current": 1,
+    "current_type": "token",
+    "attrs": [
+      {
+        "delete": 1,
+        "bracket": true
+      }
+    ]
+  },
+  "binom": {
+    "output": {
+      "latex": "\\displaystyle\\binom{{$1}}{{$2}}",
+      "small_latex": "\\binom{{$1}}{{$2}}",
+      "text": "binomial({$1},{$2})"
+    },
+    "attrs": [
+      {
+        "down": 2
+      },
+      {
+        "up": 1
+      }
+    ]
+  },
+  "paren": {
+    "output": {
+      "latex": "\\left({$1}\\right)",
+      "text": "({$1})"
+    },
+    "current": 1,
+    "attrs": [
+      {
+        "delete": 1
+      }
+    ]
+  },
+  "floor": {
+    "output": {
+      "latex": "\\lfloor{$1}\\rfloor",
+      "text": "floor({$1})"
+    },
+    "attrs": [
+      {
+        "delete": 1
+      }
+    ]
+  },
+  "pow": {
+    "output": {
+      "latex": "{{$1}}^{{$2}}",
+      "text": "({$1})**({$2})"
+    },
+    "current": 1,
+    "current_type": "token",
+    "attrs": [
+      {
+        "up": 2,
+        "bracket": true,
+        "delete": 1
+      },
+      {
+        "down": 1,
+        "delete": 1,
+        "small": true
+      }
+    ]
+  },
+  "sub": {
+    "output": {
+      "latex": "{{$1}}_{{$2}}",
+      "text": "{$1}_{$2}"
+    },
+    "current": 1,
+    "current_type": "token",
+    "attrs": [
+      {
+        "down": 2,
+        "bracket": true,
+        "delete": 1
+      },
+      {
+        "up": 1,
+        "delete": 1,
+        "small": true
+      }
+    ]
+  },
+  "frac": {
+    "output": {
+      "latex": "\\dfrac{{$1}}{{$2}}",
+      "small_latex": "\\frac{{$1}}{{$2}}",
+      "text": "({$1})/({$2})"
+    },
+    "current": 1,
+    "current_type": "token",
+    "attrs": [
+      {
+        "down": 2
+      },
+      {
+        "up": 1
+      }
+    ]
+  },
+  "mod": {
+    "output": {
+      "latex": "{$1}\\bmod{$2}",
+      "text": "({$1})%({$2})"
+    },
+    "current": 1,
+    "current_type": "token",
+    "attrs": [
+      {
+        "down": 2,
+        "delete": 1,
+        "bracket": true
+      },
+      {
+        "up": 1,
+        "delete": 1,
+        "bracket": true
+      }
+    ]
+  },
+  "infty": {
+    "output": {
+      "latex": "\\infty",
+      "text": "oo"
+    },
+    "char": true
+  },
+  "zoo": {
+    "output": {
+      "latex": "\\tilde{\\infty}",
+      "text": "zoo"
+    },
+    "char": true
+  },
+  "lim": {
+    "output": {
+      "latex": "\\displaystyle\\lim_{{$1}\\to{$2}}{$3}",
+      "small_latex": "\\lim_{{$1}\\to{$2}}{$3}",
+      "text": "Limit({$3},{$1},{$2})"
+    },
+    "attrs": [
+      {
+        "up": 3,
+        "small": true
+      },
+      {
+        "up": 3,
+        "small": true
+      },
+      {
+        "down": 2,
+        "delete": 3,
+        "bracket": true
+      }
+    ]
+  },
+  "antid": {
+    "output": {
+      "latex": "\\displaystyle\\int{{$1}}d{$2}",
+      "small_latex": "\\int{{$1}}d{$2}",
+      "text": "Integral({$1},{$2})"
+    },
+    "attrs": [
+      {
+        "delete": 1
+      },
+      {
+        "delete": 1,
+        "bracket": true
+      }
+    ]
+  },
+  "int": {
+    "output": {
+      "latex": "\\displaystyle\\int_{{$1}}^{{$2}}{$3}d{$4}",
+      "small_latex": "\\int_{{$1}}^{{$2}}{$3}d{$4}",
+      "text": "Integral({$3},({$4},{$1},{$2}))"
+    },
+    "attrs": [
+      {
+        "up": 2,
+        "small": true
+      },
+      {
+        "down": 1,
+        "small": true
+      },
+      {
+        "down": 1,
+        "up": 2,
+        "delete": 3
+      },
+      {
+        "down": 1,
+        "up": 2,
+        "bracket": true,
+        "delete": 3
+      }
+    ]
+  },
+  "deriv": {
+    "output": {
+      "latex": "\\dfrac{d}{d{$1}}{$2}",
+      "small_latex": "\\frac{d}{d{$1}}{$2}",
+      "text": "Derivative({$2},{$1})"
+    },
+    "attrs": [
+      {
+        "up": 2,
+        "bracket": true
+      },
+      {
+        "down": 1,
+        "delete": 2,
+        "bracket": true
+      }
+    ]
+  },
+  "sum": {
+    "output": {
+      "latex": "\\displaystyle\\sum_{{$1}={$2}}^{{$3}}{$4}",
+      "small_latex": "\\sum_{{$1}={$2}}^{{$3}}{$4}",
+      "text": "Sum({$4},({$1},{$2},{$3}))"
+    },
+    "attrs": [
+      {
+        "up": 3,
+        "small": true
+      },
+      {
+        "up": 3,
+        "small": true
+      },
+      {
+        "down": 2,
+        "small": true
+      },
+      {
+        "down": 2,
+        "up": 3,
+        "delete": 4,
+        "bracket": true
+      }
+    ]
+  },
+  "prod": {
+    "output": {
+      "latex": "\\displaystyle\\prod_{{$1}={$2}}^{{$3}}{$4}",
+      "small_latex": "\\prod_{{$1}={$2}}^{{$3}}{$4}",
+      "text": "Product({$4},({$1},{$2},{$3}))"
+    },
+    "attrs": [
+      {
+        "up": 3,
+        "small": true
+      },
+      {
+        "up": 3,
+        "small": true
+      },
+      {
+        "down": 2,
+        "small": true
+      },
+      {
+        "down": 2,
+        "up": 3,
+        "delete": 4,
+        "bracket": true
+      }
+    ]
+  },
+  "root": {
+    "output": {
+      "latex": "\\sqrt[{$1}]{{$2}}",
+      "text": "root({$2},{$1})"
+    },
+    "attrs": [
+      {
+        "down": 2,
+        "small": true,
+        "delete": 2
+      },
+      {
+        "up": 1,
+        "delete": 2
+      }
+    ]
+  },
+  "list": {
+    "output": {
+      "latex": "\\left[ {$1{ , }} \\right]",
+      "text": "[{$1{,}}]"
+    }
+  },
+  "set": {
+    "output": {
+      "latex": "\\left\\{ {$1{ , }} \\right\\}",
+      "text": "{{$1{,}}}"
+    }
+  },
+  "tuple": {
+    "output": {
+      "latex": "\\left\\langle {$1{ , }} \\right\\rangle",
+      "text": "({$1{,}})"
+    }
+  },
+  "mat": {
+    "output": {
+      "latex": "\\left(\\begin{matrix} {$1{ & }{\\\\}} \\end{matrix}\\right)",
+      "text": "Matrix([[{$1{,}{],[}}]])"
+    }
+  },
+  "_func_nonlatex": [
+    "sech",
+    "csch",
+    "asin",
+    "acos",
+    "atan",
+    "acot",
+    "asec",
+    "acsc",
+    "asinh",
+    "acosh",
+    "atanh",
+    "acoth",
+    "asech",
+    "acsch"
+  ],
+  "_func": [
+    "sin",
+    "cos",
+    "tan",
+    "sec",
+    "csc",
+    "cot",
+    "log",
+    "ln",
+    "sinh",
+    "cosh",
+    "tanh",
+    "coth",
+    "Re",
+    "Im",
+    "arg"
+  ],
+  "_operator": {
+    "*": "\\cdot",
+    "<=": "\\leq",
+    "<": "<",
+    ">=": "\\geq",
+    ">": ">"
+  },
+  "_greek": [
+    "alpha",
+    "beta",
+    "gamma",
+    "delta",
+    "epsilon",
+    "zeta",
+    "theta",
+    "iota",
+    "kappa",
+    "lambda",
+    "mu",
+    "nu",
+    "xi",
+    "omicron",
+    "pi",
+    "rho",
+    "sigma",
+    "tau",
+    "upsilon",
+    "phi",
+    "chi",
+    "psi",
+    "omega",
+    "Gamma",
+    "Delta",
+    "Theta",
+    "Lambda",
+    "Xi",
+    "Pi",
+    "Sigma",
+    "Upsilon",
+    "Phi",
+    "Psi",
+    "Omega",
+    "eta"
+  ]
+}
+
+},{}],2:[function(require,module,exports){
 var Doc = require('./doc.js');
 var Symbols = require('./symbols.js');
 var EventEmitter = require('eventemitter3');
 
-var Backend = function (config) {
+var Backend = function (config, editor) {
   config = config || {};
   var events = config['events'] || {};
-  var options = config['options'] || {};
-  this.parent = config['parent'];
 
+  this.editor = editor;
   this.blacklist = [];
   this.autoreplace = true;
 
@@ -17,25 +487,22 @@ var Backend = function (config) {
     this.on(e, events[e]);
   }
 
-  var opts = ['blankCaret', 'emptyContent', 'blacklist', 'autoreplace'];
+  var opts = ['blacklist', 'autoreplace'];
 
   for (var i = 0; i < opts.length; i++) {
     var p = opts[i];
-    if (p in options) {
-      this[p] = options[p];
+    if (p in config) {
+      this[p] = config[p];
     }
   }
 
-  this.doc = new Doc(options['xmlContent']);
+  this.doc = new Doc(config['xmlContent']);
 
   this.current = this.doc.root().firstChild;
   this.caret = 0;
-  this.selStart = null;
-  this.selEnd = null;
+  this.clearSelection();
   this.undoData = [];
   this.undoCurrent = -1;
-  this.selStatus = Backend.SEL_NONE;
-  this.checkpoint();
 };
 
 Backend.prototype = Object.create(EventEmitter.prototype, {
@@ -43,12 +510,7 @@ Backend.prototype = Object.create(EventEmitter.prototype, {
 });
 
 Backend.CARET = '\\cursor{-0.2ex}{0.7em}';
-Backend.TEMP_SMALL_CARET = '\\cursor{-0.05em}{0.5em}';
-Backend.TEMP_CARET = '\\cursor{-0.2ex}{0.7em}';
 Backend.SMALL_CARET = '\\cursor{-0.05em}{0.5em}';
-Backend.SEL_CARET = '\\cursor{-0.2ex}{0.7em}';
-Backend.SMALL_SEL_CARET = '\\cursor{-0.05em}{0.5em}';
-Backend.SEL_COLOR = 'red';
 
 Backend.SEL_NONE = 0;
 Backend.SEL_CURSOR_AT_START = 1;
@@ -76,17 +538,17 @@ Backend.prototype.setContent = function (xmlData) {
   this.doc = new Doc(xmlData);
   this.current = this.doc.root().lastChild;
   this.caret = this.current.textContent.length;
-  this.selStart = null;
-  this.selEnd = null;
+  this.clearSelection();
   this.undoData = [];
   this.undoCurrent = -1;
-  this.selStatus = Backend.SEL_NONE;
   this.checkpoint();
 };
 
 Backend.prototype.selectTo = function (loc, selCursor, selCaret, mouse) {
+  this.current = loc.current;
+  this.caret = loc.caret;
   if (loc.current === selCursor && loc.caret === selCaret) {
-    this.selStatus = Backend.SEL_NONE;
+    this.clearSelection();
   } else if (loc.pos === 'left') {
     this.selEnd = {
       'node': selCursor,
@@ -100,8 +562,6 @@ Backend.prototype.selectTo = function (loc, selCursor, selCaret, mouse) {
     };
     this.setSelection(Backend.SEL_CURSOR_AT_END, mouse);
   }
-  this.current = loc.current;
-  this.caret = loc.caret;
 };
 
 Backend.prototype.setSelStart = function () {
@@ -143,115 +603,72 @@ Backend.prototype.addCursorClasses = function (n, path) {
     var text = n.textContent;
     var ans = '';
     var selCursor;
-    var isTextNode = Doc.getFName(n) === 'text' || Doc.getFName(n) === 'symbol';
     if (this.selStatus === Backend.SEL_CURSOR_AT_START) {
       selCursor = this.selEnd;
-    }
-    if (this.selStatus === Backend.SEL_CURSOR_AT_END) {
+    } else if (this.selStatus === Backend.SEL_CURSOR_AT_END) {
       selCursor = this.selStart;
     }
-    if (this.selStatus !== Backend.SEL_NONE) {
-      var selCaretText = Doc.isSmall(selCursor.node)
-        ? Backend.SMALL_SEL_CARET : Backend.SEL_CARET;
-      if (!isTextNode && text.length === 0 && n.parentNode.childElementCount > 1) {
-        selCaretText = '\\blue{\\xmlClass{mathylem_elt mathylem_blank ' +
-          'mathylem_loc_' + n.getAttribute('path') + '_0}{' + selCaretText + '}}';
-      } else {
-        selCaretText = '\\blue{' + selCaretText + '}';
-      }
-      if (this.selStatus === Backend.SEL_CURSOR_AT_END) {
-        selCaretText = isTextNode ? '[' : selCaretText + '\\' +
-          Backend.SEL_COLOR + '{';
-      }
-      if (this.selStatus === Backend.SEL_CURSOR_AT_START) {
-        selCaretText = isTextNode ? ']' : '}' + selCaretText;
-      }
-    }
-    var caretText = '';
-    var tempCaretText = '';
-    if (text.length === 0) {
-      if (isTextNode) {
-        caretText = '\\_';
-      } else if (n.parentNode.childElementCount === 1) {
-        if (this.current === n) {
-          var blankCaret = this.blankCaret || (Doc.isSmall(this.current)
-            ? Backend.SMALL_CARET : Backend.CARET);
-          ans = '\\red{\\xmlClass{main_cursor mathylem_elt mathylem_blank ' +
-            'mathylem_loc_' + n.getAttribute('path') + '_0}{' + blankCaret + '}}';
-        } else if (this.tempCursor.node === n) {
-          ans = '\\gray{\\xmlClass{mathylem_elt mathylem_blank mathylem_loc_' +
-            n.getAttribute('path') + '_0}{[?]}}';
-        } else {
-          ans = '\\blue{\\xmlClass{mathylem_elt mathylem_blank mathylem_loc_' +
-            n.getAttribute('path') + '_0}{[?]}}';
-        }
-      } else if (this.tempCursor.node !== n && this.current !== n &&
-          (!selCursor || selCursor.node !== n)) {
-        // These are the empty e elements at either end of
-        // a c or m node, such as the space before and
-        // after both the sin and x^2 in sin(x^2)
-        //
-        // Here, we add in a small element so that we can
-        // use the mouse to select these areas
-        ans = '\\phantom{\\xmlClass{mathylem_elt mathylem_blank mathylem_loc_' +
-          n.getAttribute('path') + '_0}{\\cursor{0.1ex}{1ex}}}';
-      }
-    }
+
+    var caret = Doc.isSmall(this.current) ? Backend.SMALL_CARET : Backend.CARET;
     for (var i = 0; i < text.length + 1; i++) {
-      if (n === this.current && i === this.caret &&
-          (text.length > 0 || n.parentNode.childElementCount > 1)) {
-        if (isTextNode) {
-          if (this.selStatus === Backend.SEL_CURSOR_AT_START) {
-            caretText = '[';
-          } else if (this.selStatus === Backend.SEL_CURSOR_AT_END) {
-            caretText = ']';
+      if (n === this.current && i === this.caret) {
+        if (this.selStatus === Backend.SEL_CURSOR_AT_END) {
+          ans += '}';
+        }
+        if (text.length === 0) {
+          ans += '\\xmlClass{main-cursor my-elem my-blank loc_' +
+            n.getAttribute('path') + '_0}{' + caret + '}';
+        } else {
+          ans += '\\xmlClass{main-cursor}{' + caret + '}';
+        }
+        if (this.selStatus === Backend.SEL_CURSOR_AT_START) {
+          ans += '\\xmlClass{selection}{';
+        }
+      } else if (selCursor && n === selCursor.node && i === selCursor.caret) {
+        if (this.selStatus === Backend.SEL_CURSOR_AT_START) {
+          ans += '}';
+        }
+        var selCaret = Doc.isSmall(selCursor.node)
+          ? Backend.SMALL_CARET : Backend.CARET;
+        if (text.length === 0 && n.parentNode.childElementCount > 1) {
+          ans += '\\xmlClass{sel-cursor my-elem my-blank loc_' +
+            n.getAttribute('path') + '_0}{' + selCaret + '}';
+        } else {
+          ans += '\\xmlClass{sel-cursor}{' + selCaret + '}';
+        }
+        if (this.selStatus === Backend.SEL_CURSOR_AT_END) {
+          ans += '\\xmlClass{selection}{';
+        }
+      } else if (n === this.tempCursor.node && i === this.tempCursor.caret) {
+        if (text.length === 0) {
+          if (n.parentNode.childElementCount === 1) {
+            ans += '\\xmlClass{temp-cursor my-elem my-blank loc_' +
+              n.getAttribute('path') + '_0}{[?]}';
           } else {
-            caretText = '\\_';
+            ans += '\\xmlClass{temp-cursor my-elem my-blank loc_' +
+              n.getAttribute('path') + '_0}{' + caret + '}';
           }
         } else {
-          caretText = Doc.isSmall(this.current) ? Backend.SMALL_CARET
-            : Backend.CARET;
-          if (text.length === 0) {
-            caretText = '\\red{\\xmlClass{main_cursor mathylem_elt mathylem_blank' +
-              ' mathylem_loc_' + n.getAttribute('path') + '_0}{' + caretText + '}}';
-          } else {
-            caretText = '\\red{\\xmlClass{main_cursor}{' + caretText + '}}';
-          }
-          if (this.selStatus === Backend.SEL_CURSOR_AT_START) {
-            caretText = caretText + '\\' + Backend.SEL_COLOR + '{';
-          } else if (this.selStatus === Backend.SEL_CURSOR_AT_END) {
-            caretText = '}' + caretText;
-          }
+          ans += '\\xmlClass{temp-cursor}{' + caret + '}';
         }
-        ans += caretText;
-      } else if (n === this.current && i === this.caret && isTextNode) {
-        ans += caretText;
-      } else if (this.selStatus !== Backend.SEL_NONE &&
-          selCursor.node === n && i === selCursor.caret) {
-        ans += selCaretText;
-      } else if (this.tempCursor.node === n && i === this.tempCursor.caret &&
-          (text.length > 0 || n.parentNode.childElementCount > 1)) {
-        if (isTextNode) {
-          tempCaretText = '.';
+      } else if (text.length === 0) {
+        if (n.parentNode.childElementCount === 1) {
+          ans = '\\xmlClass{placeholder my-elem my-blank loc_' +
+            n.getAttribute('path') + '_0}{[?]}';
         } else {
-          tempCaretText = Doc.isSmall(this.current)
-            ? Backend.TEMP_SMALL_CARET : Backend.TEMP_CARET;
-          if (text.length === 0) {
-            tempCaretText = '\\gray{\\xmlClass{mathylem_elt mathylem_blank math' +
-              'ylem_loc_' + n.getAttribute('path') + '_0}{' + tempCaretText + '}}';
-          } else {
-            tempCaretText = '\\gray{' + tempCaretText + '}';
-          }
+          // Here, we add in a small element so that we can
+          // use the mouse to select these areas
+          ans = '\\phantom{\\xmlClass{my-elem my-blank loc_' +
+            n.getAttribute('path') + '_0}{\\cursor{0.1ex}{1ex}}}';
         }
-        ans += tempCaretText;
       }
       if (i < text.length) {
-        ans += '\\xmlClass{mathylem_elt mathylem_loc_' + n.getAttribute('path') +
-          '_' + i + '}{' + text[i] + '}';
+        ans += '\\xmlClass{my-elem loc_' + n.getAttribute('path') + '_' + i +
+          '}{' + text[i] + '}';
       }
     }
-    if (isTextNode && n === this.current) {
-      ans = '\\xmlClass{mathylem_text_current}{{' + ans + '}}';
+    if (Doc.getCAttribute(n, 'text') && n === this.current) {
+      ans = '\\xmlClass{my-text}{{' + ans + '}}';
     }
     n.setAttribute('render', ans);
     n.removeAttribute('path');
@@ -321,23 +738,15 @@ Backend.prototype.symbolToNode = function (name, content) {
   var s = Symbols.symbols[name];
   var f = base.createElement('f');
   f.setAttribute('type', name);
-  if (s['char']) {
-    f.setAttribute('c', 'yes');
-  }
 
-  var firstRef = -1;
   var refsCount = 0;
   var lists = {};
-  var first;
 
   // Make the b nodes for rendering each output
   var out = s['output']['latex'].split(/(\{\$[0-9]+(?:\{[^}]+\})*\})/g);
   for (var i = 0; i < out.length; i++) {
     var m = out[i].match(/^\{\$([0-9]+)((?:\{[^}]+\})*)\}$/);
     if (m) {
-      if (firstRef === -1) {
-        firstRef = parseInt(m[1]);
-      }
       if (m[2].length > 0) {
         lists[refsCount] = m[2].match(/\{[^}]*\}/g).length;
       }
@@ -356,9 +765,6 @@ Backend.prototype.symbolToNode = function (name, content) {
     } else {
       nc.appendChild(this.makeE(''));
     }
-    if (i + 1 === firstRef) {
-      first = nc.lastChild;
-    }
     if (i in lists) {
       var par = f;
       for (var j = 0; j < lists[i]; j++) {
@@ -373,15 +779,15 @@ Backend.prototype.symbolToNode = function (name, content) {
       f.appendChild(nc);
     }
   }
-  return { 'f': f, 'first': first };
+  return f;
 };
 
 Backend.prototype.insertSymbol = function (name) {
-  if (this.isBlacklisted(name)) {
+  if (Doc.getCAttribute(this.current, 'text') || this.isBlacklisted(name)) {
     return false;
   }
 
-  if (name === 'power' && this.caret === 0 && this.current.parentNode.parentNode
+  if (name === 'pow' && this.caret === 0 && this.current.parentNode.parentNode
     .nodeName === 'f' && this.current.parentNode.childNodes.length === 1) {
     this.current = this.current.parentNode.parentNode.nextSibling;
   }
@@ -444,8 +850,7 @@ Backend.prototype.insertSymbol = function (name) {
   // rightPiece in that order.
   var currentParent = this.current.parentNode;
 
-  var symbol = this.symbolToNode(name, content);
-  var f = symbol.f;
+  var f = this.symbolToNode(name, content);
 
   var next = this.current.nextSibling;
 
@@ -529,18 +934,13 @@ Backend.prototype.makeE = function (text) {
 Backend.prototype.insertString = function (s) {
   if (this.selStatus !== Backend.SEL_NONE) {
     this.deleteSelection();
-    this.clearSelection();
   }
-  if ((s === '*' && this.checkForPower()) || (s === '=' && this.checkForIneq())) {
+  if ((s === '*' && this.checkForPow()) || (s === '=' && this.checkForIneq())) {
     return;
   }
-  if (this.current.firstChild) {
-    var value = this.current.textContent;
-    this.current.textContent = value.slice(0, this.caret) + s +
-      value.slice(this.caret);
-  } else {
-    this.current.appendChild(this.doc.base.createTextNode(s));
-  }
+  var value = this.current.textContent;
+  this.current.textContent = value.slice(0, this.caret) + s +
+    value.slice(this.caret);
   this.caret += s.length;
   this.checkpoint();
   if (this.autoreplace) {
@@ -569,7 +969,6 @@ Backend.prototype.cutSelection = function () {
   for (var i = 0; i < nodeList.length; i++) {
     Backend.Clipboard.push(nodeList[i].cloneNode(true));
   }
-  this.clearSelection();
   this.checkpoint();
 };
 
@@ -579,9 +978,6 @@ Backend.prototype.insertNodes = function (nodeList, moveCursor) {
     clipboard.push(nodeList[i].cloneNode(true));
   }
 
-  if (!this.current.firstChild) {
-    this.current.appendChild(this.doc.base.createTextNode(''));
-  }
   if (clipboard.length === 1) {
     if (clipboard[0].firstChild) {
       this.current.textContent = this.current.textContent.substring(0, this.caret) +
@@ -612,7 +1008,6 @@ Backend.prototype.insertNodes = function (nodeList, moveCursor) {
 
 Backend.prototype.paste = function () {
   this.deleteSelection();
-  this.clearSelection();
   if (!Backend.Clipboard || Backend.Clipboard.length === 0) {
     return;
   }
@@ -652,13 +1047,14 @@ Backend.prototype.deleteSelection = function () {
   }
   this.current = sel.remnant;
   this.caret = this.selStart.caret;
+  this.clearSelection();
   return sel.nodeList;
 };
 
 Backend.prototype.selectAll = function () {
-  this.home();
+  this.home(true);
   this.setSelStart();
-  this.end();
+  this.end(true);
   this.setSelEnd();
   if (this.selStart.node !== this.selEnd.node ||
       this.selStart.caret !== this.selEnd.caret) {
@@ -686,7 +1082,7 @@ Backend.prototype.selectRight = function () {
   }
   if (this.selStart.node === this.selEnd.node &&
       this.selStart.caret === this.selEnd.caret) {
-    this.selStatus = Backend.SEL_NONE;
+    this.clearSelection();
   }
 };
 
@@ -721,7 +1117,7 @@ Backend.prototype.selectLeft = function () {
   }
   if (this.selStart.node === this.selEnd.node &&
       this.selStart.caret === this.selEnd.caret) {
-    this.selStatus = Backend.SEL_NONE;
+    this.clearSelection();
   }
 };
 
@@ -791,6 +1187,7 @@ Backend.prototype.extendList = function (direction, copy) {
   if (!n.parentNode) {
     return;
   }
+  this.clearSelection();
   var toInsert;
 
   // check if 2D and horizontal and extend all the other rows if so 
@@ -869,6 +1266,7 @@ Backend.prototype.removeListColumn = function () {
   } else {
     return;
   }
+  this.clearSelection();
 
   var pos = 0;
   var cc = n;
@@ -907,6 +1305,7 @@ Backend.prototype.removeListRow = function () {
   } else {
     return;
   }
+  this.clearSelection();
   n.parentNode.removeChild(n);
 };
 
@@ -931,6 +1330,7 @@ Backend.prototype.removeListItem = function () {
   } else {
     return;
   }
+  this.clearSelection();
   n.parentNode.removeChild(n);
 };
 
@@ -951,6 +1351,8 @@ Backend.prototype.right = function () {
 Backend.prototype.spacebar = function () {
   if (Doc.getFName(this.current) === 'text') {
     this.insertString(' ');
+  } else if (Doc.getFName(this.current) === 'symbol') {
+    this.tab();
   }
 };
 
@@ -994,18 +1396,20 @@ Backend.prototype.deleteFromE = function () {
     this.caret--;
   } else {
     // The order of these is important
-    if (this.current.previousSibling != null &&
-        this.current.previousSibling.getAttribute('c') === 'yes') {
-      // The previous node is an f node but is really just a character.  Delete it.
-      this.current = this.current.previousSibling;
-      this.deleteFromF();
-    } else if (this.current.previousSibling != null &&
-        this.current.previousSibling.nodeName === 'f') {
+    var prev = this.current.previousSibling;
+    var par = this.current.parentNode;
+    if (prev != null && prev.nodeName === 'f') {
       // We're in an e node just after an f node. 
       // Move back into the f node (delete it?)
+      if (Symbols.symbols[prev.getAttribute('type')]['char']) {
+        // The previous node is an f node but is really just a character. Delete it.
+        this.current = prev;
+        this.deleteFromF();
+        return true;
+      }
       this.left();
       return false;
-    } else if (this.current.parentNode.previousSibling != null) {
+    } else if (par.previousSibling != null) {
       // We're in a c child of an f node, but not the first one.
       // Go to the previous c
       if (Doc.getCAttribute(this.current, 'delete')) {
@@ -1014,11 +1418,10 @@ Backend.prototype.deleteFromE = function () {
         this.left();
         return false;
       }
-    } else if (this.current.previousSibling == null && this.current.parentNode
-      .nodeName === 'c' && this.current.parentNode.previousSibling == null) {
+    } else if (prev == null && par.nodeName === 'c' &&
+        par.previousSibling == null) {
       // We're in the first c child of an f node and at the beginning
       // delete the f node
-      var par = this.current.parentNode;
       while (par.parentNode.nodeName === 'l' || par.parentNode.nodeName === 'c') {
         par = par.parentNode;
       }
@@ -1059,7 +1462,6 @@ Backend.prototype.deleteForwardFromE = function () {
 Backend.prototype.backspace = function () {
   if (this.selStatus !== Backend.SEL_NONE) {
     this.deleteSelection();
-    this.selStatus = Backend.SEL_NONE;
     this.checkpoint();
   } else if (this.deleteFromE()) {
     this.checkpoint();
@@ -1069,37 +1471,48 @@ Backend.prototype.backspace = function () {
 Backend.prototype.deleteKey = function () {
   if (this.selStatus !== Backend.SEL_NONE) {
     this.deleteSelection();
-    this.selStatus = Backend.SEL_NONE;
     this.checkpoint();
   } else if (this.deleteForwardFromE()) {
     this.checkpoint();
   }
 };
 
-Backend.prototype.backslash = function () {
-  if (Doc.getFName(this.current) !== 'text' &&
-      Doc.getFName(this.current) !== 'symbol') {
-    this.insertSymbol('symbol');
+Backend.prototype.tab = function () {
+  if (Doc.getFName(this.current) !== 'symbol') {
+    this.clearSelection();
+    this.checkForSymbol(true);
+    return;
+  }
+  if (this.candidates != null) {
+    var suggestion = this.candidates.shift();
+    this.candidates.push(suggestion);
+    this.clearSelection();
+    this.current.textContent = suggestion;
+    this.caret = suggestion.length;
+  } else {
+    this.checkpoint();
+    var name = this.current.textContent;
+    this.candidates = [];
+    for (var n in Symbols.symbols) {
+      if (n.substr(0, name.length) === name) {
+        this.candidates.push(n);
+      }
+    }
+    if (this.candidates.length > 0) {
+      this.tab();
+    } else {
+      this.candidates = null;
+    }
   }
 };
 
-Backend.prototype.tab = function () {
-  if (Doc.getFName(this.current) !== 'symbol') {
-    this.checkForSymbol();
-    return;
-  }
-  var name = this.current.firstChild.textContent;
-  var candidates = [];
-  for (var n in Symbols.symbols) {
-    if (n.substr(0, name.length) === name) {
-      candidates.push(n);
-    }
-  }
-  if (candidates.length === 1) {
-    this.current.firstChild.textContent = candidates[0];
-    this.caret = candidates[0].length;
+Backend.prototype.leftParen = function () {
+  if (Doc.getFName(this.current) === 'symbol') {
+    this.clearSelection();
+    this.replaceSymbol(this.current.parentNode.parentNode, 'func',
+      [[this.current]]);
   } else {
-    this.emit('completion', { 'candidates': candidates });
+    this.insertSymbol('paren');
   }
 };
 
@@ -1142,12 +1555,18 @@ Backend.prototype.down = function () {
   }
 };
 
-Backend.prototype.home = function () {
+Backend.prototype.home = function (select) {
+  if (!select) {
+    this.clearSelection();
+  }
   this.current = this.doc.root().firstChild;
   this.caret = 0;
 };
 
-Backend.prototype.end = function () {
+Backend.prototype.end = function (select) {
+  if (!select) {
+    this.clearSelection();
+  }
   this.current = this.doc.root().lastChild;
   this.caret = this.current.textContent.length;
 };
@@ -1163,8 +1582,9 @@ Backend.prototype.checkpoint = function () {
     'new': this.undoData[this.undoCurrent] });
   this.current.removeAttribute('current');
   this.current.removeAttribute('caret');
-  if (this.parent && this.parent.ready) {
-    this.parent.render(true);
+  this.candidates = null;
+  if (this.editor) {
+    this.editor.render(true);
   }
 };
 
@@ -1207,11 +1627,12 @@ Backend.prototype.done = function (s) {
 };
 
 Backend.prototype.completeSymbol = function () {
-  var name = this.current.firstChild.textContent;
+  var name = this.current.textContent;
   if (!Symbols.symbols[name]) {
     return;
   }
   this.current = this.current.parentNode.parentNode;
+  this.clearSelection();
   this.deleteFromF();
   this.insertSymbol(name);
 };
@@ -1225,12 +1646,12 @@ Backend.prototype.isBlacklisted = function (type) {
   return false;
 };
 
-Backend.prototype.replaceSymbol = function (node, name) {
+Backend.prototype.replaceSymbol = function (node, name, content) {
   var symbol = Symbols.symbols[name];
   if (!symbol || this.isBlacklisted(name)) {
     return false;
   }
-  var f = this.symbolToNode(name, []).f;
+  var f = this.symbolToNode(name, content || []);
   node.parentNode.replaceChild(f, node);
   if (!symbol['char']) {
     this.caret = 0;
@@ -1241,13 +1662,13 @@ Backend.prototype.replaceSymbol = function (node, name) {
   return true;
 };
 
-Backend.prototype.checkForPower = function () {
+Backend.prototype.checkForPow = function () {
   if (this.autoreplace && this.caret === 0 && this.current.previousSibling &&
       this.current.previousSibling.nodeName === 'f' &&
       this.current.previousSibling.getAttribute('type') === '*') {
     this.current = this.current.previousSibling;
     this.deleteFromF();
-    this.insertSymbol('power');
+    this.insertSymbol('pow');
     return true;
   }
   return false;
@@ -1263,9 +1684,8 @@ Backend.prototype.checkForIneq = function () {
   return false;
 };
 
-Backend.prototype.checkForSymbol = function () {
-  if (Doc.getFName(this.current) === 'text' ||
-      Doc.getFName(this.current) === 'symbol') {
+Backend.prototype.checkForSymbol = function (force) {
+  if (Doc.getCAttribute(this.current, 'text')) {
     return;
   }
   var value = this.current.textContent;
@@ -1277,7 +1697,7 @@ Backend.prototype.checkForSymbol = function () {
     return;
   }
   for (var s in Symbols.symbols) {
-    if (['psi', 'xi'].indexOf(s) > -1) {
+    if (!force && ['psi', 'xi'].indexOf(s) > -1) {
       continue;
     }
     if (this.current.nodeName === 'e' &&
@@ -1299,13 +1719,12 @@ Backend.prototype.checkForSymbol = function () {
 
 module.exports = Backend;
 
-},{"./doc.js":2,"./symbols.js":4,"eventemitter3":83}],2:[function(require,module,exports){
+},{"./doc.js":3,"./symbols.js":5,"eventemitter3":84}],3:[function(require,module,exports){
 var xmldom = require('./xmldom/node');
 var Symbols = require('./symbols.js');
 
-var Doc = function (doc) {
-  doc = doc || '<m><e></e></m>';
-  this.setContent(doc);
+var Doc = function (data) {
+  this.setContent(data);
 };
 
 Doc.isSmall = function (nn) {
@@ -1345,15 +1764,6 @@ Doc.getCAttribute = function (n, attr) {
   }
 };
 
-Doc.prototype.ensureTextNodes = function () {
-  var l = this.base.getElementsByTagName('e');
-  for (var i = 0; i < l.length; i++) {
-    if (!l[i].firstChild) {
-      l[i].appendChild(this.base.createTextNode(''));
-    }
-  }
-};
-
 Doc.prototype.isBlank = function () {
   if (this.base.getElementsByTagName('f').length > 0) {
     return false;
@@ -1378,8 +1788,8 @@ Doc.prototype.getContent = function (t, r) {
 };
 
 Doc.prototype.setContent = function (data) {
+  data = data || '<m><e></e></m>';
   this.base = (new xmldom.DOMParser()).parseFromString(data, 'text/xml');
-  this.ensureTextNodes();
 };
 
 Doc.prototype.render = function (t, n, r) {
@@ -1393,7 +1803,7 @@ Doc.prototype.render = function (t, n, r) {
           !Symbols.symbols[n.previousSibling.getAttribute('type')].operator &&
           !Symbols.symbols[n.nextSibling.getAttribute('type')].operator) {
         ans = '*';
-      } else {
+      } else if (!Doc.getCAttribute(n, 'text')) {
         ans = ans.replace(/([a-zA-Z])(?=\.)/g, '$1*');
         ans = ans.replace(/(\.)(?=[a-zA-Z])/g, '$1*');
         ans = ans.replace(/([a-zA-Z])(?=[a-zA-Z0-9])/g, '$1*');
@@ -1481,7 +1891,7 @@ Doc.prototype.render = function (t, n, r) {
 
 module.exports = Doc;
 
-},{"./symbols.js":4,"./xmldom/node":5}],3:[function(require,module,exports){
+},{"./symbols.js":5,"./xmldom/node":6}],4:[function(require,module,exports){
 /* eslint-env browser */
 var Mousetrap = require('mousetrap');
 var katex = require('katex');
@@ -1491,14 +1901,13 @@ var Doc = require('./doc.js');
 var debounce = require('throttle-debounce/debounce');
 
 var MathYlem = function (el, config) {
-  var self = this;
   config = config || {};
-  var options = config['options'] || {};
+  config.toolbar = MathYlem.DEFAULT_OPTIONS.toolbar;
+  config.defaultToolbarContents = MathYlem.DEFAULT_OPTIONS.defaultToolbarContents;
 
   if (typeof el === 'string' || el instanceof String) {
     el = document.getElementById(el);
   }
-
   if (!el) {
     throw new Error('Invalid element.');
   } else if (el.mathylem) {
@@ -1513,113 +1922,93 @@ var MathYlem = function (el, config) {
     MathYlem.maxUid = i;
     el.id = 'mathylem_' + i;
   }
-  el.className += ' mathylem';
-  el.tabIndex = MathYlem.maxTabIndex++;
-
-  this.active = true;
-  this.emptyContent = options['emptyContent'] || '\\red{[?]}';
-  this.editor = el;
-  this._focus = false;
-  this._processedFakeInput = 20;
-  this.ready = false;
 
   MathYlem.instances[el.id] = this;
   el.mathylem = this;
 
-  config['parent'] = self;
-
-  if (/Mobi/.test(navigator.userAgent)) {
-    var fakeInput = document.createElement('textarea');
-    this.fakeInput = fakeInput;
-
-    fakeInput.setAttribute('autocapitalize', 'none');
-    fakeInput.setAttribute('autocomplete', 'off');
-    fakeInput.setAttribute('autocorrect', 'off');
-    fakeInput.setAttribute('spellcheck', 'false');
-    el.insertAdjacentElement('afterend', fakeInput);
-
-    fakeInput.style.position = 'absolute';
-    fakeInput.style.top = el.offsetTop + 'px';
-    fakeInput.style.left = el.offsetLeft + 'px';
-    fakeInput.style.width = '1px';
-    fakeInput.style.height = '1px';
-    fakeInput.style.opacity = 0;
-    fakeInput.style.padding = 0;
-    fakeInput.style.margin = 0;
-    fakeInput.style.border = 0;
-    fakeInput.addEventListener('input', debounce(100, function () {
-      for (; self._processedFakeInput >
-          self.fakeInput.value.length; self._processedFakeInput--) {
-        Mousetrap.trigger('backspace');
-      }
-      if (self.fakeInput.value.length === 0) {
-        self._processedFakeInput = 20;
-        self.fakeInput.value = '____________________';
-      }
-      for (; self._processedFakeInput <
-          self.fakeInput.value.length; self._processedFakeInput++) {
-        var c = self.fakeInput.value[self._processedFakeInput];
-        if (c !== c.toLowerCase()) {
-          Mousetrap.trigger('shift+' + c.toLowerCase());
-        } else if (c === ' ') {
-          Mousetrap.trigger('space');
-        } else {
-          Mousetrap.trigger(c);
-        }
-      }
-    }));
-    fakeInput.addEventListener('keydown', function (e) {
-      if (e.keycode === 8) {
-        Mousetrap.trigger('backspace');
-        e.preventDefault();
-      } else if (e.keycode === 13) {
-        Mousetrap.trigger('enter');
-        e.preventDefault();
-      }
-    });
-    fakeInput.addEventListener('focus', function () {
-      self.activate(false);
-    });
-    fakeInput.addEventListener('blur', function () {
-      if (self._focus) {
-        self._focus = false;
-        this.focus();
-      } else {
-        self.deactivate(false);
-      }
-    });
-    fakeInput.value = '____________________';
+  this.editor = this.createEditor(el);
+  if (/Mobi/.test(navigator.userAgent)) { // TODO: Better unfocusable div detection
+    this.fakeInput = this.createFakeInput(el);
   }
+  this.createToolbar(el, config);
 
-  this.backend = new Backend(config);
+  this.active = true;
+  this.emptyContent = config['emptyContent'] || '\\red{[?]}';
+  this._focus = false;
   this.tempCursor = { 'node': null, 'caret': 0 };
-  this.editor.addEventListener('click', function () {
-    var g = this.mathylem;
-    var b = g.backend;
-    if (g.active) {
-      return;
-    }
-    g._focus = true;
-    setTimeout(function () {
-      g._focus = false;
-    }, 500);
-    b.clearSelection();
-    b.end();
-    g.activate(true);
-  });
-  if (Backend.ready) {
-    this.ready = true;
-    this.backend.emit('ready');
-    this.render(true);
-  }
+
+  this.backend = new Backend(config, this);
+  this.backend.checkpoint();
   this.deactivate(true);
-  this.computeLocations();
 };
 
 MathYlem.Backend = Backend;
 MathYlem.Doc = Doc;
 MathYlem.Symbols = Symbols;
 MathYlem.katex = katex;
+
+var hasSelection = function () {
+  return this.backend.selStatus !== Backend.SEL_NONE;
+};
+
+var inList = function () {
+  return this.backend.current.parentNode.parentNode.nodeName === 'l';
+};
+
+var inMatrix = function () {
+  var n = this.backend.current.parentNode.parentNode.parentNode;
+  return n && n.nodeName === 'l';
+};
+
+MathYlem.inMatrix = inMatrix;
+
+MathYlem.DEFAULT_OPTIONS = {
+  emptyContent: '\\red{[?]}',
+  autoreplace: true,
+  blacklist: [],
+  toolbar: [
+    {
+      type: 'button',
+      action: 'undo',
+      content: 0,
+      enabled: function () {
+        return this.backend.undoCurrent > 0;
+      }
+    }, {
+      type: 'button',
+      action: 'redo',
+      content: 1,
+      enabled: function () {
+        return this.backend.undoCurrent < this.backend.undoData.length - 1;
+      }
+    }, {
+      type: 'separator'
+    }, {
+      type: 'button',
+      action: 'cutSelection',
+      content: 2,
+      enabled: hasSelection
+    }, {
+      type: 'button',
+      action: 'copySelection',
+      content: 3,
+      enabled: hasSelection
+    }, {
+      type: 'button',
+      action: 'paste',
+      content: 4,
+      enabled: function () {
+        return Backend.Clipboard && Backend.Clipboard.length > 0;
+      }
+    }, {
+      type: 'separator'
+    }, {
+      type: 'select',
+      content: [5, 6, 7, 8, 9, 10, 11, 12, 13]
+    }
+  ],
+  defaultToolbarContents: [ '<i class="far fa-undo"></i>', '<i class="far fa-redo"></i>', '<i class="far fa-cut"></i>', '<i class="far fa-copy"></i>', '<i class="far fa-paste"></i>', 'Matrix actions', 'Add above', 'Add below', 'Add to the left', 'Add to the right', 'Clone below', 'Clone to the right', 'Delete a column', 'Delete a row']
+};
 
 MathYlem.maxUid = 0;
 MathYlem.maxTabIndex = 0;
@@ -1628,41 +2017,164 @@ MathYlem.instances = {};
 
 MathYlem.activeMathYlem = null;
 
-MathYlem.initialize = function (symbols) {
-  var allReady = function () {
-    MathYlem.registerKeyboardHandlers();
-    for (var i in MathYlem.instances) {
-      MathYlem.instances[i].ready = true;
-      MathYlem.instances[i].render(true);
-      MathYlem.instances[i].backend.emit('ready');
+MathYlem.prototype.createEditor = function (el) {
+  var self = this;
+  var editor = document.createElement('div');
+  editor.className = 'mathylem';
+  editor.tabIndex = MathYlem.maxTabIndex++;
+
+  editor.addEventListener('click', function () {
+    if (self.active) {
+      return;
     }
-    Backend.ready = true;
-  };
-  if (!Array.isArray(symbols)) {
-    symbols = [symbols];
-  }
-  var calls = [];
-  for (var i = 0; i < symbols.length; i++) {
-    var x = (function outer (j) {
-      return function (callback) {
-        var req = new XMLHttpRequest();
-        req.onload = function () {
-          Symbols.addSymbols(this.responseText);
-          callback();
+    self._focus = true;
+    setTimeout(function () {
+      self._focus = false;
+    }, 500);
+    self.backend.end();
+    self.activate(true);
+  });
+
+  el.appendChild(editor);
+  return editor;
+};
+
+MathYlem.prototype.createFakeInput = function (el) {
+  var self = this;
+
+  var fakeInput = document.createElement('textarea');
+  fakeInput.setAttribute('autocapitalize', 'none');
+  fakeInput.setAttribute('autocomplete', 'off');
+  fakeInput.setAttribute('autocorrect', 'off');
+  fakeInput.setAttribute('spellcheck', 'false');
+  fakeInput.value = '____________________';
+
+  fakeInput.style.position = 'absolute';
+  fakeInput.style.top = el.offsetTop + 'px';
+  fakeInput.style.left = el.offsetLeft + 'px';
+  fakeInput.style.width = '1px';
+  fakeInput.style.height = '1px';
+  fakeInput.style.opacity = 0;
+  fakeInput.style.padding = 0;
+  fakeInput.style.margin = 0;
+  fakeInput.style.border = 0;
+
+  this._processedFakeInput = 20;
+  fakeInput.addEventListener('input', debounce(100, function () {
+    for (; self._processedFakeInput >
+        self.fakeInput.value.length; self._processedFakeInput--) {
+      Mousetrap.trigger('backspace');
+    }
+    if (self.fakeInput.value.length === 0) {
+      self._processedFakeInput = 20;
+      self.fakeInput.value = '____________________';
+    }
+    for (; self._processedFakeInput <
+        self.fakeInput.value.length; self._processedFakeInput++) {
+      var c = self.fakeInput.value[self._processedFakeInput];
+      if (c !== c.toLowerCase()) {
+        Mousetrap.trigger('shift+' + c.toLowerCase());
+      } else if (c === ' ') {
+        Mousetrap.trigger('space');
+      } else {
+        Mousetrap.trigger(c);
+      }
+    }
+  }));
+  fakeInput.addEventListener('keydown', function (e) {
+    if (e.keycode === 8) {
+      Mousetrap.trigger('backspace');
+      e.preventDefault();
+    } else if (e.keycode === 13) {
+      Mousetrap.trigger('enter');
+      e.preventDefault();
+    }
+  });
+  fakeInput.addEventListener('focus', function () {
+    self.activate(false);
+  });
+  fakeInput.addEventListener('blur', function () {
+    if (self._focus) {
+      self._focus = false;
+      this.focus();
+    } else {
+      self.deactivate(false);
+    }
+  });
+
+  el.appendChild(fakeInput);
+  return fakeInput;
+};
+
+var createAction = function (a, b) {
+  var onclick;
+  if (typeof b === 'string' || b instanceof String) {
+    if (Backend.prototype[b]) {
+      onclick = (function (inst, action) {
+        return function () {
+          inst.backend[action]();
+          inst.render(true);
         };
-        req.open('get', symbols[j], true);
-        req.send();
+      }(a, b));
+    } else if (b in Symbols.symbols) {
+      onclick = (function (inst, action) {
+        return function () {
+          inst.backend.insertSymbol(action);
+          inst.render(true);
+        };
+      }(a, b));
+    } else {
+      onclick = (function (inst, action) {
+        return function () {
+          inst.backend.insertString(action);
+          inst.render(true);
+        };
+      }(a, b));
+    }
+  } else {
+    onclick = (function (inst, action) {
+      return function () {
+        action(inst);
+        inst.render(true);
       };
-    }(i));
-    calls.push(x);
+    }(a, b));
   }
-  calls.push(allReady);
-  var j = 0;
-  var cb = function () {
-    j++;
-    calls[j](cb);
-  };
-  calls[0](cb);
+  return onclick;
+};
+
+MathYlem.prototype.createToolbar = function (el, options) {
+  var btns = document.createElement('div');
+  var self = this;
+  btns.className = 'my-toolbar';
+
+  for (var i = 0; i < options.toolbar.length; i++) {
+    var item = options.toolbar[i];
+    var itemEl;
+    var content = (typeof item.content === 'number')
+      ? options.defaultToolbarContents[item.content] : item.content;
+    
+    if (item.type === 'button') {
+      itemEl = document.createElement('a');
+      itemEl.innerHTML = content;
+      //itemEl.addEventListener('click', createAction(self, options.toolbar[i].action));
+      //itemEl.id = 'button' + i;
+    } else if (item.type === 'separator') {
+      itemEl = document.createElement('i');
+      itemEl.innerHTML = '|';
+      itemEl.className = 'separator';
+    } else if (item.type === 'select') {
+      itemEl = document.createElement('select');
+      var options = '';
+      for (var j = 0; j < content.length; j++) {
+        options += '<option>' + content + '</option>';
+      }
+      itemEl.innerHTML = options;
+    }
+    btns.appendChild(itemEl);
+    // <button type="button" class="btn btn-default">Left</button>
+  }
+
+  el.insertAdjacentElement('afterbegin', btns);
 };
 
 MathYlem.prototype.isChanged = function () {
@@ -1692,7 +2204,7 @@ MathYlem.prototype.computeLocations = function () {
     'left': rect.left,
     'right': rect.right
   });
-  var elts = this.editor.getElementsByClassName('mathylem_elt');
+  var elts = this.editor.getElementsByClassName('my-elem');
   for (var i = 0; i < elts.length; i++) {
     var elt = elts[i];
     if (elt.nodeName === 'mstyle') {
@@ -1705,7 +2217,7 @@ MathYlem.prototype.computeLocations = function () {
     }
     var cl = elt.className.split(/\s+/);
     for (var j = 0; j < cl.length; j++) {
-      if (cl[j].substr(0, 12) === 'mathylem_loc') {
+      if (cl[j].substr(0, 3) === 'loc') {
         ans.push({
           'path': cl[j],
           'top': rect.top,
@@ -1714,7 +2226,7 @@ MathYlem.prototype.computeLocations = function () {
           'right': rect.right,
           'midX': (rect.left + rect.right) / 2,
           'midY': (rect.bottom + rect.top) / 2,
-          'blank': cl.indexOf('mathylem_blank') >= 0
+          'blank': cl.indexOf('my-blank') >= 0
         });
         break;
       }
@@ -1726,7 +2238,7 @@ MathYlem.prototype.computeLocations = function () {
 MathYlem.getPath = function (n) {
   var name = n.nodeName;
   if (name === 'm') {
-    return 'mathylem_loc_m';
+    return 'loc_m';
   }
   var ns = 0;
   for (var nn = n; nn != null; nn = nn.previousSibling) {
@@ -1775,7 +2287,7 @@ MathYlem.getLocation = function (x, y, currentNode, currentCaret) {
     var box = boxes[i];
     if (box.path === 'all') {
       if (!opt) {
-        opt = { 'path': 'mathylem_loc_m_e1_0' };
+        opt = { 'path': 'loc_m_e1_0' };
       }
       continue;
     }
@@ -1788,7 +2300,7 @@ MathYlem.getLocation = function (x, y, currentNode, currentCaret) {
       opt = box;
     }
   }
-  var loc = opt.path.substring('mathylem_loc_m_'.length).split(/_/);
+  var loc = opt.path.substring('loc_m_'.length).split(/_/);
   var node = g.backend.doc.root();
   for (var i = 0; i < loc.length - 1; i++) { // eslint-disable-line no-redeclare
     var name = loc[i][0];
@@ -1838,31 +2350,34 @@ MathYlem.mouseUp = function (e) {
 
 MathYlem.mouseDown = function (e) {
   var n = e.target;
-  MathYlem.kb.isMouseDown = true;
+  var g = MathYlem.activeMathYlem;
   while (n != null) {
-    if (n.mathylem) {
-      var g = MathYlem.activeMathYlem;
-      if (n.mathylem === g) {
-        g._focus = true;
-        setTimeout(function () {
-          g._focus = false;
-        }, 500);
-        if (e.shiftKey) {
-          g.selectTo(e.clientX, e.clientY, true);
-        } else {
-          var loc = e.touches ? MathYlem.getLocation(e.touches[0].clientX,
-            e.touches[0].clientY) : MathYlem.getLocation(e.clientX, e.clientY);
-          if (!loc) {
-            return;
-          }
-          var b = g.backend;
-          b.current = loc.current;
-          b.caret = loc.caret;
-          b.selStatus = Backend.SEL_NONE;
+    if (g && n === g.editor) {
+      MathYlem.kb.isMouseDown = true;
+      if (e.shiftKey) {
+        g.selectTo(e.clientX, e.clientY);
+      } else {
+        var loc = e.touches ? MathYlem.getLocation(e.touches[0].clientX,
+          e.touches[0].clientY) : MathYlem.getLocation(e.clientX, e.clientY);
+        if (!loc) {
+          return;
         }
-        g.render(true);
-      } else if (g) {
-        g.deactivate(true);
+        var b = g.backend;
+        b.current = loc.current;
+        b.caret = loc.caret;
+        b.clearSelection();
+      }
+      g.render(true);
+    } else if (n.mathylem) {
+      if (g) {
+        if (n.mathylem === g) {
+          g._focus = true;
+          setTimeout(function () {
+            g._focus = false;
+          }, 500);
+        } else {
+          g.deactivate(true);
+        }
       }
       return;
     }
@@ -1884,39 +2399,56 @@ MathYlem.mouseMove = function (e) {
     var rect = bb.getBoundingClientRect();
     if (e.clientX < rect.left || e.clientX > rect.right ||
         e.clientY > rect.bottom || e.clientY < rect.top) {
+      if (g.tempCursor.node == null) {
+        return;
+      }
       g.tempCursor = {
         'node': null,
         'caret': 0
       };
     } else {
       var loc = MathYlem.getLocation(e.clientX, e.clientY);
-      if (!loc) {
+      if (!loc || (loc.current === g.tempCursor.node &&
+          loc.caret === g.tempCursor.caret)) {
         return;
       }
-      g.tempCursor = {
-        'node': loc.current,
-        'caret': loc.caret
-      };
+      if (loc.current === g.backend.current && loc.caret === g.backend.caret) {
+        if (g.tempCursor.node == null) {
+          return;
+        }
+        g.tempCursor = {
+          'node': null,
+          'caret': 0
+        };
+      } else {
+        g.tempCursor = {
+          'node': loc.current,
+          'caret': loc.caret
+        };
+      }
     }
-  } else {
-    g.selectTo(e.clientX, e.clientY, true);
+  } else if (!g.selectTo(e.clientX, e.clientY)) {
+    return;
   }
   g.render(g.isChanged());
 };
 
 MathYlem.touchMove = function (e) {
   var g = MathYlem.activeMathYlem;
-  if (!g) {
+  if (!g || !g.selectTo(e.touches[0].clientX, e.touches[0].clientY)) {
     return;
   }
-  g.selectTo(e.touches[0].clientX, e.touches[0].clientY, true);
   g.render(g.isChanged());
 };
 
-MathYlem.prototype.selectTo = function (x, y, mouse) {
-  var selCaret = this.backend.caret;
-  var selCursor = this.backend.current;
-  if (this.backend.selStatus === Backend.SEL_CURSOR_AT_START) {
+MathYlem.prototype.selectTo = function (x, y) {
+  var b = this.backend;
+  var selCaret;
+  var selCursor;
+  if (this.backend.selStatus === Backend.SEL_NONE) {
+    selCursor = this.backend.current;
+    selCaret = this.backend.caret;
+  } else if (this.backend.selStatus === Backend.SEL_CURSOR_AT_START) {
     selCursor = this.backend.selEnd.node;
     selCaret = this.backend.selEnd.caret;
   } else if (this.backend.selStatus === Backend.SEL_CURSOR_AT_END) {
@@ -1924,10 +2456,11 @@ MathYlem.prototype.selectTo = function (x, y, mouse) {
     selCaret = this.backend.selStart.caret;
   }
   var loc = MathYlem.getLocation(x, y, selCursor, selCaret);
-  if (!loc) {
-    return;
+  if (!loc || (loc.current === b.current && loc.caret === b.caret)) {
+    return false;
   }
-  this.backend.selectTo(loc, selCursor, selCaret, mouse);
+  this.backend.selectTo(loc, selCursor, selCaret, true);
+  return true;
 };
 
 if ('ontouchstart' in window) {
@@ -1971,8 +2504,9 @@ MathYlem.prototype.render = function (updated) {
   try {
     katex.render(tex, this.editor);
   } catch (e) {
+    console.log(e); // eslint-disable-line no-console
     this.backend.undo();
-    this.render(false);
+    this.render();
   }
   if (updated) {
     this.computeLocations();
@@ -1982,8 +2516,7 @@ MathYlem.prototype.render = function (updated) {
 MathYlem.prototype.activate = function (focus) {
   MathYlem.activeMathYlem = this;
   this.active = true;
-  this.editor.className = this.editor.className.replace(
-    new RegExp('(\\s|^)mathylem_inactive(\\s|$)'), ' mathylem_active ');
+  this.editor.className += ' my-active';
   if (focus) {
     if (this.fakeInput) {
       this.fakeInput.style.top = this.editor.offsetTop + 'px';
@@ -1995,29 +2528,19 @@ MathYlem.prototype.activate = function (focus) {
       this.editor.focus();
     }
   }
-  if (this.ready) {
-    this.render(true);
-    this.backend.emit('focus', { 'focused': true });
-  }
+  this.render(true);
+  this.backend.emit('focus', { 'focused': true });
 };
 
 MathYlem.prototype.deactivate = function (blur) {
   this.active = false;
-  var r1 = new RegExp('(?:\\s|^)mathylem_active(?:\\s|$)');
-  var r2 = new RegExp('(?:\\s|^)mathylem_inactive(?:\\s|$)');
-  if (this.editor.className.match(r1)) {
-    this.editor.className = this.editor.className.replace(r1,
-      ' mathylem_inactive ');
-  } else if (!this.editor.className.match(r2)) {
-    this.editor.className += ' mathylem_inactive ';
-  }
+  this.editor.className = this.editor.className.replace(new RegExp(
+    '(\\s+|^)my-active(\\s+|$)'), ' ');
   if (blur && this.fakeInput) {
     this.fakeInput.blur();
   }
-  if (this.ready) {
-    this.render();
-    this.backend.emit('focus', { 'focused': false });
-  }
+  this.render();
+  this.backend.emit('focus', { 'focused': false });
 };
 
 // Keyboard stuff
@@ -2044,12 +2567,12 @@ MathYlem.kb.chars = {
 MathYlem.kb.symbols = {
   '/': 'frac',
   '%': 'mod',
-  '^': 'power',
-  '(': 'paren',
+  '^': 'pow',
   '_': 'sub',
   '|': 'abs',
   '!': 'fact',
-  'shift+up': 'power',
+  '\\': 'symbol',
+  'shift+up': 'pow',
   'shift+down': 'sub'
 };
 MathYlem.kb.controls = {
@@ -2085,8 +2608,8 @@ MathYlem.kb.controls = {
   'mod+shift+backspace': 'removeListRow',
   'shift+left': 'selectLeft',
   'shift+right': 'selectRight',
+  '(': 'leftParen',
   ')': 'rightParen',
-  '\\': 'backslash',
   'tab': 'tab'
 };
 
@@ -2103,56 +2626,54 @@ for (var i = 48; i <= 57; i++) { // eslint-disable-line no-redeclare
   MathYlem.kb.chars[String.fromCharCode(i)] = String.fromCharCode(i);
 }
 
-MathYlem.registerKeyboardHandlers = function () {
-  // Firefox's special minus (needed for _ = sub binding)
-  Mousetrap.addKeycodes({ 173: '-' });
-  for (var i in MathYlem.kb.chars) { // eslint-disable-line no-redeclare
-    Mousetrap.bind(i, (function (i) {
-      return function () {
-        if (!MathYlem.activeMathYlem) {
-          return true;
-        }
-        MathYlem.activeMathYlem.tempCursor.node = null;
-        MathYlem.activeMathYlem.backend.insertString(MathYlem.kb.chars[i]);
-        MathYlem.activeMathYlem.render(true);
-        return false;
-      };
-    }(i)));
-  }
-  for (var i in MathYlem.kb.symbols) { // eslint-disable-line no-redeclare
-    Mousetrap.bind(i, (function (i) {
-      return function () {
-        if (!MathYlem.activeMathYlem) {
-          return true;
-        }
-        MathYlem.activeMathYlem.tempCursor.node = null;
-        MathYlem.activeMathYlem.backend.insertSymbol(MathYlem.kb.symbols[i]);
-        MathYlem.activeMathYlem.render(true);
-        return false;
-      };
-    }(i)));
-  }
-  for (var i in MathYlem.kb.controls) { // eslint-disable-line no-redeclare
-    Mousetrap.bind(i, (function (i) {
-      return function () {
-        if (!MathYlem.activeMathYlem) {
-          return true;
-        }
-        MathYlem.activeMathYlem.backend[MathYlem.kb.controls[i]]();
-        MathYlem.activeMathYlem.tempCursor.node = null;
-        MathYlem.activeMathYlem.render(['up', 'down', 'right', 'left', 'home',
-          'end', 'selectLeft', 'selectRight'].indexOf(i) < 0);
-        MathYlem.activeMathYlem.render(false);
-        return false;
-      };
-    }(i)));
-  }
-};
+// Firefox's special minus (needed for _ = sub binding)
+Mousetrap.addKeycodes({ 173: '-' });
+for (var i in MathYlem.kb.chars) { // eslint-disable-line no-redeclare
+  Mousetrap.bind(i, (function (i) {
+    return function () {
+      if (!MathYlem.activeMathYlem) {
+        return true;
+      }
+      MathYlem.activeMathYlem.tempCursor.node = null;
+      MathYlem.activeMathYlem.backend.insertString(MathYlem.kb.chars[i]);
+      MathYlem.activeMathYlem.render(true);
+      return false;
+    };
+  }(i)));
+}
+for (var i in MathYlem.kb.symbols) { // eslint-disable-line no-redeclare
+  Mousetrap.bind(i, (function (i) {
+    return function () {
+      if (!MathYlem.activeMathYlem) {
+        return true;
+      }
+      MathYlem.activeMathYlem.tempCursor.node = null;
+      MathYlem.activeMathYlem.backend.insertSymbol(MathYlem.kb.symbols[i]);
+      MathYlem.activeMathYlem.render(true);
+      return false;
+    };
+  }(i)));
+}
+for (var i in MathYlem.kb.controls) { // eslint-disable-line no-redeclare
+  Mousetrap.bind(i, (function (i) {
+    return function () {
+      if (!MathYlem.activeMathYlem) {
+        return true;
+      }
+      MathYlem.activeMathYlem.backend[MathYlem.kb.controls[i]]();
+      MathYlem.activeMathYlem.tempCursor.node = null;
+      MathYlem.activeMathYlem.render(['up', 'down', 'right', 'left', 'home',
+        'end', 'selectLeft', 'selectRight'].indexOf(i) < 0);
+      return false;
+    };
+  }(i)));
+}
 
 module.exports = MathYlem;
 
-},{"./backend.js":1,"./doc.js":2,"./symbols.js":4,"katex":84,"mousetrap":121,"throttle-debounce/debounce":123}],4:[function(require,module,exports){
+},{"./backend.js":2,"./doc.js":3,"./symbols.js":5,"katex":85,"mousetrap":122,"throttle-debounce/debounce":124}],5:[function(require,module,exports){
 var Symbols = { 'symbols': {} };
+var defaultSymbols = require('../data/symbols.json');
 
 Symbols.makeRawSymbol = function (name, latex) {
   return {
@@ -2213,27 +2734,28 @@ Symbols.addSymbols = function (symbols) {
   }
 };
 
+Symbols.addSymbols(defaultSymbols);
 module.exports = Symbols;
 
-},{}],5:[function(require,module,exports){
+},{"../data/symbols.json":1}],6:[function(require,module,exports){
 module.exports = {
   DOMParser: window.DOMParser,
   XMLSerializer: window.XMLSerializer
 };
 
-},{}],6:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
 module.exports = { "default": require("core-js/library/fn/array/from"), __esModule: true };
-},{"core-js/library/fn/array/from":16}],7:[function(require,module,exports){
+},{"core-js/library/fn/array/from":17}],8:[function(require,module,exports){
 module.exports = { "default": require("core-js/library/fn/get-iterator"), __esModule: true };
-},{"core-js/library/fn/get-iterator":17}],8:[function(require,module,exports){
+},{"core-js/library/fn/get-iterator":18}],9:[function(require,module,exports){
 module.exports = { "default": require("core-js/library/fn/is-iterable"), __esModule: true };
-},{"core-js/library/fn/is-iterable":18}],9:[function(require,module,exports){
+},{"core-js/library/fn/is-iterable":19}],10:[function(require,module,exports){
 module.exports = { "default": require("core-js/library/fn/json/stringify"), __esModule: true };
-},{"core-js/library/fn/json/stringify":19}],10:[function(require,module,exports){
+},{"core-js/library/fn/json/stringify":20}],11:[function(require,module,exports){
 module.exports = { "default": require("core-js/library/fn/object/define-property"), __esModule: true };
-},{"core-js/library/fn/object/define-property":20}],11:[function(require,module,exports){
+},{"core-js/library/fn/object/define-property":21}],12:[function(require,module,exports){
 module.exports = { "default": require("core-js/library/fn/object/freeze"), __esModule: true };
-},{"core-js/library/fn/object/freeze":21}],12:[function(require,module,exports){
+},{"core-js/library/fn/object/freeze":22}],13:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -2243,7 +2765,7 @@ exports.default = function (instance, Constructor) {
     throw new TypeError("Cannot call a class as a function");
   }
 };
-},{}],13:[function(require,module,exports){
+},{}],14:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -2271,7 +2793,7 @@ exports.default = function () {
     return Constructor;
   };
 }();
-},{"../core-js/object/define-property":10}],14:[function(require,module,exports){
+},{"../core-js/object/define-property":11}],15:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -2323,7 +2845,7 @@ exports.default = function () {
     }
   };
 }();
-},{"../core-js/get-iterator":7,"../core-js/is-iterable":8}],15:[function(require,module,exports){
+},{"../core-js/get-iterator":8,"../core-js/is-iterable":9}],16:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -2345,56 +2867,56 @@ exports.default = function (arr) {
     return (0, _from2.default)(arr);
   }
 };
-},{"../core-js/array/from":6}],16:[function(require,module,exports){
+},{"../core-js/array/from":7}],17:[function(require,module,exports){
 require('../../modules/es6.string.iterator');
 require('../../modules/es6.array.from');
 module.exports = require('../../modules/_core').Array.from;
 
-},{"../../modules/_core":28,"../../modules/es6.array.from":77,"../../modules/es6.string.iterator":81}],17:[function(require,module,exports){
+},{"../../modules/_core":29,"../../modules/es6.array.from":78,"../../modules/es6.string.iterator":82}],18:[function(require,module,exports){
 require('../modules/web.dom.iterable');
 require('../modules/es6.string.iterator');
 module.exports = require('../modules/core.get-iterator');
 
-},{"../modules/core.get-iterator":75,"../modules/es6.string.iterator":81,"../modules/web.dom.iterable":82}],18:[function(require,module,exports){
+},{"../modules/core.get-iterator":76,"../modules/es6.string.iterator":82,"../modules/web.dom.iterable":83}],19:[function(require,module,exports){
 require('../modules/web.dom.iterable');
 require('../modules/es6.string.iterator');
 module.exports = require('../modules/core.is-iterable');
 
-},{"../modules/core.is-iterable":76,"../modules/es6.string.iterator":81,"../modules/web.dom.iterable":82}],19:[function(require,module,exports){
+},{"../modules/core.is-iterable":77,"../modules/es6.string.iterator":82,"../modules/web.dom.iterable":83}],20:[function(require,module,exports){
 var core = require('../../modules/_core');
 var $JSON = core.JSON || (core.JSON = { stringify: JSON.stringify });
 module.exports = function stringify(it) { // eslint-disable-line no-unused-vars
   return $JSON.stringify.apply($JSON, arguments);
 };
 
-},{"../../modules/_core":28}],20:[function(require,module,exports){
+},{"../../modules/_core":29}],21:[function(require,module,exports){
 require('../../modules/es6.object.define-property');
 var $Object = require('../../modules/_core').Object;
 module.exports = function defineProperty(it, key, desc) {
   return $Object.defineProperty(it, key, desc);
 };
 
-},{"../../modules/_core":28,"../../modules/es6.object.define-property":79}],21:[function(require,module,exports){
+},{"../../modules/_core":29,"../../modules/es6.object.define-property":80}],22:[function(require,module,exports){
 require('../../modules/es6.object.freeze');
 module.exports = require('../../modules/_core').Object.freeze;
 
-},{"../../modules/_core":28,"../../modules/es6.object.freeze":80}],22:[function(require,module,exports){
+},{"../../modules/_core":29,"../../modules/es6.object.freeze":81}],23:[function(require,module,exports){
 module.exports = function (it) {
   if (typeof it != 'function') throw TypeError(it + ' is not a function!');
   return it;
 };
 
-},{}],23:[function(require,module,exports){
+},{}],24:[function(require,module,exports){
 module.exports = function () { /* empty */ };
 
-},{}],24:[function(require,module,exports){
+},{}],25:[function(require,module,exports){
 var isObject = require('./_is-object');
 module.exports = function (it) {
   if (!isObject(it)) throw TypeError(it + ' is not an object!');
   return it;
 };
 
-},{"./_is-object":44}],25:[function(require,module,exports){
+},{"./_is-object":45}],26:[function(require,module,exports){
 // false -> Array#indexOf
 // true  -> Array#includes
 var toIObject = require('./_to-iobject');
@@ -2419,7 +2941,7 @@ module.exports = function (IS_INCLUDES) {
   };
 };
 
-},{"./_to-absolute-index":66,"./_to-iobject":68,"./_to-length":69}],26:[function(require,module,exports){
+},{"./_to-absolute-index":67,"./_to-iobject":69,"./_to-length":70}],27:[function(require,module,exports){
 // getting tag from 19.1.3.6 Object.prototype.toString()
 var cof = require('./_cof');
 var TAG = require('./_wks')('toStringTag');
@@ -2444,18 +2966,18 @@ module.exports = function (it) {
     : (B = cof(O)) == 'Object' && typeof O.callee == 'function' ? 'Arguments' : B;
 };
 
-},{"./_cof":27,"./_wks":73}],27:[function(require,module,exports){
+},{"./_cof":28,"./_wks":74}],28:[function(require,module,exports){
 var toString = {}.toString;
 
 module.exports = function (it) {
   return toString.call(it).slice(8, -1);
 };
 
-},{}],28:[function(require,module,exports){
+},{}],29:[function(require,module,exports){
 var core = module.exports = { version: '2.5.1' };
 if (typeof __e == 'number') __e = core; // eslint-disable-line no-undef
 
-},{}],29:[function(require,module,exports){
+},{}],30:[function(require,module,exports){
 'use strict';
 var $defineProperty = require('./_object-dp');
 var createDesc = require('./_property-desc');
@@ -2465,7 +2987,7 @@ module.exports = function (object, index, value) {
   else object[index] = value;
 };
 
-},{"./_object-dp":54,"./_property-desc":60}],30:[function(require,module,exports){
+},{"./_object-dp":55,"./_property-desc":61}],31:[function(require,module,exports){
 // optional / simple context binding
 var aFunction = require('./_a-function');
 module.exports = function (fn, that, length) {
@@ -2487,20 +3009,20 @@ module.exports = function (fn, that, length) {
   };
 };
 
-},{"./_a-function":22}],31:[function(require,module,exports){
+},{"./_a-function":23}],32:[function(require,module,exports){
 // 7.2.1 RequireObjectCoercible(argument)
 module.exports = function (it) {
   if (it == undefined) throw TypeError("Can't call method on  " + it);
   return it;
 };
 
-},{}],32:[function(require,module,exports){
+},{}],33:[function(require,module,exports){
 // Thank's IE8 for his funny defineProperty
 module.exports = !require('./_fails')(function () {
   return Object.defineProperty({}, 'a', { get: function () { return 7; } }).a != 7;
 });
 
-},{"./_fails":36}],33:[function(require,module,exports){
+},{"./_fails":37}],34:[function(require,module,exports){
 var isObject = require('./_is-object');
 var document = require('./_global').document;
 // typeof document.createElement is 'object' in old IE
@@ -2509,13 +3031,13 @@ module.exports = function (it) {
   return is ? document.createElement(it) : {};
 };
 
-},{"./_global":37,"./_is-object":44}],34:[function(require,module,exports){
+},{"./_global":38,"./_is-object":45}],35:[function(require,module,exports){
 // IE 8- don't enum bug keys
 module.exports = (
   'constructor,hasOwnProperty,isPrototypeOf,propertyIsEnumerable,toLocaleString,toString,valueOf'
 ).split(',');
 
-},{}],35:[function(require,module,exports){
+},{}],36:[function(require,module,exports){
 var global = require('./_global');
 var core = require('./_core');
 var ctx = require('./_ctx');
@@ -2578,7 +3100,7 @@ $export.U = 64;  // safe
 $export.R = 128; // real proto method for `library`
 module.exports = $export;
 
-},{"./_core":28,"./_ctx":30,"./_global":37,"./_hide":39}],36:[function(require,module,exports){
+},{"./_core":29,"./_ctx":31,"./_global":38,"./_hide":40}],37:[function(require,module,exports){
 module.exports = function (exec) {
   try {
     return !!exec();
@@ -2587,7 +3109,7 @@ module.exports = function (exec) {
   }
 };
 
-},{}],37:[function(require,module,exports){
+},{}],38:[function(require,module,exports){
 // https://github.com/zloirock/core-js/issues/86#issuecomment-115759028
 var global = module.exports = typeof window != 'undefined' && window.Math == Math
   ? window : typeof self != 'undefined' && self.Math == Math ? self
@@ -2595,13 +3117,13 @@ var global = module.exports = typeof window != 'undefined' && window.Math == Mat
   : Function('return this')();
 if (typeof __g == 'number') __g = global; // eslint-disable-line no-undef
 
-},{}],38:[function(require,module,exports){
+},{}],39:[function(require,module,exports){
 var hasOwnProperty = {}.hasOwnProperty;
 module.exports = function (it, key) {
   return hasOwnProperty.call(it, key);
 };
 
-},{}],39:[function(require,module,exports){
+},{}],40:[function(require,module,exports){
 var dP = require('./_object-dp');
 var createDesc = require('./_property-desc');
 module.exports = require('./_descriptors') ? function (object, key, value) {
@@ -2611,16 +3133,16 @@ module.exports = require('./_descriptors') ? function (object, key, value) {
   return object;
 };
 
-},{"./_descriptors":32,"./_object-dp":54,"./_property-desc":60}],40:[function(require,module,exports){
+},{"./_descriptors":33,"./_object-dp":55,"./_property-desc":61}],41:[function(require,module,exports){
 var document = require('./_global').document;
 module.exports = document && document.documentElement;
 
-},{"./_global":37}],41:[function(require,module,exports){
+},{"./_global":38}],42:[function(require,module,exports){
 module.exports = !require('./_descriptors') && !require('./_fails')(function () {
   return Object.defineProperty(require('./_dom-create')('div'), 'a', { get: function () { return 7; } }).a != 7;
 });
 
-},{"./_descriptors":32,"./_dom-create":33,"./_fails":36}],42:[function(require,module,exports){
+},{"./_descriptors":33,"./_dom-create":34,"./_fails":37}],43:[function(require,module,exports){
 // fallback for non-array-like ES3 and non-enumerable old V8 strings
 var cof = require('./_cof');
 // eslint-disable-next-line no-prototype-builtins
@@ -2628,7 +3150,7 @@ module.exports = Object('z').propertyIsEnumerable(0) ? Object : function (it) {
   return cof(it) == 'String' ? it.split('') : Object(it);
 };
 
-},{"./_cof":27}],43:[function(require,module,exports){
+},{"./_cof":28}],44:[function(require,module,exports){
 // check on default Array iterator
 var Iterators = require('./_iterators');
 var ITERATOR = require('./_wks')('iterator');
@@ -2638,12 +3160,12 @@ module.exports = function (it) {
   return it !== undefined && (Iterators.Array === it || ArrayProto[ITERATOR] === it);
 };
 
-},{"./_iterators":50,"./_wks":73}],44:[function(require,module,exports){
+},{"./_iterators":51,"./_wks":74}],45:[function(require,module,exports){
 module.exports = function (it) {
   return typeof it === 'object' ? it !== null : typeof it === 'function';
 };
 
-},{}],45:[function(require,module,exports){
+},{}],46:[function(require,module,exports){
 // call something on iterator step with safe closing on error
 var anObject = require('./_an-object');
 module.exports = function (iterator, fn, value, entries) {
@@ -2657,7 +3179,7 @@ module.exports = function (iterator, fn, value, entries) {
   }
 };
 
-},{"./_an-object":24}],46:[function(require,module,exports){
+},{"./_an-object":25}],47:[function(require,module,exports){
 'use strict';
 var create = require('./_object-create');
 var descriptor = require('./_property-desc');
@@ -2672,7 +3194,7 @@ module.exports = function (Constructor, NAME, next) {
   setToStringTag(Constructor, NAME + ' Iterator');
 };
 
-},{"./_hide":39,"./_object-create":53,"./_property-desc":60,"./_set-to-string-tag":62,"./_wks":73}],47:[function(require,module,exports){
+},{"./_hide":40,"./_object-create":54,"./_property-desc":61,"./_set-to-string-tag":63,"./_wks":74}],48:[function(require,module,exports){
 'use strict';
 var LIBRARY = require('./_library');
 var $export = require('./_export');
@@ -2744,7 +3266,7 @@ module.exports = function (Base, NAME, Constructor, next, DEFAULT, IS_SET, FORCE
   return methods;
 };
 
-},{"./_export":35,"./_has":38,"./_hide":39,"./_iter-create":46,"./_iterators":50,"./_library":51,"./_object-gpo":56,"./_redefine":61,"./_set-to-string-tag":62,"./_wks":73}],48:[function(require,module,exports){
+},{"./_export":36,"./_has":39,"./_hide":40,"./_iter-create":47,"./_iterators":51,"./_library":52,"./_object-gpo":57,"./_redefine":62,"./_set-to-string-tag":63,"./_wks":74}],49:[function(require,module,exports){
 var ITERATOR = require('./_wks')('iterator');
 var SAFE_CLOSING = false;
 
@@ -2768,18 +3290,18 @@ module.exports = function (exec, skipClosing) {
   return safe;
 };
 
-},{"./_wks":73}],49:[function(require,module,exports){
+},{"./_wks":74}],50:[function(require,module,exports){
 module.exports = function (done, value) {
   return { value: value, done: !!done };
 };
 
-},{}],50:[function(require,module,exports){
+},{}],51:[function(require,module,exports){
 module.exports = {};
 
-},{}],51:[function(require,module,exports){
+},{}],52:[function(require,module,exports){
 module.exports = true;
 
-},{}],52:[function(require,module,exports){
+},{}],53:[function(require,module,exports){
 var META = require('./_uid')('meta');
 var isObject = require('./_is-object');
 var has = require('./_has');
@@ -2834,7 +3356,7 @@ var meta = module.exports = {
   onFreeze: onFreeze
 };
 
-},{"./_fails":36,"./_has":38,"./_is-object":44,"./_object-dp":54,"./_uid":72}],53:[function(require,module,exports){
+},{"./_fails":37,"./_has":39,"./_is-object":45,"./_object-dp":55,"./_uid":73}],54:[function(require,module,exports){
 // 19.1.2.2 / 15.2.3.5 Object.create(O [, Properties])
 var anObject = require('./_an-object');
 var dPs = require('./_object-dps');
@@ -2877,7 +3399,7 @@ module.exports = Object.create || function create(O, Properties) {
   return Properties === undefined ? result : dPs(result, Properties);
 };
 
-},{"./_an-object":24,"./_dom-create":33,"./_enum-bug-keys":34,"./_html":40,"./_object-dps":55,"./_shared-key":63}],54:[function(require,module,exports){
+},{"./_an-object":25,"./_dom-create":34,"./_enum-bug-keys":35,"./_html":41,"./_object-dps":56,"./_shared-key":64}],55:[function(require,module,exports){
 var anObject = require('./_an-object');
 var IE8_DOM_DEFINE = require('./_ie8-dom-define');
 var toPrimitive = require('./_to-primitive');
@@ -2895,7 +3417,7 @@ exports.f = require('./_descriptors') ? Object.defineProperty : function defineP
   return O;
 };
 
-},{"./_an-object":24,"./_descriptors":32,"./_ie8-dom-define":41,"./_to-primitive":71}],55:[function(require,module,exports){
+},{"./_an-object":25,"./_descriptors":33,"./_ie8-dom-define":42,"./_to-primitive":72}],56:[function(require,module,exports){
 var dP = require('./_object-dp');
 var anObject = require('./_an-object');
 var getKeys = require('./_object-keys');
@@ -2910,7 +3432,7 @@ module.exports = require('./_descriptors') ? Object.defineProperties : function 
   return O;
 };
 
-},{"./_an-object":24,"./_descriptors":32,"./_object-dp":54,"./_object-keys":58}],56:[function(require,module,exports){
+},{"./_an-object":25,"./_descriptors":33,"./_object-dp":55,"./_object-keys":59}],57:[function(require,module,exports){
 // 19.1.2.9 / 15.2.3.2 Object.getPrototypeOf(O)
 var has = require('./_has');
 var toObject = require('./_to-object');
@@ -2925,7 +3447,7 @@ module.exports = Object.getPrototypeOf || function (O) {
   } return O instanceof Object ? ObjectProto : null;
 };
 
-},{"./_has":38,"./_shared-key":63,"./_to-object":70}],57:[function(require,module,exports){
+},{"./_has":39,"./_shared-key":64,"./_to-object":71}],58:[function(require,module,exports){
 var has = require('./_has');
 var toIObject = require('./_to-iobject');
 var arrayIndexOf = require('./_array-includes')(false);
@@ -2944,7 +3466,7 @@ module.exports = function (object, names) {
   return result;
 };
 
-},{"./_array-includes":25,"./_has":38,"./_shared-key":63,"./_to-iobject":68}],58:[function(require,module,exports){
+},{"./_array-includes":26,"./_has":39,"./_shared-key":64,"./_to-iobject":69}],59:[function(require,module,exports){
 // 19.1.2.14 / 15.2.3.14 Object.keys(O)
 var $keys = require('./_object-keys-internal');
 var enumBugKeys = require('./_enum-bug-keys');
@@ -2953,7 +3475,7 @@ module.exports = Object.keys || function keys(O) {
   return $keys(O, enumBugKeys);
 };
 
-},{"./_enum-bug-keys":34,"./_object-keys-internal":57}],59:[function(require,module,exports){
+},{"./_enum-bug-keys":35,"./_object-keys-internal":58}],60:[function(require,module,exports){
 // most Object methods by ES6 should accept primitives
 var $export = require('./_export');
 var core = require('./_core');
@@ -2965,7 +3487,7 @@ module.exports = function (KEY, exec) {
   $export($export.S + $export.F * fails(function () { fn(1); }), 'Object', exp);
 };
 
-},{"./_core":28,"./_export":35,"./_fails":36}],60:[function(require,module,exports){
+},{"./_core":29,"./_export":36,"./_fails":37}],61:[function(require,module,exports){
 module.exports = function (bitmap, value) {
   return {
     enumerable: !(bitmap & 1),
@@ -2975,10 +3497,10 @@ module.exports = function (bitmap, value) {
   };
 };
 
-},{}],61:[function(require,module,exports){
+},{}],62:[function(require,module,exports){
 module.exports = require('./_hide');
 
-},{"./_hide":39}],62:[function(require,module,exports){
+},{"./_hide":40}],63:[function(require,module,exports){
 var def = require('./_object-dp').f;
 var has = require('./_has');
 var TAG = require('./_wks')('toStringTag');
@@ -2987,14 +3509,14 @@ module.exports = function (it, tag, stat) {
   if (it && !has(it = stat ? it : it.prototype, TAG)) def(it, TAG, { configurable: true, value: tag });
 };
 
-},{"./_has":38,"./_object-dp":54,"./_wks":73}],63:[function(require,module,exports){
+},{"./_has":39,"./_object-dp":55,"./_wks":74}],64:[function(require,module,exports){
 var shared = require('./_shared')('keys');
 var uid = require('./_uid');
 module.exports = function (key) {
   return shared[key] || (shared[key] = uid(key));
 };
 
-},{"./_shared":64,"./_uid":72}],64:[function(require,module,exports){
+},{"./_shared":65,"./_uid":73}],65:[function(require,module,exports){
 var global = require('./_global');
 var SHARED = '__core-js_shared__';
 var store = global[SHARED] || (global[SHARED] = {});
@@ -3002,7 +3524,7 @@ module.exports = function (key) {
   return store[key] || (store[key] = {});
 };
 
-},{"./_global":37}],65:[function(require,module,exports){
+},{"./_global":38}],66:[function(require,module,exports){
 var toInteger = require('./_to-integer');
 var defined = require('./_defined');
 // true  -> String#at
@@ -3021,7 +3543,7 @@ module.exports = function (TO_STRING) {
   };
 };
 
-},{"./_defined":31,"./_to-integer":67}],66:[function(require,module,exports){
+},{"./_defined":32,"./_to-integer":68}],67:[function(require,module,exports){
 var toInteger = require('./_to-integer');
 var max = Math.max;
 var min = Math.min;
@@ -3030,7 +3552,7 @@ module.exports = function (index, length) {
   return index < 0 ? max(index + length, 0) : min(index, length);
 };
 
-},{"./_to-integer":67}],67:[function(require,module,exports){
+},{"./_to-integer":68}],68:[function(require,module,exports){
 // 7.1.4 ToInteger
 var ceil = Math.ceil;
 var floor = Math.floor;
@@ -3038,7 +3560,7 @@ module.exports = function (it) {
   return isNaN(it = +it) ? 0 : (it > 0 ? floor : ceil)(it);
 };
 
-},{}],68:[function(require,module,exports){
+},{}],69:[function(require,module,exports){
 // to indexed object, toObject with fallback for non-array-like ES3 strings
 var IObject = require('./_iobject');
 var defined = require('./_defined');
@@ -3046,7 +3568,7 @@ module.exports = function (it) {
   return IObject(defined(it));
 };
 
-},{"./_defined":31,"./_iobject":42}],69:[function(require,module,exports){
+},{"./_defined":32,"./_iobject":43}],70:[function(require,module,exports){
 // 7.1.15 ToLength
 var toInteger = require('./_to-integer');
 var min = Math.min;
@@ -3054,14 +3576,14 @@ module.exports = function (it) {
   return it > 0 ? min(toInteger(it), 0x1fffffffffffff) : 0; // pow(2, 53) - 1 == 9007199254740991
 };
 
-},{"./_to-integer":67}],70:[function(require,module,exports){
+},{"./_to-integer":68}],71:[function(require,module,exports){
 // 7.1.13 ToObject(argument)
 var defined = require('./_defined');
 module.exports = function (it) {
   return Object(defined(it));
 };
 
-},{"./_defined":31}],71:[function(require,module,exports){
+},{"./_defined":32}],72:[function(require,module,exports){
 // 7.1.1 ToPrimitive(input [, PreferredType])
 var isObject = require('./_is-object');
 // instead of the ES6 spec version, we didn't implement @@toPrimitive case
@@ -3075,14 +3597,14 @@ module.exports = function (it, S) {
   throw TypeError("Can't convert object to primitive value");
 };
 
-},{"./_is-object":44}],72:[function(require,module,exports){
+},{"./_is-object":45}],73:[function(require,module,exports){
 var id = 0;
 var px = Math.random();
 module.exports = function (key) {
   return 'Symbol('.concat(key === undefined ? '' : key, ')_', (++id + px).toString(36));
 };
 
-},{}],73:[function(require,module,exports){
+},{}],74:[function(require,module,exports){
 var store = require('./_shared')('wks');
 var uid = require('./_uid');
 var Symbol = require('./_global').Symbol;
@@ -3095,7 +3617,7 @@ var $exports = module.exports = function (name) {
 
 $exports.store = store;
 
-},{"./_global":37,"./_shared":64,"./_uid":72}],74:[function(require,module,exports){
+},{"./_global":38,"./_shared":65,"./_uid":73}],75:[function(require,module,exports){
 var classof = require('./_classof');
 var ITERATOR = require('./_wks')('iterator');
 var Iterators = require('./_iterators');
@@ -3105,7 +3627,7 @@ module.exports = require('./_core').getIteratorMethod = function (it) {
     || Iterators[classof(it)];
 };
 
-},{"./_classof":26,"./_core":28,"./_iterators":50,"./_wks":73}],75:[function(require,module,exports){
+},{"./_classof":27,"./_core":29,"./_iterators":51,"./_wks":74}],76:[function(require,module,exports){
 var anObject = require('./_an-object');
 var get = require('./core.get-iterator-method');
 module.exports = require('./_core').getIterator = function (it) {
@@ -3114,7 +3636,7 @@ module.exports = require('./_core').getIterator = function (it) {
   return anObject(iterFn.call(it));
 };
 
-},{"./_an-object":24,"./_core":28,"./core.get-iterator-method":74}],76:[function(require,module,exports){
+},{"./_an-object":25,"./_core":29,"./core.get-iterator-method":75}],77:[function(require,module,exports){
 var classof = require('./_classof');
 var ITERATOR = require('./_wks')('iterator');
 var Iterators = require('./_iterators');
@@ -3126,7 +3648,7 @@ module.exports = require('./_core').isIterable = function (it) {
     || Iterators.hasOwnProperty(classof(O));
 };
 
-},{"./_classof":26,"./_core":28,"./_iterators":50,"./_wks":73}],77:[function(require,module,exports){
+},{"./_classof":27,"./_core":29,"./_iterators":51,"./_wks":74}],78:[function(require,module,exports){
 'use strict';
 var ctx = require('./_ctx');
 var $export = require('./_export');
@@ -3165,7 +3687,7 @@ $export($export.S + $export.F * !require('./_iter-detect')(function (iter) { Arr
   }
 });
 
-},{"./_create-property":29,"./_ctx":30,"./_export":35,"./_is-array-iter":43,"./_iter-call":45,"./_iter-detect":48,"./_to-length":69,"./_to-object":70,"./core.get-iterator-method":74}],78:[function(require,module,exports){
+},{"./_create-property":30,"./_ctx":31,"./_export":36,"./_is-array-iter":44,"./_iter-call":46,"./_iter-detect":49,"./_to-length":70,"./_to-object":71,"./core.get-iterator-method":75}],79:[function(require,module,exports){
 'use strict';
 var addToUnscopables = require('./_add-to-unscopables');
 var step = require('./_iter-step');
@@ -3201,12 +3723,12 @@ addToUnscopables('keys');
 addToUnscopables('values');
 addToUnscopables('entries');
 
-},{"./_add-to-unscopables":23,"./_iter-define":47,"./_iter-step":49,"./_iterators":50,"./_to-iobject":68}],79:[function(require,module,exports){
+},{"./_add-to-unscopables":24,"./_iter-define":48,"./_iter-step":50,"./_iterators":51,"./_to-iobject":69}],80:[function(require,module,exports){
 var $export = require('./_export');
 // 19.1.2.4 / 15.2.3.6 Object.defineProperty(O, P, Attributes)
 $export($export.S + $export.F * !require('./_descriptors'), 'Object', { defineProperty: require('./_object-dp').f });
 
-},{"./_descriptors":32,"./_export":35,"./_object-dp":54}],80:[function(require,module,exports){
+},{"./_descriptors":33,"./_export":36,"./_object-dp":55}],81:[function(require,module,exports){
 // 19.1.2.5 Object.freeze(O)
 var isObject = require('./_is-object');
 var meta = require('./_meta').onFreeze;
@@ -3217,7 +3739,7 @@ require('./_object-sap')('freeze', function ($freeze) {
   };
 });
 
-},{"./_is-object":44,"./_meta":52,"./_object-sap":59}],81:[function(require,module,exports){
+},{"./_is-object":45,"./_meta":53,"./_object-sap":60}],82:[function(require,module,exports){
 'use strict';
 var $at = require('./_string-at')(true);
 
@@ -3236,7 +3758,7 @@ require('./_iter-define')(String, 'String', function (iterated) {
   return { value: point, done: false };
 });
 
-},{"./_iter-define":47,"./_string-at":65}],82:[function(require,module,exports){
+},{"./_iter-define":48,"./_string-at":66}],83:[function(require,module,exports){
 require('./es6.array.iterator');
 var global = require('./_global');
 var hide = require('./_hide');
@@ -3257,7 +3779,7 @@ for (var i = 0; i < DOMIterables.length; i++) {
   Iterators[NAME] = Iterators.Array;
 }
 
-},{"./_global":37,"./_hide":39,"./_iterators":50,"./_wks":73,"./es6.array.iterator":78}],83:[function(require,module,exports){
+},{"./_global":38,"./_hide":40,"./_iterators":51,"./_wks":74,"./es6.array.iterator":79}],84:[function(require,module,exports){
 'use strict';
 
 var has = Object.prototype.hasOwnProperty
@@ -3570,7 +4092,7 @@ if ('undefined' !== typeof module) {
   module.exports = EventEmitter;
 }
 
-},{}],84:[function(require,module,exports){
+},{}],85:[function(require,module,exports){
 "use strict";
 
 var _ParseError = require("./src/ParseError");
@@ -3661,7 +4183,7 @@ module.exports = {
     ParseError: _ParseError2.default
 };
 
-},{"./src/ParseError":88,"./src/Settings":91,"./src/buildTree":98,"./src/parseTree":113,"./src/utils":119}],85:[function(require,module,exports){
+},{"./src/ParseError":89,"./src/Settings":92,"./src/buildTree":99,"./src/parseTree":114,"./src/utils":120}],86:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -3786,7 +4308,7 @@ var Lexer = function () {
 
 exports.default = Lexer;
 
-},{"./ParseError":88,"./SourceLocation":92,"./Token":94,"babel-runtime/helpers/classCallCheck":12,"babel-runtime/helpers/createClass":13,"match-at":120}],86:[function(require,module,exports){
+},{"./ParseError":89,"./SourceLocation":93,"./Token":95,"babel-runtime/helpers/classCallCheck":13,"babel-runtime/helpers/createClass":14,"match-at":121}],87:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -4077,7 +4599,7 @@ var MacroExpander = function () {
 
 exports.default = MacroExpander;
 
-},{"./Lexer":85,"./ParseError":88,"./Token":94,"./macros":111,"babel-runtime/helpers/classCallCheck":12,"babel-runtime/helpers/createClass":13,"babel-runtime/helpers/toConsumableArray":15,"object-assign":122}],87:[function(require,module,exports){
+},{"./Lexer":86,"./ParseError":89,"./Token":95,"./macros":112,"babel-runtime/helpers/classCallCheck":13,"babel-runtime/helpers/createClass":14,"babel-runtime/helpers/toConsumableArray":16,"object-assign":123}],88:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -4417,7 +4939,7 @@ Options.colorMap = {
 };
 exports.default = Options;
 
-},{"./fontMetrics":105,"babel-runtime/helpers/classCallCheck":12,"babel-runtime/helpers/createClass":13}],88:[function(require,module,exports){
+},{"./fontMetrics":106,"babel-runtime/helpers/classCallCheck":13,"babel-runtime/helpers/createClass":14}],89:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -4508,7 +5030,7 @@ ParseError.prototype.__proto__ = Error.prototype;
 
 exports.default = ParseError;
 
-},{"./ParseNode":89,"./Token":94,"babel-runtime/helpers/classCallCheck":12}],89:[function(require,module,exports){
+},{"./ParseNode":90,"./Token":95,"babel-runtime/helpers/classCallCheck":13}],90:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -4552,7 +5074,7 @@ lastToken) // last token of the input for this node,
 
 exports.default = ParseNode;
 
-},{"./SourceLocation":92,"./Token":94,"babel-runtime/helpers/classCallCheck":12}],90:[function(require,module,exports){
+},{"./SourceLocation":93,"./Token":95,"babel-runtime/helpers/classCallCheck":13}],91:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -5627,7 +6149,7 @@ Parser.oldFontFuncs = {
 };
 exports.default = Parser;
 
-},{"./MacroExpander":86,"./ParseError":88,"./ParseNode":89,"./environments":103,"./functions":107,"./symbols":116,"./unicodeRegexes":117,"./units":118,"./utils":119,"babel-runtime/helpers/classCallCheck":12,"babel-runtime/helpers/createClass":13}],91:[function(require,module,exports){
+},{"./MacroExpander":87,"./ParseError":89,"./ParseNode":90,"./environments":104,"./functions":108,"./symbols":117,"./unicodeRegexes":118,"./units":119,"./utils":120,"babel-runtime/helpers/classCallCheck":13,"babel-runtime/helpers/createClass":14}],92:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -5673,7 +6195,7 @@ var Settings = function Settings(options) {
 
 exports.default = Settings;
 
-},{"./utils":119,"babel-runtime/helpers/classCallCheck":12}],92:[function(require,module,exports){
+},{"./utils":120,"babel-runtime/helpers/classCallCheck":13}],93:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -5739,7 +6261,7 @@ var SourceLocation = function () {
 
 exports.default = SourceLocation;
 
-},{"babel-runtime/core-js/object/freeze":11,"babel-runtime/helpers/classCallCheck":12,"babel-runtime/helpers/createClass":13}],93:[function(require,module,exports){
+},{"babel-runtime/core-js/object/freeze":12,"babel-runtime/helpers/classCallCheck":13,"babel-runtime/helpers/createClass":14}],94:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -5887,7 +6409,7 @@ exports.default = {
     SCRIPTSCRIPT: styles[SS]
 };
 
-},{"babel-runtime/helpers/classCallCheck":12,"babel-runtime/helpers/createClass":13}],94:[function(require,module,exports){
+},{"babel-runtime/helpers/classCallCheck":13,"babel-runtime/helpers/createClass":14}],95:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -5954,7 +6476,7 @@ var Token = exports.Token = function () {
     return Token;
 }();
 
-},{"./SourceLocation":92,"babel-runtime/helpers/classCallCheck":12,"babel-runtime/helpers/createClass":13}],95:[function(require,module,exports){
+},{"./SourceLocation":93,"babel-runtime/helpers/classCallCheck":13,"babel-runtime/helpers/createClass":14}],96:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -6484,7 +7006,7 @@ exports.default = {
     spacingFunctions: spacingFunctions
 };
 
-},{"./domTree":102,"./fontMetrics":105,"./symbols":116,"./utils":119}],96:[function(require,module,exports){
+},{"./domTree":103,"./fontMetrics":106,"./symbols":117,"./utils":120}],97:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -6816,8 +7338,8 @@ groupTypes.text = function (group, options) {
     return makeSpan(["mord", "text"], inner, newOptions);
 };
 
-groupTypes.xmlClass = function (group, options, prev) {
-    var elements = buildExpression(group.value.value, options, prev);
+groupTypes.xmlClass = function (group, options) {
+    var elements = buildExpression(group.value.value, options, false);
 
     return new _buildCommon2.default.makeFragment(elements, [group.value.cl]);
 };
@@ -7552,7 +8074,7 @@ groupTypes.verb = function (group, options) {
     return makeSpan(["mord", "text"].concat(newOptions.sizingClasses(options)), body, newOptions);
 };
 
-groupTypes.cursor = function (group, options, prev) {
+groupTypes.cursor = function (group, options) {
     // Make an empty span for the rule
     var cursor = makeSpan(["cursor"], [], options);
 
@@ -7570,7 +8092,6 @@ groupTypes.cursor = function (group, options, prev) {
     cursor.width = 1;
     cursor.height = height + shift;
     cursor.depth = -shift;
-    group.value.previous = prev;
 
     return cursor;
 };
@@ -8038,7 +8559,7 @@ function buildHTML(tree, options) {
     return htmlNode;
 }
 
-},{"./ParseError":88,"./Style":93,"./buildCommon":95,"./delimiter":101,"./domTree":102,"./stretchy":114,"./units":118,"./utils":119,"babel-runtime/core-js/json/stringify":9}],97:[function(require,module,exports){
+},{"./ParseError":89,"./Style":94,"./buildCommon":96,"./delimiter":102,"./domTree":103,"./stretchy":115,"./units":119,"./utils":120,"babel-runtime/core-js/json/stringify":10}],98:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -8724,7 +9245,7 @@ function buildMathML(tree, texExpression, options) {
     return _buildCommon2.default.makeSpan(["katex-mathml"], [math]);
 }
 
-},{"./ParseError":88,"./Style":93,"./buildCommon":95,"./fontMetrics":105,"./mathMLTree":112,"./stretchy":114,"./symbols":116,"./utils":119}],98:[function(require,module,exports){
+},{"./ParseError":89,"./Style":94,"./buildCommon":96,"./fontMetrics":106,"./mathMLTree":113,"./stretchy":115,"./symbols":117,"./utils":120}],99:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -8787,7 +9308,7 @@ var buildTree = function buildTree(tree, expression, settings) {
 
 exports.default = buildTree;
 
-},{"./Options":87,"./Settings":91,"./Style":93,"./buildCommon":95,"./buildHTML":96,"./buildMathML":97}],99:[function(require,module,exports){
+},{"./Options":88,"./Settings":92,"./Style":94,"./buildCommon":96,"./buildHTML":97,"./buildMathML":98}],100:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -8877,7 +9398,7 @@ function defineEnvironment(_ref) {
     }
 }
 
-},{"./Options":87,"./ParseNode":89,"./buildHTML":96,"./buildMathML":97}],100:[function(require,module,exports){
+},{"./Options":88,"./ParseNode":90,"./buildHTML":97,"./buildMathML":98}],101:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -8954,7 +9475,7 @@ var ordargument = exports.ordargument = function ordargument(arg) {
     }
 };
 
-},{"./buildHTML":96,"./buildMathML":97}],101:[function(require,module,exports){
+},{"./buildHTML":97,"./buildMathML":98}],102:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -9533,7 +10054,7 @@ exports.default = {
     leftRightDelim: makeLeftRightDelim
 };
 
-},{"./ParseError":88,"./Style":93,"./buildCommon":95,"./domTree":102,"./fontMetrics":105,"./symbols":116,"./utils":119}],102:[function(require,module,exports){
+},{"./ParseError":89,"./Style":94,"./buildCommon":96,"./domTree":103,"./fontMetrics":106,"./symbols":117,"./utils":120}],103:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -10092,7 +10613,7 @@ exports.default = {
     lineNode: lineNode
 };
 
-},{"./svgGeometry":115,"./unicodeRegexes":117,"./utils":119,"babel-runtime/helpers/classCallCheck":12,"babel-runtime/helpers/createClass":13,"babel-runtime/helpers/slicedToArray":14}],103:[function(require,module,exports){
+},{"./svgGeometry":116,"./unicodeRegexes":118,"./utils":120,"babel-runtime/helpers/classCallCheck":13,"babel-runtime/helpers/createClass":14,"babel-runtime/helpers/slicedToArray":15}],104:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -10115,7 +10636,7 @@ exports.default = environments;
 
 // All environment definitions should be imported below
 
-},{"./defineEnvironment":99,"./environments/array.js":104}],104:[function(require,module,exports){
+},{"./defineEnvironment":100,"./environments/array.js":105}],105:[function(require,module,exports){
 "use strict";
 
 var _buildCommon = require("../buildCommon");
@@ -10577,7 +11098,7 @@ var mathmlBuilder = function mathmlBuilder(group, options) {
     mathmlBuilder: mathmlBuilder
 });
 
-},{"../ParseError":88,"../ParseNode":89,"../buildCommon":95,"../buildHTML":96,"../buildMathML":97,"../defineEnvironment":99,"../mathMLTree":112,"../units":118,"../utils":119}],105:[function(require,module,exports){
+},{"../ParseError":89,"../ParseNode":90,"../buildCommon":96,"../buildHTML":97,"../buildMathML":98,"../defineEnvironment":100,"../mathMLTree":113,"../units":119,"../utils":120}],106:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -10876,7 +11397,7 @@ exports.default = {
     getCharacterMetrics: getCharacterMetrics
 };
 
-},{"./fontMetricsData":106,"./unicodeRegexes":117}],106:[function(require,module,exports){
+},{"./fontMetricsData":107,"./unicodeRegexes":118}],107:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -12640,7 +13161,7 @@ var fontMetricsData = {
 
 exports.default = fontMetricsData;
 
-},{}],107:[function(require,module,exports){
+},{}],108:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -12844,6 +13365,7 @@ defineFunction(["\\rule"], {
 
 defineFunction(["\\cursor"], {
     numArgs: 2,
+    allowedInText: true,
     argTypes: ["size", "size"]
 }, function (context, args) {
     return {
@@ -13337,7 +13859,7 @@ defineFunction(["\\verb"], {
     throw new _ParseError2.default("\\verb ended by end of line instead of matching delimiter");
 });
 
-},{"./ParseError":88,"./ParseNode":89,"./defineFunction":100,"./functions/delimsizing":108,"./functions/operators":109,"./functions/phantom":110,"./utils":119}],108:[function(require,module,exports){
+},{"./ParseError":89,"./ParseNode":90,"./defineFunction":101,"./functions/delimsizing":109,"./functions/operators":110,"./functions/phantom":111,"./utils":120}],109:[function(require,module,exports){
 "use strict";
 
 var _buildCommon = require("../buildCommon");
@@ -13597,7 +14119,7 @@ function checkDelimiter(delim, context) {
     }
 });
 
-},{"../ParseError":88,"../buildCommon":95,"../buildHTML":96,"../buildMathML":97,"../defineFunction":100,"../delimiter":101,"../mathMLTree":112,"../utils":119}],109:[function(require,module,exports){
+},{"../ParseError":89,"../buildCommon":96,"../buildHTML":97,"../buildMathML":98,"../defineFunction":101,"../delimiter":102,"../mathMLTree":113,"../utils":120}],110:[function(require,module,exports){
 "use strict";
 
 var _defineFunction = require("../defineFunction");
@@ -13695,7 +14217,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
     }
 });
 
-},{"../buildCommon":95,"../buildHTML":96,"../buildMathML":97,"../defineFunction":100,"../domTree":102,"../mathMLTree":112}],110:[function(require,module,exports){
+},{"../buildCommon":96,"../buildHTML":97,"../buildMathML":98,"../defineFunction":101,"../domTree":103,"../mathMLTree":113}],111:[function(require,module,exports){
 "use strict";
 
 var _defineFunction = require("../defineFunction");
@@ -13817,7 +14339,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
     }
 });
 
-},{"../buildCommon":95,"../buildHTML":96,"../buildMathML":97,"../defineFunction":100,"../mathMLTree":112}],111:[function(require,module,exports){
+},{"../buildCommon":96,"../buildHTML":97,"../buildMathML":98,"../defineFunction":101,"../mathMLTree":113}],112:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -14114,7 +14636,7 @@ defineMacro("\\simcoloncolon", "\\sim\\mathrel{\\mkern-1.2mu}\\dblcolon");
 defineMacro("\\approxcolon", "\\approx\\mathrel{\\mkern-1.2mu}\\vcentcolon");
 defineMacro("\\approxcoloncolon", "\\approx\\mathrel{\\mkern-1.2mu}\\dblcolon");
 
-},{"./Token":94,"./symbols":116,"./utils":119}],112:[function(require,module,exports){
+},{"./Token":95,"./symbols":117,"./utils":120}],113:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -14264,7 +14786,7 @@ exports.default = {
     TextNode: TextNode
 };
 
-},{"./utils":119,"babel-runtime/helpers/classCallCheck":12,"babel-runtime/helpers/createClass":13}],113:[function(require,module,exports){
+},{"./utils":120,"babel-runtime/helpers/classCallCheck":13,"babel-runtime/helpers/createClass":14}],114:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -14294,7 +14816,7 @@ var parseTree = function parseTree(toParse, settings) {
 
 exports.default = parseTree;
 
-},{"./Parser":90}],114:[function(require,module,exports){
+},{"./Parser":91}],115:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -14626,7 +15148,7 @@ exports.default = {
     svgSpan: svgSpan
 };
 
-},{"./buildCommon":95,"./domTree":102,"./mathMLTree":112,"./utils":119,"babel-runtime/helpers/slicedToArray":14}],115:[function(require,module,exports){
+},{"./buildCommon":96,"./domTree":103,"./mathMLTree":113,"./utils":120,"babel-runtime/helpers/slicedToArray":15}],116:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -14744,7 +15266,7 @@ var path = {
 
 exports.default = { path: path };
 
-},{}],116:[function(require,module,exports){
+},{}],117:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -15466,7 +15988,7 @@ defineSymbol(text, main, textord, "\u2019", "’");
 defineSymbol(text, main, textord, "\u201C", "“");
 defineSymbol(text, main, textord, "\u201D", "”");
 
-},{}],117:[function(require,module,exports){
+},{}],118:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -15484,7 +16006,7 @@ var hangulRegex = exports.hangulRegex = /[\uAC00-\uD7AF]/;
 // Notably missing are halfwidth Katakana and Romanji glyphs.
 var cjkRegex = exports.cjkRegex = /[\u3000-\u30FF\u4E00-\u9FAF\uAC00-\uD7AF\uFF00-\uFF60]/;
 
-},{}],118:[function(require,module,exports){
+},{}],119:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -15595,7 +16117,7 @@ var calculateSize = exports.calculateSize = function calculateSize(sizeValue, op
     return Math.min(sizeValue.number * scale, options.maxSize);
 };
 
-},{"./Options":87,"./ParseError":88}],119:[function(require,module,exports){
+},{"./Options":88,"./ParseError":89}],120:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -15704,7 +16226,7 @@ exports.default = {
     clearNode: clearNode
 };
 
-},{}],120:[function(require,module,exports){
+},{}],121:[function(require,module,exports){
 function getRelocatable(re) {
   // In the future, this could use a WeakMap instead of an expando.
   if (!re.__matchAtRelocatable) {
@@ -15743,7 +16265,7 @@ function matchAt(re, str, pos) {
 }
 
 module.exports = matchAt;
-},{}],121:[function(require,module,exports){
+},{}],122:[function(require,module,exports){
 /*global define:false */
 /**
  * Copyright 2012-2017 Craig Campbell
@@ -16789,7 +17311,7 @@ module.exports = matchAt;
     }
 }) (typeof window !== 'undefined' ? window : null, typeof  window !== 'undefined' ? document : null);
 
-},{}],122:[function(require,module,exports){
+},{}],123:[function(require,module,exports){
 'use strict';
 var propIsEnumerable = Object.prototype.propertyIsEnumerable;
 
@@ -16830,7 +17352,7 @@ module.exports = Object.assign || function (target, source) {
 	return to;
 };
 
-},{}],123:[function(require,module,exports){
+},{}],124:[function(require,module,exports){
 /* eslint-disable no-undefined */
 
 var throttle = require('./throttle');
@@ -16853,7 +17375,7 @@ module.exports = function ( delay, atBegin, callback ) {
 	return callback === undefined ? throttle(delay, atBegin, false) : throttle(delay, callback, atBegin !== false);
 };
 
-},{"./throttle":124}],124:[function(require,module,exports){
+},{"./throttle":125}],125:[function(require,module,exports){
 /* eslint-disable no-undefined,no-param-reassign,no-shadow */
 
 /**
@@ -16946,5 +17468,5 @@ module.exports = function ( delay, noTrailing, callback, debounceMode ) {
 
 };
 
-},{}]},{},[3])(3)
+},{}]},{},[4])(4)
 });

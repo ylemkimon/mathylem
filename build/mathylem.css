@@ -196,159 +196,173 @@
   min-height: 2px;
 }
 .katex .mord + .mop,
-.katex .mord + .cursor + .mop {
-  margin-left: 0.16667em;
-}
 .katex .mord + .cursor + .mop,
 .katex .mord + .cursor + .cursor + .mop {
   margin-left: 0.16667em;
 }
 .katex .mord + .mbin,
-.katex .mord + .cursor + .mbin {
+.katex .mord + .cursor + .mbin,
+.katex .mord + .cursor + .cursor + .mbin {
   margin-left: 0.22222em;
 }
 .katex .mord + .mrel,
-.katex .mord + .cursor + .mrel {
+.katex .mord + .cursor + .mrel,
+.katex .mord + .cursor + .cursor + .mrel {
   margin-left: 0.27778em;
 }
 .katex .mord + .minner,
-.katex .mord + .cursor + .minner {
+.katex .mord + .cursor + .minner,
+.katex .mord + .cursor + .cursor + .minner {
   margin-left: 0.16667em;
 }
 .katex .mop + .mord,
-.katex .mop + .cursor + .mord {
-  margin-left: 0.16667em;
-}
-.katex .mop + .mop,
-.katex .mop + .cursor + .mop {
-  margin-left: 0.16667em;
-}
 .katex .mop + .cursor + .mord,
 .katex .mop + .cursor + .cursor + .mord {
   margin-left: 0.16667em;
 }
+.katex .mop + .mop,
 .katex .mop + .cursor + .mop,
 .katex .mop + .cursor + .cursor + .mop {
   margin-left: 0.16667em;
 }
 .katex .mop + .mrel,
-.katex .mop + .cursor + .mrel {
+.katex .mop + .cursor + .mrel,
+.katex .mop + .cursor + .cursor + .mrel {
   margin-left: 0.27778em;
 }
 .katex .mop + .minner,
-.katex .mop + .cursor + .minner {
+.katex .mop + .cursor + .minner,
+.katex .mop + .cursor + .cursor + .minner {
   margin-left: 0.16667em;
 }
 .katex .mbin + .mord,
-.katex .mbin + .cursor + .mord {
+.katex .mbin + .cursor + .mord,
+.katex .mbin + .cursor + .cursor + .mord {
   margin-left: 0.22222em;
 }
 .katex .mbin + .mop,
-.katex .mbin + .cursor + .mop {
+.katex .mbin + .cursor + .mop,
+.katex .mbin + .cursor + .cursor + .mop {
   margin-left: 0.22222em;
 }
 .katex .mbin + .mopen,
-.katex .mbin + .cursor + .mopen {
+.katex .mbin + .cursor + .mopen,
+.katex .mbin + .cursor + .cursor + .mopen {
   margin-left: 0.22222em;
 }
 .katex .mbin + .minner,
-.katex .mbin + .cursor + .minner {
+.katex .mbin + .cursor + .minner,
+.katex .mbin + .cursor + .cursor + .minner {
   margin-left: 0.22222em;
 }
 .katex .mrel + .mord,
-.katex .mrel + .cursor + .mord {
+.katex .mrel + .cursor + .mord,
+.katex .mrel + .cursor + .cursor + .mord {
   margin-left: 0.27778em;
 }
 .katex .mrel + .mop,
-.katex .mrel + .cursor + .mop {
+.katex .mrel + .cursor + .mop,
+.katex .mrel + .cursor + .cursor + .mop {
   margin-left: 0.27778em;
 }
 .katex .mrel + .mopen,
-.katex .mrel + .cursor + .mopen {
+.katex .mrel + .cursor + .mopen,
+.katex .mrel + .cursor + .cursor + .mopen {
   margin-left: 0.27778em;
 }
 .katex .mrel + .minner,
-.katex .mrel + .cursor + .minner {
+.katex .mrel + .cursor + .minner,
+.katex .mrel + .cursor + .cursor + .minner {
   margin-left: 0.27778em;
 }
 .katex .mclose + .mop,
-.katex .mclose + .cursor + .mop {
+.katex .mclose + .cursor + .mop,
+.katex .mclose + .cursor + .cursor + .mop {
   margin-left: 0.16667em;
 }
 .katex .mclose + .mbin,
-.katex .mclose + .cursor + .mbin {
+.katex .mclose + .cursor + .mbin,
+.katex .mclose + .cursor + .cursor + .mbin {
   margin-left: 0.22222em;
 }
 .katex .mclose + .mrel,
-.katex .mclose + .cursor + .mrel {
+.katex .mclose + .cursor + .mrel,
+.katex .mclose + .cursor + .cursor + .mrel {
   margin-left: 0.27778em;
 }
 .katex .mclose + .minner,
-.katex .mclose + .cursor + .minner {
+.katex .mclose + .cursor + .minner,
+.katex .mclose + .cursor + .cursor + .minner {
   margin-left: 0.16667em;
 }
 .katex .mpunct + .mord,
-.katex .mpunct + .cursor + .mord {
+.katex .mpunct + .cursor + .mord,
+.katex .mpunct + .cursor + .cursor + .mord {
   margin-left: 0.16667em;
 }
 .katex .mpunct + .mop,
-.katex .mpunct + .cursor + .mop {
-  margin-left: 0.16667em;
-}
 .katex .mpunct + .cursor + .mop,
 .katex .mpunct + .cursor + .cursor + .mop {
   margin-left: 0.16667em;
 }
 .katex .mpunct + .mrel,
-.katex .mpunct + .cursor + .mrel {
+.katex .mpunct + .cursor + .mrel,
+.katex .mpunct + .cursor + .cursor + .mrel {
   margin-left: 0.16667em;
 }
 .katex .mpunct + .mopen,
-.katex .mpunct + .cursor + .mopen {
+.katex .mpunct + .cursor + .mopen,
+.katex .mpunct + .cursor + .cursor + .mopen {
   margin-left: 0.16667em;
 }
 .katex .mpunct + .mclose,
-.katex .mpunct + .cursor + .mclose {
+.katex .mpunct + .cursor + .mclose,
+.katex .mpunct + .cursor + .cursor + .mclose {
   margin-left: 0.16667em;
 }
 .katex .mpunct + .mpunct,
-.katex .mpunct + .cursor + .mpunct {
+.katex .mpunct + .cursor + .mpunct,
+.katex .mpunct + .cursor + .cursor + .mpunct {
   margin-left: 0.16667em;
 }
 .katex .mpunct + .minner,
-.katex .mpunct + .cursor + .minner {
+.katex .mpunct + .cursor + .minner,
+.katex .mpunct + .cursor + .cursor + .minner {
   margin-left: 0.16667em;
 }
 .katex .minner + .mord,
-.katex .minner + .cursor + .mord {
+.katex .minner + .cursor + .mord,
+.katex .minner + .cursor + .cursor + .mord {
   margin-left: 0.16667em;
 }
 .katex .minner + .mop,
-.katex .minner + .cursor + .mop {
-  margin-left: 0.16667em;
-}
 .katex .minner + .cursor + .mop,
 .katex .minner + .cursor + .cursor + .mop {
   margin-left: 0.16667em;
 }
 .katex .minner + .mbin,
-.katex .minner + .cursor + .mbin {
+.katex .minner + .cursor + .mbin,
+.katex .minner + .cursor + .cursor + .mbin {
   margin-left: 0.22222em;
 }
 .katex .minner + .mrel,
-.katex .minner + .cursor + .mrel {
+.katex .minner + .cursor + .mrel,
+.katex .minner + .cursor + .cursor + .mrel {
   margin-left: 0.27778em;
 }
 .katex .minner + .mopen,
-.katex .minner + .cursor + .mopen {
+.katex .minner + .cursor + .mopen,
+.katex .minner + .cursor + .cursor + .mopen {
   margin-left: 0.16667em;
 }
 .katex .minner + .mpunct,
-.katex .minner + .cursor + .mpunct {
+.katex .minner + .cursor + .mpunct,
+.katex .minner + .cursor + .cursor + .mpunct {
   margin-left: 0.16667em;
 }
 .katex .minner + .minner,
-.katex .minner + .cursor + .minner {
+.katex .minner + .cursor + .minner,
+.katex .minner + .cursor + .cursor + .minner {
   margin-left: 0.16667em;
 }
 .katex .mord.mtight {
@@ -1193,45 +1207,103 @@
 }
 
 .mathylem {
-  border: 2px solid #BDC3C7;
-  border-radius: 5px;
-  box-shadow: 1px 1px 1px 0 lightgray inset;
+  border: 1px solid #bdc3c7;
+  background-color: #fafafa;
+  border-bottom-right-radius: 4px;
+  border-bottom-left-radius: 4px;
   cursor: text;
-  min-height:60px;
+  min-height: 60px;
   overflow: auto;
   padding: 10px;
   -webkit-touch-callout: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
   -webkit-user-select: none;
-  user-select: none;
-}
+     -moz-user-select: none;
+      -ms-user-select: none;
+          user-select: none; }
+  .mathylem.my-active {
+    background-color: #fff; }
+    .mathylem.my-active .main-cursor {
+      -webkit-animation: blink-animation 1s steps(2, start) infinite;
+              animation: blink-animation 1s steps(2, start) infinite; }
+  .mathylem .main-cursor {
+    color: #df0030; }
+  .mathylem .sel-cursor {
+    color: #ffa500; }
+  .mathylem .temp-cursor {
+    color: gray; }
+  .mathylem .placeholder {
+    color: #6495ed; }
+  .mathylem .selection {
+    color: #df0030; }
+  .mathylem .my-text {
+    border: 1px solid #ccc;
+    margin: 1px; }
 
-.mathylem_active {
+.my-toolbar {
   background-color: #fff;
-}
-
-.mathylem_inactive {
-  background-color: #fafafa;
-}
-
-.mathylem_text_current {
-  border: 1px solid #ccc;
-}
-
-.mathylem_active .main_cursor {
-  animation: blink-animation 1s steps(2, start) infinite;
-  -webkit-animation: blink-animation 1s steps(2, start) infinite;
-}
-
-@keyframes blink-animation {
-  to {
-    visibility: hidden;
-  }
-}
+  opacity: .6;
+  border-top: 1px solid #bdc3c7;
+  border-left: 1px solid #bdc3c7;
+  border-right: 1px solid #bdc3c7;
+  border-top-left-radius: 4px;
+  border-top-right-radius: 4px;
+  padding: 4px 10px;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+     -moz-user-select: none;
+      -ms-user-select: none;
+          user-select: none; }
+  .my-toolbar:hover {
+    opacity: .8; }
+  .my-toolbar > * {
+    display: inline-block; }
+  .my-toolbar > a,
+  .my-toolbar > div {
+    border: 1px solid transparent;
+    border-radius: 3px;
+    color: #2c3e50;
+    cursor: pointer;
+    line-height: 28px;
+    text-align: center;
+    width: 28px;
+    height: 28px; }
+    .my-toolbar > a:hover, .my-toolbar > a.my-active,
+    .my-toolbar > div:hover,
+    .my-toolbar > div.my-active {
+      background: #fcfcfc;
+      border-color: #95a5a6; }
+  .my-toolbar > div > div {
+    position: relative;
+    left: -1px;
+    top: -29px;
+    display: none; }
+    .my-toolbar > div > div > a {
+      border: 1px solid #95a5a6;
+      background: #fcfcfc;
+      border-radius: 3px;
+      color: #2c3e50;
+      cursor: pointer;
+      line-height: 28px;
+      position: absolute;
+      text-align: center;
+      width: 28px;
+      height: 28px; }
+      .my-toolbar > div > div > a:hover {
+        border-color: orange; }
+  .my-toolbar > div.my-active > div {
+    display: block; }
+  .my-toolbar > i.separator {
+    border-left: 1px solid #d9d9d9;
+    border-right: 1px solid #fff;
+    color: transparent;
+    margin: 0 6px;
+    text-indent: -10px;
+    width: 0; }
 
 @-webkit-keyframes blink-animation {
   to {
-    visibility: hidden;
-  }
-}
+    visibility: hidden; } }
+
+@keyframes blink-animation {
+  to {
+    visibility: hidden; } }

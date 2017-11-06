@@ -51,7 +51,6 @@ MathYlem.Symbols = Symbols;
 MathYlem.katex = katex;
 
 MathYlem.maxUid = 0;
-MathYlem.maxTabIndex = 0;
 
 MathYlem.instances = {};
 
@@ -61,7 +60,7 @@ MathYlem.prototype.createEditor = function (el) {
   var self = this;
   var editor = document.createElement('div');
   editor.className = 'mathylem';
-  editor.tabIndex = MathYlem.maxTabIndex++;
+  editor.tabIndex = 0;
 
   editor.addEventListener('click', function () {
     if (self.active) {
