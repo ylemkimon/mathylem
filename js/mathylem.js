@@ -52,10 +52,9 @@ MathYlem.Symbols = Symbols;
 MathYlem.katex = katex;
 
 MathYlem.maxUid = 0;
-
 MathYlem.instances = {};
-
 MathYlem.activeMathYlem = null;
+MathYlem.isMouseDown = false;
 
 MathYlem.prototype.createEditor = function (el) {
   var self = this;
@@ -321,7 +320,7 @@ MathYlem.getLocation = function (x, y, currentNode, currentCaret) {
 };
 
 MathYlem.mouseUp = function (e) {
-  MathYlem.kb.isMouseDown = false;
+  MathYlem.isMouseDown = false;
   var g = MathYlem.activeMathYlem;
   if (g) {
     g.render(true);
@@ -333,7 +332,7 @@ MathYlem.mouseDown = function (e) {
   var g = MathYlem.activeMathYlem;
   while (n != null) {
     if (g && n === g.editor) {
-      MathYlem.kb.isMouseDown = true;
+      MathYlem.isMouseDown = true;
       if (e.shiftKey) {
         g.selectTo(e.clientX, e.clientY);
       } else {
@@ -374,7 +373,7 @@ MathYlem.mouseMove = function (e) {
   if (!g) {
     return;
   }
-  if (!MathYlem.kb.isMouseDown) {
+  if (!MathYlem.isMouseDown) {
     var bb = g.editor;
     var rect = bb.getBoundingClientRect();
     if (e.clientX < rect.left || e.clientX > rect.right ||
@@ -442,15 +441,6 @@ MathYlem.prototype.selectTo = function (x, y) {
   this.backend.selectTo(loc, selCursor, selCaret, true);
   return true;
 };
-
-if (touchCapable) {
-  window.addEventListener('touchstart', MathYlem.mouseDown, false);
-  window.addEventListener('touchmove', MathYlem.touchMove, false);
-} else {
-  window.addEventListener('mousedown', MathYlem.mouseDown, false);
-  window.addEventListener('mouseup', MathYlem.mouseUp, false);
-  window.addEventListener('mousemove', MathYlem.mouseMove, false);
-}
 
 MathYlem.prototype.renderNode = function (t) {
   // All the interesting work is done by transform.
@@ -523,16 +513,7 @@ MathYlem.prototype.deactivate = function (blur) {
   this.backend.emit('focus', { 'focused': false });
 };
 
-// Keyboard stuff
-
-MathYlem.kb = {};
-
-MathYlem.kb.isMouseDown = false;
-
-/* keyboard behaviour definitions */
-
-// keys aside from 0-9,a-z,A-Z
-MathYlem.kb.chars = {
+var kbChars = {
   '=': '=',
   '+': '+',
   '-': '-',
@@ -544,7 +525,15 @@ MathYlem.kb.chars = {
   'shift+/': '/',
   'shift+=': '+'
 };
-MathYlem.kb.symbols = {
+for (var i = 48; i <= 57; i++) {
+  kbChars[String.fromCharCode(i)] = String.fromCharCode(i);
+}
+for (var i = 97; i <= 122; i++) { // eslint-disable-line no-redeclare
+  var letter = String.fromCharCode(i);
+  kbChars[letter] = letter;
+  kbChars['shift+' + letter] = String.fromCharCode(i - 32);
+}
+var kbSymbols = {
   '/': 'frac',
   '%': 'mod',
   '^': 'pow',
@@ -555,7 +544,7 @@ MathYlem.kb.symbols = {
   'shift+up': 'pow',
   'shift+down': 'sub'
 };
-MathYlem.kb.controls = {
+var kbControls = {
   'up': 'up',
   'down': 'down',
   'right': 'right',
@@ -592,60 +581,57 @@ MathYlem.kb.controls = {
   ')': 'rightParen'
 };
 
-// letters
-for (var i = 65; i <= 90; i++) {
-  MathYlem.kb.chars[String.fromCharCode(i).toLowerCase()] =
-    String.fromCharCode(i).toLowerCase();
-  MathYlem.kb.chars['shift+' + String.fromCharCode(i).toLowerCase()] =
-    String.fromCharCode(i).toUpperCase();
+Mousetrap.addKeycodes({ 173: '-' }); // Firefox
+for (var i in kbChars) { // eslint-disable-line no-redeclare
+  Mousetrap.bind(i, (function (i) {
+    return function () {
+      var y = MathYlem.activeMathYlem;
+      if (!y) {
+        return true;
+      }
+      y.tempCursor.node = null;
+      y.backend.insertString(kbChars[i]);
+      y.render(true);
+      return false;
+    };
+  }(i)));
+}
+for (var i in kbSymbols) { // eslint-disable-line no-redeclare
+  Mousetrap.bind(i, (function (i) {
+    return function () {
+      var y = MathYlem.activeMathYlem;
+      if (!y) {
+        return true;
+      }
+      y.tempCursor.node = null;
+      y.backend.insertSymbol(kbSymbols[i]);
+      y.render(true);
+      return false;
+    };
+  }(i)));
+}
+for (var i in kbControls) { // eslint-disable-line no-redeclare
+  Mousetrap.bind(i, (function (i) {
+    return function () {
+      var y = MathYlem.activeMathYlem;
+      if (!y) {
+        return true;
+      }
+      y.backend[kbControls[i]]();
+      y.tempCursor.node = null;
+      y.render(true);
+      return false;
+    };
+  }(i)));
 }
 
-// numbers
-for (var i = 48; i <= 57; i++) { // eslint-disable-line no-redeclare
-  MathYlem.kb.chars[String.fromCharCode(i)] = String.fromCharCode(i);
-}
-
-// Firefox's special minus (needed for _ = sub binding)
-Mousetrap.addKeycodes({ 173: '-' });
-for (var i in MathYlem.kb.chars) { // eslint-disable-line no-redeclare
-  Mousetrap.bind(i, (function (i) {
-    return function () {
-      if (!MathYlem.activeMathYlem) {
-        return true;
-      }
-      MathYlem.activeMathYlem.tempCursor.node = null;
-      MathYlem.activeMathYlem.backend.insertString(MathYlem.kb.chars[i]);
-      MathYlem.activeMathYlem.render(true);
-      return false;
-    };
-  }(i)));
-}
-for (var i in MathYlem.kb.symbols) { // eslint-disable-line no-redeclare
-  Mousetrap.bind(i, (function (i) {
-    return function () {
-      if (!MathYlem.activeMathYlem) {
-        return true;
-      }
-      MathYlem.activeMathYlem.tempCursor.node = null;
-      MathYlem.activeMathYlem.backend.insertSymbol(MathYlem.kb.symbols[i]);
-      MathYlem.activeMathYlem.render(true);
-      return false;
-    };
-  }(i)));
-}
-for (var i in MathYlem.kb.controls) { // eslint-disable-line no-redeclare
-  Mousetrap.bind(i, (function (i) {
-    return function () {
-      if (!MathYlem.activeMathYlem) {
-        return true;
-      }
-      MathYlem.activeMathYlem.backend[MathYlem.kb.controls[i]]();
-      MathYlem.activeMathYlem.tempCursor.node = null;
-      MathYlem.activeMathYlem.render(['up', 'down', 'right', 'left', 'home',
-        'end', 'selectLeft', 'selectRight'].indexOf(i) < 0);
-      return false;
-    };
-  }(i)));
+if (touchCapable) {
+  window.addEventListener('touchstart', MathYlem.mouseDown, false);
+  window.addEventListener('touchmove', MathYlem.touchMove, false);
+} else {
+  window.addEventListener('mousedown', MathYlem.mouseDown, false);
+  window.addEventListener('mouseup', MathYlem.mouseUp, false);
+  window.addEventListener('mousemove', MathYlem.mouseMove, false);
 }
 
 module.exports = MathYlem;
