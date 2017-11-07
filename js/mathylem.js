@@ -330,10 +330,10 @@ MathYlem.mouseUp = function (e) {
 
 MathYlem.mouseDown = function (e) {
   var n = e.target;
-  MathYlem.kb.isMouseDown = true;
   var g = MathYlem.activeMathYlem;
   while (n != null) {
     if (g && n === g.editor) {
+      MathYlem.kb.isMouseDown = true;
       if (e.shiftKey) {
         g.selectTo(e.clientX, e.clientY);
       } else {
