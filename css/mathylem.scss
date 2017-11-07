@@ -27,8 +27,12 @@
     color: #df0030;
   }
   .my-text {
-    border: 1px solid #ccc;
+    border: 1px solid transparent;
     margin: 1px;
+    
+    &.my-active {
+      border-color: #ccc;
+    }
   }
 }
 

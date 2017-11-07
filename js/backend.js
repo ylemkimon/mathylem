@@ -195,8 +195,12 @@ Backend.prototype.addCursorClasses = function (n, path) {
           '}{' + text[i] + '}';
       }
     }
-    if (Doc.getCAttribute(n, 'text') && n === this.current) {
-      ans = '\\xmlClass{my-text}{{' + ans + '}}';
+    if (Doc.getCAttribute(n, 'text')) {
+      if (n === this.current) {
+        ans = '\\xmlClass{my-text my-active}{{' + ans + '}}';
+      } else {
+        ans = '\\xmlClass{my-text}{{' + ans + '}}';
+      }
     }
     n.setAttribute('render', ans);
     n.removeAttribute('path');
