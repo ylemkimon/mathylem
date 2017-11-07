@@ -1105,7 +1105,7 @@ Backend.prototype.checkpoint = function () {
   this.current.removeAttribute('caret');
   this.candidates = null;
   if (this.editor) {
-    this.editor.render(true);
+    this.editor.render();
   }
 };
 

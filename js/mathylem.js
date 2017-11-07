@@ -156,19 +156,6 @@ MathYlem.prototype.createFakeInput = function (el) {
   return fakeInput;
 };
 
-MathYlem.prototype.isChanged = function () {
-  var bb = this.editor.getElementsByClassName('katex')[0];
-  if (!bb) {
-    return;
-  }
-  var rect = bb.getBoundingClientRect();
-  var ans = !this.boundingBox || this.boundingBox.top !== rect.top ||
-    this.boundingBox.bottom !== rect.bottom || this.boundingBox.right !==
-    rect.right || this.boundingBox.left !== rect.left;
-  this.boundingBox = rect;
-  return ans;
-};
-
 MathYlem.prototype.computeLocations = function () {
   var ans = [];
   var bb = this.editor.getElementsByClassName('katex')[0];
@@ -323,7 +310,7 @@ MathYlem.mouseUp = function (e) {
   MathYlem.isMouseDown = false;
   var g = MathYlem.activeMathYlem;
   if (g) {
-    g.render(true);
+    g.render();
   }
 };
 
@@ -346,7 +333,7 @@ MathYlem.mouseDown = function (e) {
         b.caret = loc.caret;
         b.clearSelection();
       }
-      g.render(true);
+      g.render();
     } else if (n.mathylem) {
       if (g) {
         if (n.mathylem === g) {
@@ -409,7 +396,7 @@ MathYlem.mouseMove = function (e) {
   } else if (!g.selectTo(e.clientX, e.clientY)) {
     return;
   }
-  g.render(g.isChanged());
+  g.render();
 };
 
 MathYlem.touchMove = function (e) {
@@ -417,7 +404,7 @@ MathYlem.touchMove = function (e) {
   if (!g || !g.selectTo(e.touches[0].clientX, e.touches[0].clientY)) {
     return;
   }
-  g.render(g.isChanged());
+  g.render();
 };
 
 MathYlem.prototype.selectTo = function (x, y) {
@@ -465,7 +452,7 @@ MathYlem.prototype.renderNode = function (t) {
   return output;
 };
 
-MathYlem.prototype.render = function (updated) {
+MathYlem.prototype.render = function () {
   if (!this.active && this.backend.doc.isBlank()) {
     katex.render(this.emptyContent, this.editor);
     return;
@@ -478,9 +465,7 @@ MathYlem.prototype.render = function (updated) {
     this.backend.undo();
     this.render();
   }
-  if (updated) {
-    this.computeLocations();
-  }
+  this.computeLocations();
 };
 
 MathYlem.prototype.activate = function (focus) {
@@ -498,7 +483,7 @@ MathYlem.prototype.activate = function (focus) {
       this.editor.focus();
     }
   }
-  this.render(true);
+  this.render();
   this.backend.emit('focus', { 'focused': true });
 };
 
@@ -591,7 +576,7 @@ for (var i in kbChars) { // eslint-disable-line no-redeclare
       }
       y.tempCursor.node = null;
       y.backend.insertString(kbChars[i]);
-      y.render(true);
+      y.render();
       return false;
     };
   }(i)));
@@ -605,7 +590,7 @@ for (var i in kbSymbols) { // eslint-disable-line no-redeclare
       }
       y.tempCursor.node = null;
       y.backend.insertSymbol(kbSymbols[i]);
-      y.render(true);
+      y.render();
       return false;
     };
   }(i)));
@@ -619,7 +604,7 @@ for (var i in kbControls) { // eslint-disable-line no-redeclare
       }
       y.backend[kbControls[i]]();
       y.tempCursor.node = null;
-      y.render(true);
+      y.render();
       return false;
     };
   }(i)));
