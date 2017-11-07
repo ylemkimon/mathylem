@@ -6,6 +6,10 @@ var Symbols = require('./symbols.js');
 var Doc = require('./doc.js');
 var debounce = require('throttle-debounce/debounce');
 
+// touch capable devices might have not-div-focusable virtual keyboard
+// https://github.com/ylemkimon/mathylem/issues/27
+var touchCapable = 'ontouchstart' in window;
+
 var MathYlem = function (el, config) {
   config = config || {};
 
@@ -31,9 +35,6 @@ var MathYlem = function (el, config) {
   el.mathylem = this;
 
   this.editor = this.createEditor(el);
-  if (/Mobi/.test(navigator.userAgent)) { // TODO: Better unfocusable div detection
-    this.fakeInput = this.createFakeInput(el);
-  }
 
   this.active = true;
   this.emptyContent = config['emptyContent'] || '\\red{[?]}';
@@ -60,9 +61,8 @@ MathYlem.prototype.createEditor = function (el) {
   var self = this;
   var editor = document.createElement('div');
   editor.className = 'mathylem';
-  editor.tabIndex = 0;
 
-  editor.addEventListener('click', function () {
+  var onFocus = function () {
     if (self.active) {
       return;
     }
@@ -70,9 +70,29 @@ MathYlem.prototype.createEditor = function (el) {
     setTimeout(function () {
       self._focus = false;
     }, 500);
-    self.backend.end();
     self.activate(true);
-  });
+  };
+  var onBlur = function () {
+    if (self._focus) {
+      self._focus = false;
+      this.focus();
+    } else {
+      if (MathYlem.activeMathYlem === self) {
+        MathYlem.activeMathYlem = null;
+      }
+      self.deactivate(false);
+    }
+  };
+
+  if (touchCapable) {
+    this.fakeInput = this.createFakeInput(el);
+    editor.addEventListener('click', onFocus);
+    this.fakeInput.addEventListener('blur', onBlur);
+  } else {
+    editor.tabIndex = 0;
+    editor.addEventListener('focus', onFocus);
+    editor.addEventListener('blur', onBlur);
+  }
 
   el.appendChild(editor);
   return editor;
@@ -131,14 +151,6 @@ MathYlem.prototype.createFakeInput = function (el) {
   });
   fakeInput.addEventListener('focus', function () {
     self.activate(false);
-  });
-  fakeInput.addEventListener('blur', function () {
-    if (self._focus) {
-      self._focus = false;
-      this.focus();
-    } else {
-      self.deactivate(false);
-    }
   });
 
   el.appendChild(fakeInput);
@@ -431,7 +443,7 @@ MathYlem.prototype.selectTo = function (x, y) {
   return true;
 };
 
-if ('ontouchstart' in window) {
+if (touchCapable) {
   window.addEventListener('touchstart', MathYlem.mouseDown, false);
   window.addEventListener('touchmove', MathYlem.touchMove, false);
 } else {
@@ -577,8 +589,7 @@ MathYlem.kb.controls = {
   'shift+left': 'selectLeft',
   'shift+right': 'selectRight',
   '(': 'leftParen',
-  ')': 'rightParen',
-  'tab': 'tab'
+  ')': 'rightParen'
 };
 
 // letters

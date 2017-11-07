@@ -877,10 +877,32 @@ Backend.prototype.right = function () {
 };
 
 Backend.prototype.spacebar = function () {
-  if (Doc.getFName(this.current) === 'text') {
+  var type = Doc.getFName(this.current);
+  if (type === 'text') {
     this.insertString(' ');
-  } else if (Doc.getFName(this.current) === 'symbol') {
-    this.tab();
+  } else if (type !== 'symbol') {
+    this.clearSelection();
+    this.checkForSymbol(true);
+  } else if (this.candidates != null) {
+    var suggestion = this.candidates.shift();
+    this.candidates.push(suggestion);
+    this.clearSelection();
+    this.current.textContent = suggestion;
+    this.caret = suggestion.length;
+  } else {
+    this.checkpoint();
+    var name = this.current.textContent;
+    this.candidates = [];
+    for (var n in Symbols.symbols) {
+      if (n.substr(0, name.length) === name) {
+        this.candidates.push(n);
+      }
+    }
+    if (this.candidates.length > 0) {
+      this.tab();
+    } else {
+      this.candidates = null;
+    }
   }
 };
 
@@ -1002,35 +1024,6 @@ Backend.prototype.deleteKey = function () {
     this.checkpoint();
   } else if (this.deleteForwardFromE()) {
     this.checkpoint();
-  }
-};
-
-Backend.prototype.tab = function () {
-  if (Doc.getFName(this.current) !== 'symbol') {
-    this.clearSelection();
-    this.checkForSymbol(true);
-    return;
-  }
-  if (this.candidates != null) {
-    var suggestion = this.candidates.shift();
-    this.candidates.push(suggestion);
-    this.clearSelection();
-    this.current.textContent = suggestion;
-    this.caret = suggestion.length;
-  } else {
-    this.checkpoint();
-    var name = this.current.textContent;
-    this.candidates = [];
-    for (var n in Symbols.symbols) {
-      if (n.substr(0, name.length) === name) {
-        this.candidates.push(n);
-      }
-    }
-    if (this.candidates.length > 0) {
-      this.tab();
-    } else {
-      this.candidates = null;
-    }
   }
 };
 
