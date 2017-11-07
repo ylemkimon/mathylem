@@ -12,6 +12,12 @@ var touchCapable = 'ontouchstart' in window;
 
 var MathYlem = function (el, config) {
   config = config || {};
+  for (var option in MathYlem.DEFAULT_CONFIG) {
+    if (config[option] === undefined) {
+      config[option] = MathYlem.DEFAULT_CONFIG[option];
+    }
+  }
+  this.config = config;
 
   if (typeof el === 'string' || el instanceof String) {
     el = document.getElementById(el);
@@ -37,13 +43,20 @@ var MathYlem = function (el, config) {
   this.editor = this.createEditor(el);
 
   this.active = true;
-  this.emptyContent = config['emptyContent'] || '\\red{[?]}';
   this._focus = false;
   this.tempCursor = { 'node': null, 'caret': 0 };
 
   this.backend = new Backend(config, this);
   this.backend.checkpoint();
   this.deactivate(true);
+};
+
+MathYlem.DEFAULT_CONFIG = {
+  emptyContent: '\\red{[?]}',
+  autoreplace: true,
+  blacklist: [],
+  events: {},
+  xmlContent: '<m><e></e></m>'
 };
 
 MathYlem.Backend = Backend;
@@ -454,7 +467,7 @@ MathYlem.prototype.renderNode = function (t) {
 
 MathYlem.prototype.render = function () {
   if (!this.active && this.backend.doc.isBlank()) {
-    katex.render(this.emptyContent, this.editor);
+    katex.render(this.config.emptyContent, this.editor);
     return;
   }
   var tex = this.renderNode('render');

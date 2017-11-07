@@ -3,28 +3,17 @@ var Symbols = require('./symbols.js');
 var EventEmitter = require('eventemitter3');
 
 var Backend = function (config, editor) {
-  config = config || {};
-  var events = config['events'] || {};
+  this.config = config;
 
   this.editor = editor;
-  this.blacklist = [];
   this.autoreplace = true;
 
   EventEmitter.call(this);
-  for (var e in events) {
-    this.on(e, events[e]);
+  for (var e in config.events) {
+    this.on(e, config.events[e]);
   }
 
-  var opts = ['blacklist', 'autoreplace'];
-
-  for (var i = 0; i < opts.length; i++) {
-    var p = opts[i];
-    if (p in config) {
-      this[p] = config[p];
-    }
-  }
-
-  this.doc = new Doc(config['xmlContent']);
+  this.doc = new Doc(config.xmlContent);
 
   this.current = this.doc.root().firstChild;
   this.caret = 0;
@@ -475,7 +464,7 @@ Backend.prototype.insertString = function (s) {
     value.slice(this.caret);
   this.caret += s.length;
   this.checkpoint();
-  if (this.autoreplace) {
+  if (this.config.autoreplace) {
     this.checkForSymbol();
   }
 };
@@ -1163,8 +1152,8 @@ Backend.prototype.completeSymbol = function () {
 };
 
 Backend.prototype.isBlacklisted = function (type) {
-  for (var i = 0; i < this.blacklist.length; i++) {
-    if (type === this.blacklist[i]) {
+  for (var i = 0; i < this.config.blacklist.length; i++) {
+    if (type === this.config.blacklist[i]) {
       return true;
     }
   }
@@ -1188,8 +1177,8 @@ Backend.prototype.replaceSymbol = function (node, name, content) {
 };
 
 Backend.prototype.checkForPow = function () {
-  if (this.autoreplace && this.caret === 0 && this.current.previousSibling &&
-      this.current.previousSibling.nodeName === 'f' &&
+  if (this.config.autoreplace && this.caret === 0 && this.current
+    .previousSibling && this.current.previousSibling.nodeName === 'f' &&
       this.current.previousSibling.getAttribute('type') === '*') {
     this.current = this.current.previousSibling;
     this.deleteFromF();
@@ -1200,8 +1189,8 @@ Backend.prototype.checkForPow = function () {
 };
 
 Backend.prototype.checkForIneq = function () {
-  if (this.autoreplace && this.caret === 0 && this.current.previousSibling &&
-      this.current.previousSibling.nodeName === 'f' &&
+  if (this.config.autoreplace && this.caret === 0 && this.current
+    .previousSibling && this.current.previousSibling.nodeName === 'f' &&
       ['<', '>'].indexOf(this.current.previousSibling.getAttribute('type')) > -1) {
     var n = this.current.previousSibling;
     return this.replaceSymbol(n, n.getAttribute('type') + '=');
