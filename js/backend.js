@@ -126,7 +126,7 @@ Backend.prototype.addCursorClasses = function (n, path) {
       selCursor = this.selStart;
     }
 
-    var caret = Doc.isSmall(this.current) ? Backend.SMALL_CARET : Backend.CARET;
+    var caret = Doc.isSmall(n) ? Backend.SMALL_CARET : Backend.CARET;
     for (var i = 0; i < text.length + 1; i++) {
       if (n === this.current && i === this.caret) {
         if (this.selStatus === Backend.SEL_CURSOR_AT_END) {
@@ -145,13 +145,11 @@ Backend.prototype.addCursorClasses = function (n, path) {
         if (this.selStatus === Backend.SEL_CURSOR_AT_START) {
           ans += '}';
         }
-        var selCaret = Doc.isSmall(selCursor.node)
-          ? Backend.SMALL_CARET : Backend.CARET;
         if (text.length === 0 && n.parentNode.childElementCount > 1) {
           ans += '\\xmlClass{sel-cursor my-elem my-blank loc_' +
-            n.getAttribute('path') + '_0}{' + selCaret + '}';
+            n.getAttribute('path') + '_0}{' + caret + '}';
         } else {
-          ans += '\\xmlClass{sel-cursor}{' + selCaret + '}';
+          ans += '\\xmlClass{sel-cursor}{' + caret + '}';
         }
         if (this.selStatus === Backend.SEL_CURSOR_AT_END) {
           ans += '\\xmlClass{selection}{';
