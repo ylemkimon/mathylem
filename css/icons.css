@@ -1,0 +1,60 @@
+@font-face {
+  font-family: 'MathYlem-icons';
+  src:
+    url('fonts/MathYlem-icons.ttf?rxn05s') format('truetype'),
+    url('fonts/MathYlem-icons.woff?rxn05s') format('woff'),
+    url('fonts/MathYlem-icons.svg?rxn05s#MathYlem-icons') format('svg');
+  font-weight: normal;
+  font-style: normal;
+}
+
+[class^="icon-"], [class*=" icon-"] {
+  display: inline-block;
+  /* use !important to prevent issues with browser extensions that change fonts */
+  font-family: 'MathYlem-icons' !important;
+  font-style: normal;
+  font-weight: normal;
+  font-variant: normal;
+  text-transform: none;
+
+  /* Better Font Rendering =========== */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.icon-remove-row:before {
+  content: "\e90a";
+}
+.icon-remove-column:before {
+  content: "\e90b";
+}
+.icon-insert-up:before {
+  content: "\e906";
+}
+.icon-insert-down:before {
+  content: "\e907";
+}
+.icon-insert-left:before {
+  content: "\e908";
+}
+.icon-insert-right:before {
+  content: "\e909";
+}
+.icon-help:before {
+  content: "\e905";
+}
+.icon-paste:before {
+  content: "\e904";
+}
+.icon-cut:before {
+  content: "\e903";
+}
+.icon-copy:before {
+  content: "\e902";
+}
+.icon-redo:before {
+  content: "\e901";
+}
+.icon-undo:before {
+  content: "\e900";
+}

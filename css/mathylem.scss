@@ -1,14 +1,29 @@
+$primary-border: 1px solid #bdc3c7;
+$primary-border-radius: 4px;
+
 .mathylem {
-  border: 2px solid #bdc3c7;
+  border: $primary-border;
+  border-radius: $primary-border-radius;
   background-color: #fafafa;
-  border-radius: 5px;
-  box-shadow: 1px 1px 1px 0 lightgray inset;
   cursor: text;
-  min-height:60px;
+  min-height: 60px;
   overflow: auto;
   padding: 10px;
   -webkit-touch-callout: none;
   user-select: none;
+  
+  .my-toolbar+& {
+    border-top-right-radius: 0;
+    border-top-left-radius: 0;
+  }
+
+  &.my-active {
+    background-color: #fff;
+
+    .main-cursor {
+      animation: blink-animation 1s steps(2, start) infinite;
+    }
+  }
 
   .main-cursor {
     color: #df0030;
@@ -36,11 +51,55 @@
   }
 }
 
-.my-active {
+.my-toolbar {
   background-color: #fff;
+  opacity: .6;
+  border: $primary-border;
+  border-bottom: 0;
+  border-top-left-radius: $primary-border-radius;
+  border-top-right-radius: $primary-border-radius;
+  padding: 3px 5px;
+  -webkit-touch-callout: none;
+  user-select: none;
 
-  .main-cursor {
-    animation: blink-animation 1s steps(2, start) infinite;
+  &:hover {
+    opacity: .8;
+  }
+
+  >* {
+    display: inline-block;
+  }
+
+  >a {
+    border: 1px solid transparent;
+    border-radius: 3px;
+    color: #2c3e50;
+    cursor: pointer;
+    line-height: 28px;
+    text-align: center;
+    width: 28px;
+    height: 28px;
+
+    &:hover {
+      border-color: #95a5a6;
+    }
+    
+    &.my-disabled {
+      cursor: default;
+      color: gray;
+      border-color: transparent;
+      
+      &.hide-when-disabled {
+        display: none;
+      }
+    }
+  }
+
+  >i.separator {
+    border-left: 1px solid #d9d9d9;
+    color: transparent;
+    margin: 0 5px;
+    width: 0;
   }
 }
 

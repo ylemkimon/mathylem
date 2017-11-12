@@ -41,6 +41,9 @@ var MathYlem = function (el, config) {
   el.mathylem = this;
 
   this.editor = this.createEditor(el);
+  if (config.toolbar) {
+    this.toolbar = this.createToolbar(el, config.toolbar);
+  }
 
   this.active = true;
   this._focus = false;
@@ -56,7 +59,83 @@ MathYlem.DEFAULT_CONFIG = {
   autoreplace: true,
   blacklist: [],
   events: {},
-  xmlContent: '<m><e></e></m>'
+  xmlContent: '<m><e></e></m>',
+  toolbar: [
+    {
+      action: 'undo',
+      icon: 'undo',
+      enabled: function () {
+        return this.backend.undoCurrent > 0;
+      }
+    }, {
+      action: 'redo',
+      icon: 'redo',
+      enabled: function () {
+        return this.backend.undoCurrent < this.backend.undoData.length - 1;
+      }
+    }, {
+      icon: 'separator'
+    }, {
+      action: 'cutSelection',
+      icon: 'cut',
+      enabled: function () {
+        return this.backend.selStatus !== Backend.SEL_NONE;
+      }
+    }, {
+      action: 'copySelection',
+      icon: 'copy',
+      enabled: 3
+    }, {
+      action: 'paste',
+      icon: 'paste',
+      enabled: function () {
+        return Backend.Clipboard && Backend.Clipboard.length > 0;
+      }
+    }, {
+      icon: 'separator'
+    }, {
+      action: 'extendListUp',
+      icon: 'insert-up',
+      enabled: function () {
+        var n = this.backend.current.parentNode.parentNode.parentNode;
+        return n && n.nodeName === 'l';
+      },
+      hideWhenDisabled: true
+    }, {
+      action: 'extendListDown',
+      icon: 'insert-down',
+      enabled: 7,
+      hideWhenDisabled: true
+    }, {
+      action: 'extendListLeft',
+      icon: 'insert-left',
+      enabled: function () {
+        return this.backend.current.parentNode.parentNode.nodeName === 'l';
+      },
+      hideWhenDisabled: true
+    }, {
+      action: 'extendListRight',
+      icon: 'insert-right',
+      enabled: 9,
+      hideWhenDisabled: true
+    }, {
+      action: 'removeListRow',
+      icon: 'remove-row',
+      enabled: function () {
+        var n = this.backend.current.parentNode.parentNode.parentNode;
+        return n && n.nodeName === 'l' && n.childElementCount > 1;
+      },
+      hideWhenDisabled: true
+    }, {
+      action: 'removeListItem',
+      icon: 'remove-column',
+      enabled: function () {
+        var n = this.backend.current.parentNode.parentNode;
+        return n.nodeName === 'l' && n.childElementCount > 1;
+      },
+      hideWhenDisabled: true
+    }
+  ]
 };
 
 MathYlem.Backend = Backend;
@@ -167,6 +246,34 @@ MathYlem.prototype.createFakeInput = function (el) {
 
   el.appendChild(fakeInput);
   return fakeInput;
+};
+
+MathYlem.prototype.createToolbar = function (el, config) {
+  var toolbar = document.createElement('div');
+  toolbar.className = 'my-toolbar';
+
+  for (var i = 0; i < config.length; i++) {
+    var item = config[i];
+    var itemEl;
+    if (item.icon === 'separator') {
+      itemEl = document.createElement('i');
+      itemEl.innerHTML = '|';
+      itemEl.className = 'separator';
+    } else {
+      itemEl = document.createElement('a');
+      if (item.hideWhenDisabled) {
+        itemEl.className = 'hide-when-disabled';
+      }
+      itemEl.innerHTML = '<i class="icon-' + item.icon + '"></i>';
+      itemEl.setAttribute('data-target', el.id);
+      itemEl.setAttribute('data-action', item.action);
+      itemEl.addEventListener('click', MathYlem.onButtonClick);
+    }
+    toolbar.appendChild(itemEl);
+  }
+
+  el.insertBefore(toolbar, this.editor);
+  return toolbar;
 };
 
 MathYlem.prototype.computeLocations = function () {
@@ -368,6 +475,22 @@ MathYlem.mouseDown = function (e) {
   }
 };
 
+MathYlem.onButtonClick = function (e) {
+  if (/(?:\s+|^)my-disabled(?:\s+|$)/.test(this.className)) {
+    return;
+  }
+  var g = MathYlem.instances[this.getAttribute('data-target')];
+  var action = this.getAttribute('data-action');
+  if (Backend.prototype[action]) {
+    g.backend[action]();
+  } else if (action in Symbols.symbols) {
+    g.backend.insertSymbol(action);
+  } else {
+    g.backend.insertString(action);
+  }
+  g.render();
+};
+
 MathYlem.mouseMove = function (e) {
   var g = MathYlem.activeMathYlem;
   if (!g) {
@@ -409,7 +532,7 @@ MathYlem.mouseMove = function (e) {
   } else if (!g.selectTo(e.clientX, e.clientY)) {
     return;
   }
-  g.render();
+  g.render(true);
 };
 
 MathYlem.touchMove = function (e) {
@@ -417,7 +540,7 @@ MathYlem.touchMove = function (e) {
   if (!g || !g.selectTo(e.touches[0].clientX, e.touches[0].clientY)) {
     return;
   }
-  g.render();
+  g.render(true);
 };
 
 MathYlem.prototype.selectTo = function (x, y) {
@@ -465,11 +588,34 @@ MathYlem.prototype.renderNode = function (t) {
   return output;
 };
 
-MathYlem.prototype.render = function () {
+MathYlem.prototype.render = function (temp) {
   if (!this.active && this.backend.doc.isBlank()) {
     katex.render(this.config.emptyContent, this.editor);
     return;
   }
+  var toolbarConfig = this.config.toolbar;
+  if (!temp && toolbarConfig) {
+    var btn = this.toolbar.firstElementChild;
+    var result = [];
+    for (var i = 0; i < toolbarConfig.length; i++) {
+      var enabled = true;
+      var check = toolbarConfig[i].enabled;
+      if (typeof check === 'function') {
+        enabled = check.apply(this);
+      } else if (typeof check === 'number') {
+        enabled = result[check];
+      }
+      result.push(enabled);
+
+      if (!enabled && !/(?:\s+|^)my-disabled(?:\s+|$)/.test(btn.className)) {
+        btn.className += ' my-disabled';
+      } else if (enabled) {
+        btn.className = btn.className.replace(/(\s+|^)my-disabled(\s+|$)/, ' ');
+      }
+      btn = btn.nextElementSibling;
+    }
+  }
+
   var tex = this.renderNode('render');
   try {
     katex.render(tex, this.editor);
