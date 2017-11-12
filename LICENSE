@@ -3,10 +3,47 @@ MIT License
 Copyright (c) 2015-2017 daniel3735928559(https://github.com/daniel3735928559/guppy)
 Copyright (c) 2017 ylemkimon
 
-This software also uses portions of the KaTeX project, which is
-MIT licensed with the following copyright:
+This software uses portions of following projects, which are MIT licensed:
 
+SimpleMDE - Markdown Editor
+https://github.com/sparksuite/simplemde-markdown-editor
+Copyright (c) 2015 Next Step Webs, Inc.
+
+Jimdo SPIKE
+https://github.com/Jimdo/fabricator-jimdo
+Copyright (c) 2015 Lasse Diercks
+
+This software depends on and is bundled with following projects, which are
+MIT licensed:
+
+KaTeX
+https://github.com/ylemkimon/KaTeX
 Copyright (c) 2015 Khan Academy
+
+KaTeX uses portions of the underscore.js project, which is MIT licensed with
+the following copyright:
+Copyright (c) 2009-2015 Jeremy Ashkenas, DocumentCloud and Investigative
+Reporters & Editors
+
+match-at
+https://github.com/sophiebits/match-at
+Copyright (c) 2017 Sophie Alpert
+
+EventEmitter3
+https://github.com/primus/eventemitter3
+Copyright (c) 2014 Arnout Kazemier
+
+throttle-debounce
+https://github.com/niksy/throttle-debounce
+Copyright (c) Ivan Nikolic
+
+The original module of throttle-debounce is MIT licensed with the following
+copyright:
+Copyright (c) 2010 "Cowboy" Ben Alman
+
+This software depends on and is bundled with Mousetrap, which is licensed
+with Apache License 2.0. Please refer to LICENSE_MOUSETRAP for its license.
+
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
