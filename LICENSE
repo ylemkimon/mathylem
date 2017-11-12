@@ -41,10 +41,6 @@ The original module of throttle-debounce is MIT licensed with the following
 copyright:
 Copyright (c) 2010 "Cowboy" Ben Alman
 
-This software depends on and is bundled with Mousetrap, which is licensed
-with Apache License 2.0. Please refer to LICENSE_MOUSETRAP for its license.
-
-
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
 in the Software without restriction, including without limitation the rights
