@@ -390,109 +390,128 @@ var defaultSymbols = {
       text: 'Matrix([[{$1{,}{],[}}]])'
     }
   },
-  _func_nonlatex: [
-    'sech',
-    'csch',
-    'asin',
-    'acos',
-    'atan',
-    'acot',
-    'asec',
-    'acsc',
-    'asinh',
-    'acosh',
-    'atanh',
-    'acoth',
-    'asech',
-    'acsch'
-  ],
-  _func: [
-    'sin',
-    'cos',
-    'tan',
-    'sec',
-    'csc',
-    'cot',
-    'log',
-    'ln',
-    'sinh',
-    'cosh',
-    'tanh',
-    'coth',
-    'Re',
-    'Im',
-    'arg'
-  ],
-  _operator: {
-    '*': '\\cdot',
-    '<=': '\\leq',
-    '<': '<',
-    '>=': '\\geq',
-    '>': '>'
+  _func_nonlatex: {
+    builder: function (name) { return {
+      output: {
+        latex: '\\mathrm{' + name + '}\\left({$1}\\right)',
+        text: name + '({$1})'
+      },
+      attrs: [
+        {
+          delete: 1
+        }
+      ]
+    }; },
+    arguments: [
+      'sech',
+      'csch',
+      'asin',
+      'acos',
+      'atan',
+      'acot',
+      'asec',
+      'acsc',
+      'asinh',
+      'acosh',
+      'atanh',
+      'acoth',
+      'asech',
+      'acsch'
+    ]
   },
-  _greek: [
-    'alpha',
-    'beta',
-    'gamma',
-    'delta',
-    'epsilon',
-    'zeta',
-    'theta',
-    'iota',
-    'kappa',
-    'lambda',
-    'mu',
-    'nu',
-    'xi',
-    'omicron',
-    'pi',
-    'rho',
-    'sigma',
-    'tau',
-    'upsilon',
-    'phi',
-    'chi',
-    'psi',
-    'omega',
-    'Gamma',
-    'Delta',
-    'Theta',
-    'Lambda',
-    'Xi',
-    'Pi',
-    'Sigma',
-    'Upsilon',
-    'Phi',
-    'Psi',
-    'Omega',
-    'eta'
-  ]
-};
-
-Symbols.makeRawSymbol = function (name, latex) {
-  return {
-    output: { latex: latex, text: name },
-    char: true
-  };
-};
-
-Symbols.makeOperatorSymbol = function (name, latex) {
-  return {
-    output: { latex: latex, text: name },
-    char: true,
-    operator: true
-  };
-};
-
-Symbols.makeFunctionSymbol = function (name, nonLaTeX) {
-  return {
-    output: {
-      latex: '\\' + (!nonLaTeX ? name : 'mathrm{' + name + '}') +
-        '\\left({$1}\\right)',
-      text: name + '({$1})'
-    },
-    attrs: [{ delete: 1 }]
-  };
+  _func: {
+    builder: function (name) { return {
+      output: {
+        latex: '\\' + name + '\\left({$1}\\right)',
+        text: name + '({$1})'
+      },
+      attrs: [
+        {
+          delete: 1
+        }
+      ]
+    }; },
+    arguments: [
+      'sin',
+      'cos',
+      'tan',
+      'sec',
+      'csc',
+      'cot',
+      'log',
+      'ln',
+      'sinh',
+      'cosh',
+      'tanh',
+      'coth',
+      'Re',
+      'Im',
+      'arg'
+    ]
+  },
+  _operator: {
+    builder: function (name, ...subs) { return {
+      output: {
+        latex: subs[0],
+        text: name
+      },
+      char: true,
+      operator: true
+    }; },
+    arguments: [
+      ['*', '\\cdot'],
+      ['<=', '\\leq'],
+      ['<', '<'],
+      ['>=', '\\geq'],
+      ['>', '>']
+    ]
+  },
+  _greek: {
+    builder: function (name) { return {
+      output: {
+        latex: '\\' + name,
+        text: name
+      },
+      char: true
+    }; },
+    arguments: [
+      'alpha',
+      'beta',
+      'gamma',
+      'delta',
+      'epsilon',
+      'zeta',
+      'theta',
+      'iota',
+      'kappa',
+      'lambda',
+      'mu',
+      'nu',
+      'xi',
+      'omicron',
+      'pi',
+      'rho',
+      'sigma',
+      'tau',
+      'upsilon',
+      'phi',
+      'chi',
+      'psi',
+      'omega',
+      'Gamma',
+      'Delta',
+      'Theta',
+      'Lambda',
+      'Xi',
+      'Pi',
+      'Sigma',
+      'Upsilon',
+      'Phi',
+      'Psi',
+      'Omega',
+      'eta'
+    ]
+  }
 };
 
 Symbols.addSymbols = function (symbols) {
@@ -502,28 +521,17 @@ Symbols.addSymbols = function (symbols) {
 
   for (var name in symbols) {
     var symbol = symbols[name];
-    switch (name) {
-      case '_operator':
-        for (var t in symbol) {
-          Symbols.symbols[t] = Symbols.makeOperatorSymbol(t, symbol[t]);
+    if (symbol['builder']) {
+      for (var i = 0; i < symbol['arguments'].length; i++) {
+        var item = symbol['arguments'][i];
+        if (Array.isArray(item)) {
+          Symbols.symbols[item[0]] = symbol['builder'](...item);
+        } else {
+          Symbols.symbols[item] = symbol['builder'](item);
         }
-        break;
-      case '_greek':
-        for (var i = 0; i < symbol.length; i++) {
-          Symbols.symbols[symbol[i]] = Symbols.makeRawSymbol(symbol[i],
-            '\\' + symbol[i]);
-        }
-        break;
-      case '_func':
-      case '_func_nonlatex':
-        for (var i = 0; i < symbol.length; i++) { // eslint-disable-line no-redeclare
-          Symbols.symbols[symbol[i]] = Symbols.makeFunctionSymbol(symbol[i],
-            name === '_func_nonlatex');
-        }
-        break;
-      default:
-        Symbols.symbols[name] = symbol;
-        break;
+      }
+    } else {
+      Symbols.symbols[name] = symbol;
     }
   }
 };
