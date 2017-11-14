@@ -3,7 +3,7 @@ var Mousetrap = require('mousetrap');
 var katex = require('katex');
 var Backend = require('./backend.js');
 import { Symbols } from './symbols';
-var Doc = require('./doc.js');
+import Doc from './doc';
 var debounce = require('throttle-debounce/debounce');
 
 // touch capable devices might have not-div-focusable virtual keyboard
@@ -387,7 +387,7 @@ MathYlem.getLocation = function (x, y, currentNode, currentCaret) {
     }
   }
   var loc = opt.path.substring('loc_m_'.length).split(/_/);
-  var node = g.backend.doc.root();
+  var node = g.backend.doc.root;
   for (var i = 0; i < loc.length - 1; i++) { // eslint-disable-line no-redeclare
     var name = loc[i][0];
     var index = parseInt(loc[i].substring(1));
@@ -570,7 +570,7 @@ MathYlem.prototype.renderNode = function (t) {
   // This function just adds in the cursor and selection-start cursor
   var output = '';
   if (t === 'render') {
-    var root = this.backend.doc.root();
+    var root = this.backend.doc.root;
     this.backend.addPaths(root, 'm');
     this.backend.tempCursor = this.tempCursor;
     this.backend.addCursorClasses(root);
@@ -589,7 +589,7 @@ MathYlem.prototype.renderNode = function (t) {
 };
 
 MathYlem.prototype.render = function (temp) {
-  if (!this.active && this.backend.doc.isBlank()) {
+  if (!this.active && !this.backend.latex()) {
     katex.render(this.config.emptyContent, this.editor);
     return;
   }

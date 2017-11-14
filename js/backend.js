@@ -1,4 +1,4 @@
-var Doc = require('./doc.js');
+import Doc from './doc';
 import { Symbols } from './symbols';
 var EventEmitter = require('eventemitter3');
 
@@ -15,7 +15,7 @@ var Backend = function (config, editor) {
 
   this.doc = new Doc(config.xmlContent);
 
-  this.current = this.doc.root().firstChild;
+  this.current = this.doc.root.firstChild;
   this.caret = 0;
   this.clearSelection();
   this.undoData = [];
@@ -53,7 +53,7 @@ Backend.prototype.text = function () {
 
 Backend.prototype.setContent = function (xmlData) {
   this.doc = new Doc(xmlData);
-  this.current = this.doc.root().lastChild;
+  this.current = this.doc.root.lastChild;
   this.caret = this.current.textContent.length;
   this.clearSelection();
   this.undoData = [];
@@ -856,7 +856,7 @@ Backend.prototype.removeListItem = function () {
 Backend.prototype.right = function () {
   this.clearSelection();
   if (this.caret >= this.current.textContent.length) {
-    var nodes = this.doc.root().getElementsByTagName('e');
+    var nodes = this.doc.root.getElementsByTagName('e');
     var index = Array.prototype.indexOf.call(nodes, this.current);
     if (index < nodes.length - 1) {
       this.current = nodes[index + 1];
@@ -900,7 +900,7 @@ Backend.prototype.spacebar = function () {
 Backend.prototype.left = function () {
   this.clearSelection();
   if (this.caret <= 0) {
-    var nodes = this.doc.root().getElementsByTagName('e');
+    var nodes = this.doc.root.getElementsByTagName('e');
     var index = Array.prototype.indexOf.call(nodes, this.current);
     if (index > 0) {
       this.current = nodes[index - 1];
@@ -1071,7 +1071,7 @@ Backend.prototype.home = function (select) {
   if (!select) {
     this.clearSelection();
   }
-  this.current = this.doc.root().firstChild;
+  this.current = this.doc.root.firstChild;
   this.caret = 0;
 };
 
@@ -1079,7 +1079,7 @@ Backend.prototype.end = function (select) {
   if (!select) {
     this.clearSelection();
   }
-  this.current = this.doc.root().lastChild;
+  this.current = this.doc.root.lastChild;
   this.caret = this.current.textContent.length;
 };
 
@@ -1108,7 +1108,7 @@ Backend.prototype.restore = function (t) {
 };
 
 Backend.prototype.findCurrent = function () {
-  this.current = this.doc.root().querySelector('e[current]');
+  this.current = this.doc.root.querySelector('e[current]');
   this.caret = parseInt(this.current.getAttribute('caret'));
 };
 

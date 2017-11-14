@@ -1,170 +1,159 @@
-var xmldom = require('./xmldom/node');
+import { DOMParser, XMLSerializer } from 'xmldom';
 import { Symbols } from './symbols';
 
-var Doc = function (data) {
-  this.setContent(data);
-};
+export default class Doc {
+  constructor (data) {
+    this.setContent(data);
+  }
 
-Doc.isSmall = function (nn) {
-  var n = nn.parentNode;
-  while (n != null && n.nodeName !== 'm') {
-    if (Doc.getCAttribute(n, 'small')) {
-      return true;
-    }
-    n = n.parentNode;
-    while (n != null && n.nodeName !== 'c') {
-      n = n.parentNode;
+  getContent (type, render) {
+    if (type === 'xml') {
+      return (new XMLSerializer()).serializeToString(this.base);
+    } else {
+      return this.render(type, this.root, render);
     }
   }
-  return false;
-};
 
-Doc.getFName = function (n) {
-  if (n.nodeName === 'e') {
-    n = n.parentNode;
+  setContent (data) {
+    data = data || '<m><e></e></m>';
+    this.base = (new DOMParser()).parseFromString(data, 'text/xml');
   }
-  if (n.parentNode.nodeName === 'f') {
-    return n.parentNode.getAttribute('type');
-  }
-};
 
-Doc.getCAttribute = function (n, attr) {
-  if (n.nodeName === 'e') {
-    n = n.parentNode;
+  get root () {
+    return this.base.documentElement;
   }
-  var name = Doc.getFName(n);
-  if (name) {
-    var index = Array.prototype.indexOf.call(n.parentNode.childNodes, n);
-    var s = Symbols[name];
-    if (s['attrs'] && s['attrs'][index] && s['attrs'][index][attr]) {
-      return s['attrs'][index][attr];
+
+  render (type, node, render) {
+    let result = '';
+    if (node.nodeName === 'e') {
+      if (type === 'latex' && render) {
+        result = node.getAttribute('render');
+      } else if (type === 'text') {
+        result = node.textContent;
+
+        const prev = node.previousSibling;
+        const next = node.nextSibling;
+        if (prev && next && result === '' && !Symbols[prev.getAttribute('type')]
+          .operator && !Symbols[next.getAttribute('type')].operator) {
+          result = '*';
+        } else if (!Doc.getCAttribute(node, 'text')) {
+          result = result.replace(/([a-zA-Z])(?=\.)/g, '$1*')
+            .replace(/(\.)(?=[a-zA-Z])/g, '$1*')
+            .replace(/([a-zA-Z])(?=[a-zA-Z0-9])/g, '$1*')
+            .replace(/([a-zA-Z0-9])(?=[a-zA-Z])/g, '$1*');
+          if (prev && !Symbols[prev.getAttribute('type')].operator) {
+            result = result.replace(/^([a-zA-Z0-9])/g, '*$1');
+          }
+          if (next && !Symbols[next.getAttribute('type')].operator) {
+            result = result.replace(/([a-zA-Z0-9])$/g, '$1*');
+          }
+        }
+      } else {
+        result = node.textContent;
+      }
+    } else if (node.nodeName === 'f') {
+      let cs = [];
+      for (let n = node.firstChild; n != null; n = n.nextSibling) {
+        cs.push(this.render(type, n, render));
+      }
+
+      const output = Symbols[node.getAttribute('type')].output;
+      if (type === 'latex' && Doc.isSmall(node) && 'small_latex' in output) {
+        type = 'small_latex';
+      }
+
+      const out = output[type].split(/(\{\$[0-9]+(?:\{[^}]+\})*\})/g);
+      for (let i = 0; i < out.length; i++) {
+        const m = out[i].match(/^\{\$([0-9]+)((?:\{[^}]+\})*)\}$/);
+        if (!m) {
+          result += out[i];
+        } else {
+          if (m[2].length === 0) {
+            result += cs[parseInt(m[1]) - 1];
+          } else {
+            const mm = m[2].match(/\{[^}]*\}/g);
+            const joiner = (d, l) => d === 0 ? l : l.map(x => joiner(d - 1, x))
+              .join(mm[d - 1].substring(1, mm[d - 1].length - 1));
+            result += joiner(mm.length, cs[parseInt(m[1]) - 1]);
+          }
+        }
+      }
+    } else if (node.nodeName === 'l') {
+      result = [];
+      for (let n = node.firstChild; n != null; n = n.nextSibling) {
+        result.push(this.render(type, n, render));
+      }
+    } else if (node.nodeName === 'c' || node.nodeName === 'm') {
+      for (let n = node.firstChild; n != null; n = n.nextSibling) {
+        result += this.render(type, n, render);
+      }
+
+      if (type === 'latex' && Doc.getCAttribute(node, 'bracket')) {
+        let bracket = true;
+        const first = node.firstChild;
+        const last = node.lastChild;
+        if (node.childElementCount === 3 &&
+            first.textContent === '' && last.textContent === '') {
+          const name = first.nextSibling.getAttribute('type');
+          if ((Symbols[name].char && !first.hasAttribute('temp') &&
+              !first.hasAttribute('current') && !last.hasAttribute('temp') &&
+              !last.hasAttribute('current')) || name === 'paren') {
+            bracket = false;
+          }
+        } else if (node.childElementCount === 1) {
+          const value = first.textContent;
+          if ((value.length === 1 || !isNaN(value - parseFloat(value))) &&
+              !first.hasAttribute('current') && !first.hasAttribute('temp')) {
+            bracket = false;
+          }
+        }
+        if (bracket) {
+          result = '\\left(' + result + '\\right)';
+        }
+      }
     }
+    return result;
   }
-};
 
-Doc.prototype.isBlank = function () {
-  if (this.base.getElementsByTagName('f').length > 0) {
+  static isSmall (node) {
+    node = node.parentNode;
+    while (node != null && node.nodeName !== 'm') {
+      if (Doc.getCAttribute(node, 'small')) {
+        return true;
+      }
+      node = node.parentNode;
+      while (node != null && node.nodeName !== 'c') {
+        node = node.parentNode;
+      }
+    }
     return false;
   }
-  var l = this.base.getElementsByTagName('e');
-  if (l.length === 1 && (!l[0].firstChild || l[0].firstChild.textContent === '')) {
-    return true;
+
+  static getFName (node) {
+    if (node.nodeName === 'e') {
+      node = node.parentNode;
+    }
+    if (node.parentNode.nodeName === 'f') {
+      return node.parentNode.getAttribute('type');
+    }
   }
-  return false;
-};
 
-Doc.prototype.root = function () {
-  return this.base.documentElement;
-};
-
-Doc.prototype.getContent = function (t, r) {
-  if (t !== 'xml') {
-    return this.render(t, this.root(), r);
-  } else {
-    return (new xmldom.XMLSerializer()).serializeToString(this.base);
-  }
-};
-
-Doc.prototype.setContent = function (data) {
-  data = data || '<m><e></e></m>';
-  this.base = (new xmldom.DOMParser()).parseFromString(data, 'text/xml');
-};
-
-Doc.prototype.render = function (t, n, r) {
-  var ans = '';
-  if (n.nodeName === 'e') {
-    if (t === 'latex' && r) {
-      ans = n.getAttribute('render');
-    } else if (t === 'text') {
-      ans = n.textContent;
-      if (n.previousSibling && n.nextSibling && ans === '' &&
-          !Symbols[n.previousSibling.getAttribute('type')].operator &&
-          !Symbols[n.nextSibling.getAttribute('type')].operator) {
-        ans = '*';
-      } else if (!Doc.getCAttribute(n, 'text')) {
-        ans = ans.replace(/([a-zA-Z])(?=\.)/g, '$1*');
-        ans = ans.replace(/(\.)(?=[a-zA-Z])/g, '$1*');
-        ans = ans.replace(/([a-zA-Z])(?=[a-zA-Z0-9])/g, '$1*');
-        ans = ans.replace(/([a-zA-Z0-9])(?=[a-zA-Z])/g, '$1*');
-        if (n.previousSibling &&
-            !Symbols[n.previousSibling.getAttribute('type')].operator) {
-          ans = ans.replace(/^([a-zA-Z0-9])/g, '*$1');
-        }
-        if (n.nextSibling &&
-            !Symbols[n.nextSibling.getAttribute('type')].operator) {
-          ans = ans.replace(/([a-zA-Z0-9])$/g, '$1*');
-        }
+  static getCAttribute (node, attr) {
+    if (node.nodeName === 'e') {
+      node = node.parentNode;
+    }
+    const name = Doc.getFName(node);
+    if (name) {
+      let index = 0;
+      while (node.previousSibling != null) {
+        index++;
+        node = node.previousSibling;
       }
-    } else {
-      ans = n.textContent;
-    }
-  } else if (n.nodeName === 'f') {
-    var cs = [];
-    for (var nn = n.firstChild; nn != null; nn = nn.nextSibling) {
-      cs.push(this.render(t, nn, r));
-    }
 
-    var s = Symbols[n.getAttribute('type')];
-    var type = t;
-    if (t === 'latex' && Doc.isSmall(n) && 'small_latex' in s['output']) {
-      type = 'small_latex';
-    }
-    var out = s['output'][type].split(/(\{\$[0-9]+(?:\{[^}]+\})*\})/g);
-    for (var i = 0; i < out.length; i++) {
-      var m = out[i].match(/^\{\$([0-9]+)((?:\{[^}]+\})*)\}$/);
-      if (!m) {
-        ans += out[i];
-      } else {
-        if (m[2].length === 0) {
-          ans += cs[parseInt(m[1]) - 1];
-        } else {
-          var mm = m[2].match(/\{[^}]*\}/g);
-          var joiner = function (d, l) {
-            if (d > 1) {
-              for (var k = 0; k < l.length; k++) {
-                l[k] = joiner(d - 1, l[k]);
-              }
-            }
-            return l.join(mm[d - 1].substring(1, mm[d - 1].length - 1));
-          };
-          ans += joiner(mm.length, cs[parseInt(m[1]) - 1]);
-        }
-      }
-    }
-  } else if (n.nodeName === 'l') {
-    ans = [];
-    var i = 0; // eslint-disable-line no-redeclare
-    for (var nn = n.firstChild; nn != null; nn = nn.nextSibling) { // eslint-disable-line no-redeclare
-      ans[i++] = this.render(t, nn, r);
-    }
-  } else if (n.nodeName === 'c' || n.nodeName === 'm') {
-    for (var nn = n.firstChild; nn != null; nn = nn.nextSibling) { // eslint-disable-line no-redeclare
-      ans += this.render(t, nn, r);
-    }
-    if (t === 'latex' && Doc.getCAttribute(n, 'bracket')) {
-      var bracket = true;
-      var first = n.firstChild;
-      if (n.childElementCount === 3 && first.textContent === '' &&
-          n.lastChild.textContent === '') {
-        var name = first.nextSibling.getAttribute('type');
-        if ((Symbols[name]['char'] && !first.hasAttribute('temp') &&
-            !first.hasAttribute('current') && !n.lastChild.hasAttribute('temp') &&
-            !n.lastChild.hasAttribute('current')) || name === 'paren') {
-          bracket = false;
-        }
-      } else if (n.childElementCount === 1) {
-        var value = first.textContent;
-        if ((value.length === 1 || !isNaN(value - parseFloat(value))) &&
-            !first.hasAttribute('current') && !first.hasAttribute('temp')) {
-          bracket = false;
-        }
-      }
-      if (bracket) {
-        ans = '\\left(' + ans + '\\right)';
+      const attrs = Symbols[name].attrs;
+      if (attrs && attrs[index] && attrs[index][attr]) {
+        return attrs[index][attr];
       }
     }
   }
-  return ans;
-};
-
-module.exports = Doc;
+}
