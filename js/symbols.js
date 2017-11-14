@@ -1,5 +1,28 @@
-var Symbols = { symbols: {} };
-var defaultSymbols = {
+export let Symbols = {}
+
+export function addSymbols (data) {
+  if (typeof data === 'string' || data instanceof String) {
+    data = JSON.parse(data);
+  }
+
+  for (const name in data) {
+    const symbol = data[name];
+    if (symbol.builder) {
+      for (let i = 0; i < symbol.arguments.length; i++) {
+        const item = symbol.arguments[i];
+        if (Array.isArray(item)) {
+          Symbols[item[0]] = symbol.builder(...item);
+        } else {
+          Symbols[item] = symbol.builder(item);
+        }
+      }
+    } else {
+      Symbols[name] = symbol;
+    }
+  }
+}
+
+const defaultSymbols = {
   text: {
     output: {
       latex: '\\text{{$1}}',
@@ -513,28 +536,4 @@ var defaultSymbols = {
     ]
   }
 };
-
-Symbols.addSymbols = function (symbols) {
-  if (typeof symbols === 'string' || symbols instanceof String) {
-    symbols = JSON.parse(symbols);
-  }
-
-  for (var name in symbols) {
-    var symbol = symbols[name];
-    if (symbol['builder']) {
-      for (var i = 0; i < symbol['arguments'].length; i++) {
-        var item = symbol['arguments'][i];
-        if (Array.isArray(item)) {
-          Symbols.symbols[item[0]] = symbol['builder'](...item);
-        } else {
-          Symbols.symbols[item] = symbol['builder'](item);
-        }
-      }
-    } else {
-      Symbols.symbols[name] = symbol;
-    }
-  }
-};
-
-Symbols.addSymbols(defaultSymbols);
-module.exports = Symbols;
+addSymbols(defaultSymbols);

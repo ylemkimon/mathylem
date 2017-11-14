@@ -1,5 +1,5 @@
 var Doc = require('./doc.js');
-var Symbols = require('./symbols.js');
+import { Symbols } from './symbols';
 var EventEmitter = require('eventemitter3');
 
 var Backend = function (config, editor) {
@@ -254,7 +254,7 @@ Backend.prototype.deleteFromF = function (toInsert) {
 
 Backend.prototype.symbolToNode = function (name, content) {
   var base = this.doc.base;
-  var s = Symbols.symbols[name];
+  var s = Symbols[name];
   var f = base.createElement('f');
   f.setAttribute('type', name);
 
@@ -311,7 +311,7 @@ Backend.prototype.insertSymbol = function (name) {
     this.current = this.current.parentNode.parentNode.nextSibling;
   }
 
-  var s = Symbols.symbols[name];
+  var s = Symbols[name];
   var content = {};
   var leftPiece, rightPiece;
   var cur = s['current'] == null ? 0 : parseInt(s['current']);
@@ -884,7 +884,7 @@ Backend.prototype.spacebar = function () {
     this.checkpoint();
     var name = this.current.textContent;
     this.candidates = [];
-    for (var n in Symbols.symbols) {
+    for (var n in Symbols) {
       if (n.substr(0, name.length) === name) {
         this.candidates.push(n);
       }
@@ -942,7 +942,7 @@ Backend.prototype.deleteFromE = function () {
     if (prev != null && prev.nodeName === 'f') {
       // We're in an e node just after an f node. 
       // Move back into the f node (delete it?)
-      if (Symbols.symbols[prev.getAttribute('type')]['char']) {
+      if (Symbols[prev.getAttribute('type')]['char']) {
         // The previous node is an f node but is really just a character. Delete it.
         this.current = prev;
         this.deleteFromF();
@@ -1140,7 +1140,7 @@ Backend.prototype.done = function (s) {
 
 Backend.prototype.completeSymbol = function () {
   var name = this.current.textContent;
-  if (!Symbols.symbols[name]) {
+  if (!Symbols[name]) {
     return;
   }
   this.current = this.current.parentNode.parentNode;
@@ -1159,7 +1159,7 @@ Backend.prototype.isBlacklisted = function (type) {
 };
 
 Backend.prototype.replaceSymbol = function (node, name, content) {
-  var symbol = Symbols.symbols[name];
+  var symbol = Symbols[name];
   if (!symbol || this.isBlacklisted(name)) {
     return false;
   }
@@ -1208,7 +1208,7 @@ Backend.prototype.checkForSymbol = function (force) {
     this.replaceSymbol(n, n.getAttribute('type') + 'h');
     return;
   }
-  for (var s in Symbols.symbols) {
+  for (var s in Symbols) {
     if (!force && ['psi', 'xi'].indexOf(s) > -1) {
       continue;
     }

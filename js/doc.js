@@ -1,5 +1,5 @@
 var xmldom = require('./xmldom/node');
-var Symbols = require('./symbols.js');
+import { Symbols } from './symbols';
 
 var Doc = function (data) {
   this.setContent(data);
@@ -35,7 +35,7 @@ Doc.getCAttribute = function (n, attr) {
   var name = Doc.getFName(n);
   if (name) {
     var index = Array.prototype.indexOf.call(n.parentNode.childNodes, n);
-    var s = Symbols.symbols[name];
+    var s = Symbols[name];
     if (s['attrs'] && s['attrs'][index] && s['attrs'][index][attr]) {
       return s['attrs'][index][attr];
     }
@@ -78,8 +78,8 @@ Doc.prototype.render = function (t, n, r) {
     } else if (t === 'text') {
       ans = n.textContent;
       if (n.previousSibling && n.nextSibling && ans === '' &&
-          !Symbols.symbols[n.previousSibling.getAttribute('type')].operator &&
-          !Symbols.symbols[n.nextSibling.getAttribute('type')].operator) {
+          !Symbols[n.previousSibling.getAttribute('type')].operator &&
+          !Symbols[n.nextSibling.getAttribute('type')].operator) {
         ans = '*';
       } else if (!Doc.getCAttribute(n, 'text')) {
         ans = ans.replace(/([a-zA-Z])(?=\.)/g, '$1*');
@@ -87,11 +87,11 @@ Doc.prototype.render = function (t, n, r) {
         ans = ans.replace(/([a-zA-Z])(?=[a-zA-Z0-9])/g, '$1*');
         ans = ans.replace(/([a-zA-Z0-9])(?=[a-zA-Z])/g, '$1*');
         if (n.previousSibling &&
-            !Symbols.symbols[n.previousSibling.getAttribute('type')].operator) {
+            !Symbols[n.previousSibling.getAttribute('type')].operator) {
           ans = ans.replace(/^([a-zA-Z0-9])/g, '*$1');
         }
         if (n.nextSibling &&
-            !Symbols.symbols[n.nextSibling.getAttribute('type')].operator) {
+            !Symbols[n.nextSibling.getAttribute('type')].operator) {
           ans = ans.replace(/([a-zA-Z0-9])$/g, '$1*');
         }
       }
@@ -104,7 +104,7 @@ Doc.prototype.render = function (t, n, r) {
       cs.push(this.render(t, nn, r));
     }
 
-    var s = Symbols.symbols[n.getAttribute('type')];
+    var s = Symbols[n.getAttribute('type')];
     var type = t;
     if (t === 'latex' && Doc.isSmall(n) && 'small_latex' in s['output']) {
       type = 'small_latex';
@@ -147,7 +147,7 @@ Doc.prototype.render = function (t, n, r) {
       if (n.childElementCount === 3 && first.textContent === '' &&
           n.lastChild.textContent === '') {
         var name = first.nextSibling.getAttribute('type');
-        if ((Symbols.symbols[name]['char'] && !first.hasAttribute('temp') &&
+        if ((Symbols[name]['char'] && !first.hasAttribute('temp') &&
             !first.hasAttribute('current') && !n.lastChild.hasAttribute('temp') &&
             !n.lastChild.hasAttribute('current')) || name === 'paren') {
           bracket = false;

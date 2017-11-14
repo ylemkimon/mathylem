@@ -2,7 +2,7 @@
 var Mousetrap = require('mousetrap');
 var katex = require('katex');
 var Backend = require('./backend.js');
-var Symbols = require('./symbols.js');
+import { Symbols } from './symbols';
 var Doc = require('./doc.js');
 var debounce = require('throttle-debounce/debounce');
 
@@ -140,7 +140,7 @@ MathYlem.DEFAULT_CONFIG = {
 
 MathYlem.Backend = Backend;
 MathYlem.Doc = Doc;
-MathYlem.Symbols = Symbols;
+//MathYlem.Symbols = Symbols;
 MathYlem.katex = katex;
 
 MathYlem.maxUid = 0;
@@ -483,7 +483,7 @@ MathYlem.onButtonClick = function (e) {
   var action = this.getAttribute('data-action');
   if (Backend.prototype[action]) {
     g.backend[action]();
-  } else if (action in Symbols.symbols) {
+  } else if (action in Symbols) {
     g.backend.insertSymbol(action);
   } else {
     g.backend.insertString(action);
