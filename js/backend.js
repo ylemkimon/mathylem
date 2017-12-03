@@ -1,1232 +1,744 @@
 import Doc from './doc';
 import { Symbols } from './symbols';
-var EventEmitter = require('eventemitter3');
+import Cursor from './cursor';
+import EventEmitter from 'eventemitter3';
 
-var Backend = function (config, editor) {
-  this.config = config;
+export default class Editor extends EventEmitter {
+  static Clipboard = [];
 
-  this.editor = editor;
-  this.autoreplace = true;
+  constructor (config) {
+    super()
 
-  EventEmitter.call(this);
-  for (var e in config.events) {
-    this.on(e, config.events[e]);
-  }
+    this.config = config;
+    this.autoreplace = true;
 
-  this.doc = new Doc(config.xmlContent);
+    for (let e in config.events) {
+      this.on(e, config.events[e]);
+    }
 
-  this.current = this.doc.root.firstChild;
-  this.caret = 0;
-  this.clearSelection();
-  this.undoData = [];
-  this.undoCurrent = -1;
-};
+    this.doc = new Doc();
 
-Backend.prototype = Object.create(EventEmitter.prototype, {
-  constructor: { value: Backend }
-});
+    this.mainCursor = new Cursor();
+    this.selCursor = new Cursor();
+    this.tempCursor = new Cursor();
 
-Backend.CARET = '\\cursor{-0.2ex}{0.7em}';
-Backend.SMALL_CARET = '\\cursor{-0.05em}{0.5em}';
+    this.setContent(config.xmlContent);
+  };
 
-Backend.SEL_NONE = 0;
-Backend.SEL_CURSOR_AT_START = 1;
-Backend.SEL_CURSOR_AT_END = 2;
+  getContent (type, render) {
+    this.prepareOutput(this.doc.root, render);
+    const output = this.doc.getContent(type, render);
+    this.postOutput(this.doc.root);
+    return output;
+  };
 
-Backend.Clipboard = null;
+  get xml () {
+    return this.doc.getContent('xml');
+  };
 
-Backend.prototype.getContent = function (t, r) {
-  return this.doc.getContent(t, r);
-};
+  get latex () {
+    return this.doc.getContent('latex');
+  };
 
-Backend.prototype.xml = function () {
-  return this.doc.getContent('xml');
-};
+  get text () {
+    return this.doc.getContent('text');
+  };
 
-Backend.prototype.latex = function () {
-  return this.doc.getContent('latex');
-};
-
-Backend.prototype.text = function () {
-  return this.doc.getContent('text');
-};
-
-Backend.prototype.setContent = function (xmlData) {
-  this.doc = new Doc(xmlData);
-  this.current = this.doc.root.lastChild;
-  this.caret = this.current.textContent.length;
-  this.clearSelection();
-  this.undoData = [];
-  this.undoCurrent = -1;
-  this.checkpoint();
-};
-
-Backend.prototype.selectTo = function (loc, selCursor, selCaret, mouse) {
-  this.current = loc.current;
-  this.caret = loc.caret;
-  if (loc.current === selCursor && loc.caret === selCaret) {
+  setContent (data, cursorPos) {
+    this.doc.setContent(data);
+    this.mainCursor.set(this.doc.root, cursorPos);
     this.clearSelection();
-  } else if (loc.pos === 'left') {
-    this.selEnd = {
-      'node': selCursor,
-      'caret': selCaret
-    };
-    this.setSelection(Backend.SEL_CURSOR_AT_START, mouse);
-  } else if (loc.pos === 'right') {
-    this.selStart = {
-      'node': selCursor,
-      'caret': selCaret
-    };
-    this.setSelection(Backend.SEL_CURSOR_AT_END, mouse);
+    this.undoData = [];
+    this.redoData = [];
+  };
+
+  select (from, to) {
+    this.mainCursor = to;
+    this.selCursor = from;
+    if (!from.equals(to)) {
+      this.selStatus = from.directionTo(to);
+    } else {
+      this.clearSelection();
+    }
+  };
+
+  moveSelection(dir) {
+    if (!this.selStatus) {
+      this.selStatus = dir;
+      this.selCursor = this.mainCursor.clone();
+    }
+    if (dir < 0 && this.mainCursor.pos <= 0) {
+      const prev = this.mainCursor.node.previousSibling;
+      if (prev != null) {
+        this.mainCursor.set(prev.previousSibling, true);
+      }
+    } else if (dir > 0 && this.mainCursor.pos >= this.mainCursor.value.length) {
+      const next = this.mainCursor.node.nextSibling;
+      if (next != null) {
+        this.mainCursor.set(next.nextSibling);
+      }
+    } else {
+      this.mainCursor.pos += dir;
+    }
+    if (this.selCursor.equals(this.mainCursor)) {
+      this.clearSelection();
+    }
   }
-};
 
-Backend.prototype.setSelStart = function () {
-  this.selStart = { 'node': this.current, 'caret': this.caret };
-};
+  selectAll () {
+    this.select(new Cursor(this.doc.root), new Cursor(this.doc.root, true));
+  };
 
-Backend.prototype.setSelEnd = function () {
-  this.selEnd = { 'node': this.current, 'caret': this.caret };
-};
+  clearSelection () {
+    this.selCursor.set(null);
+    this.selStatus = 0;
+  };
 
-Backend.prototype.addPaths = function (n, path) {
-  if (n.nodeName === 'e') {
-    n.setAttribute('path', path);
-  } else {
-    var es = 1;
-    var fs = 1;
-    var cs = 1;
-    var ls = 1;
-    for (var c = n.firstChild; c != null; c = c.nextSibling) {
-      if (c.nodeName === 'c') {
-        this.addPaths(c, path + '_c' + cs);
-        cs++;
-      } else if (c.nodeName === 'f') {
-        this.addPaths(c, path + '_f' + fs);
-        fs++;
-      } else if (c.nodeName === 'l') {
-        this.addPaths(c, path + '_l' + ls);
-        ls++;
-      } else if (c.nodeName === 'e') {
-        this.addPaths(c, path + '_e' + es);
-        es++;
+  getSelection () {
+    if (!this.selStatus) {
+      return null;
+    }
+    const [start, end] = this.selStatus < 0 ? [this.mainCursor, this.selCursor] : [this.selCursor, this.mainCursor];
+    const left = start.value;
+    const right = end.value;
+
+    let nodeList = [];
+    let involved = [];
+    const remnant = this.makeE(left.substring(0, start.pos) + right.substring(end.pos));
+
+    if (start.node === end.node) {
+      return {
+        nodeList: [this.makeE(left.substring(start.pos, end.pos))],
+        involved: [start.node],
+        remnant
+      };
+    }
+
+    nodeList.push(this.makeE(left.substring(start.pos)));
+    involved.push(start.node);
+    for (let n = start.node.nextSibling; n !== end.node; n = n.nextSibling) {
+      nodeList.push(n);
+      involved.push(n);
+    }
+    nodeList.push(this.makeE(right.substring(0, end.pos)));
+    involved.push(end.node);
+
+    return {
+      nodeList,
+      involved,
+      remnant
+    };
+  };
+
+  deleteSelection () {
+    const sel = this.getSelection();
+    if (!sel) {
+      return null;
+    }
+    this.saveState();
+
+    const selParent = sel.involved[0].parentNode;
+    const selPrev = sel.involved[0].previousSibling;
+    sel.involved.forEach(x => selParent.removeChild(x));
+    if (selPrev == null) {
+      if (selParent.firstChild == null) {
+        selParent.appendChild(sel.remnant);
+      } else {
+        selParent.insertBefore(sel.remnant, selParent.firstChild);
+      }
+    } else {
+      if (selPrev.nextSibling == null) {
+        selParent.appendChild(sel.remnant);
+      } else {
+        selParent.insertBefore(sel.remnant, selPrev.nextSibling);
+      }
+    }
+    this.mainCursor.set(sel.remnant, this.selStatus < 0 ? this.mainCursor.pos : this.selCursor.pos);
+    this.clearSelection();
+    return sel;
+  };
+
+  clipboardSelection (cut) {
+    const sel = cut ? this.deleteSelection() : this.getSelection();
+    if (!sel) {
+      return;
+    }
+    Editor.Clipboard = sel.nodeList.map(x => x.cloneNode(true));
+  };
+
+  insertNodes (nodeList, moveCursor) {
+    let clipboard = nodeList.map(x => x.cloneNode(true));
+    const value = this.mainCursor.value;
+    const first = clipboard.shift().textContent;
+    if (clipboard.length === 0) {
+      this.mainCursor.value = value.substring(0, this.mainCursor.pos) + first +
+        value.substring(this.mainCursor.pos);
+      if (moveCursor) {
+        this.mainCursor.pos += first.length;
+      }
+    } else {
+      const p = this.mainCursor.node.parentNode;
+      const last = clipboard.pop().textContent;
+      this.mainCursor.value = value.substring(0, this.mainCursor.pos) + first;
+
+      const node = this.makeE(last + value.substring(this.mainCursor.pos));
+      if (this.mainCursor.node.nextSibling == null) {
+        p.appendChild(node);
+      } else {
+        p.insertBefore(node, this.mainCursor.node.nextSibling);
+      }
+      clipboard.forEach(x => p.insertBefore(x, node));
+      if (moveCursor) {
+        this.mainCursor.set(node, last.length);
+      }
+    }
+  };
+
+  paste () {
+    if (Editor.Clipboard.length === 0) {
+      return;
+    }
+    this.deleteSelection();
+    this.insertNodes(Editor.Clipboard, true);
+  };
+
+  moveCursor (dir, out) {
+    this.clearSelection();
+    if (dir === 'up' || dir === 'down') {
+      const t = Doc.getCAttribute(this.mainCursor.node, dir);
+      if (t) {
+        this.mainCursor.set(this.mainCursor.node.parentNode.parentNode.childNodes[t - 1], true);
+      } else {
+        const index = Doc.getArrayIndex(this.mainCursor.node, true);
+        if (!index) {
+          return;
+        }
+        const newRow = dir === 'down' ? index[1][0].nextSibling : index[1][0].previousSibling;
+        if (newRow) {
+          this.mainCursor.set(newRow.childNodes[index[0][1]], dir === 'up');
+        }
+      }
+    } else {
+      if ((dir < 0 && this.mainCursor.pos <= 0) ||
+          (dir > 0 && this.mainCursor.pos >= this.mainCursor.value.length)) {
+        const nodes = this.doc.root.getElementsByTagName('e');
+        const index = Array.prototype.indexOf.call(nodes, this.mainCursor.node);
+        if ((dir < 0 && index > 0) || (dir > 0 && index < nodes.length - 1)) {
+          this.mainCursor.set(nodes[index + dir], dir < 0);
+        }
+      } else if (!out) {
+        this.mainCursor.pos += dir;
       }
     }
   }
-};
 
-Backend.prototype.addCursorClasses = function (n, path) {
-  if (n.nodeName === 'e') {
-    var text = n.textContent;
-    var ans = '';
-    var selCursor;
-    if (this.selStatus === Backend.SEL_CURSOR_AT_START) {
-      selCursor = this.selEnd;
-    } else if (this.selStatus === Backend.SEL_CURSOR_AT_END) {
-      selCursor = this.selStart;
+  home () {
+    this.clearSelection();
+    this.mainCursor.set(this.doc.root);
+  };
+
+  end () {
+    this.clearSelection();
+    this.mainCursor.set(this.doc.root, true);
+  };
+
+  pushState (stack) {
+    this.candidates = null;
+
+    this.mainCursor.node.setAttribute('current', this.mainCursor.pos.toString());
+    stack.push(this.doc.base.cloneNode(true));
+    this.mainCursor.node.removeAttribute('current');
+  }
+
+  popState (from, to) {
+    this.clearSelection();
+    if (from.length == 0) {
+      return;
     }
+    this.pushState(to);
+    this.doc.base = from.pop().cloneNode(true);
+    this.mainCursor.node = this.doc.root.querySelector('e[current]');
+    this.mainCursor.pos = parseInt(this.mainCursor.node.getAttribute('current'));
+    this.mainCursor.node.removeAttribute('current');
+  };
 
-    var caret = Doc.isSmall(n) ? Backend.SMALL_CARET : Backend.CARET;
-    for (var i = 0; i < text.length + 1; i++) {
-      if (n === this.current && i === this.caret) {
-        if (this.selStatus === Backend.SEL_CURSOR_AT_END) {
-          ans += '}';
-        }
-        if (text.length === 0) {
-          ans += '\\xmlClass{main-cursor my-elem my-blank loc_' +
-            n.getAttribute('path') + '_0}{' + caret + '}';
+  saveState () {
+    this.pushState(this.undoData);
+    this.redoData = [];
+
+    this.emit('change');
+    this.render();
+  };
+
+  undo () {
+    this.popState(this.undoData, this.redoData);
+  };
+
+  redo () {
+    this.popState(this.redoData, this.undoData);
+  };
+
+  deleteFromC () {
+    const pos = Doc.indexOfNode(this.mainCursor.node.parentNode);
+    const index = Doc.getCAttribute(this.mainCursor.node, 'delete');
+    const f = this.mainCursor.node.parentNode.parentNode;
+    const remaining = Array.from(f.childNodes[index - 1].childNodes);
+    this.deleteFromF(f);
+    this.insertNodes(remaining, pos >= index);
+  };
+
+  deleteFromF (node) {
+    const p = node.parentNode;
+    const prev = node.previousSibling;
+    const next = node.nextSibling;
+    const newNode = this.makeE(prev.textContent + next.textContent);
+    p.insertBefore(newNode, prev);
+    this.mainCursor.set(newNode, prev.textContent.length);
+    p.removeChild(prev);
+    p.removeChild(node);
+    p.removeChild(next);
+  };
+
+  deleteBackward () {
+    if (this.deleteSelection() != null) {
+      return;
+    }
+    if (this.mainCursor.pos > 0) {
+      const value = this.mainCursor.value;
+      this.mainCursor.value = value.slice(0, this.mainCursor.pos - 1) +
+        value.slice(this.mainCursor.pos);
+      this.mainCursor.pos--;
+    } else {
+      const prev = this.mainCursor.node.previousSibling;
+      let p = this.mainCursor.node.parentNode;
+      if (prev != null) { //  && prev.nodeName === 'f'
+        if (Symbols[prev.getAttribute('type')].char) {
+          this.deleteFromF(prev);
         } else {
-          ans += '\\xmlClass{main-cursor}{' + caret + '}';
+          this.moveCursor(-1);
         }
-        if (this.selStatus === Backend.SEL_CURSOR_AT_START) {
-          ans += '\\xmlClass{selection}{';
-        }
-      } else if (selCursor && n === selCursor.node && i === selCursor.caret) {
-        if (this.selStatus === Backend.SEL_CURSOR_AT_START) {
-          ans += '}';
-        }
-        if (text.length === 0 && n.parentNode.childElementCount > 1) {
-          ans += '\\xmlClass{sel-cursor my-elem my-blank loc_' +
-            n.getAttribute('path') + '_0}{' + caret + '}';
+      } else if (p.previousSibling != null) {
+        if (Doc.getCAttribute(this.mainCursor.node, 'delete')) {
+          this.deleteFromC();
         } else {
-          ans += '\\xmlClass{sel-cursor}{' + caret + '}';
+          this.moveCursor(-1);
         }
-        if (this.selStatus === Backend.SEL_CURSOR_AT_END) {
-          ans += '\\xmlClass{selection}{';
+      } else if (prev == null && p.nodeName === 'c' && p.previousSibling == null) {
+        while (p.parentNode.nodeName === 'l') { //  || p.parentNode.nodeName === 'c'
+          p = p.parentNode;
         }
-      } else if (n === this.tempCursor.node && i === this.tempCursor.caret) {
-        if (text.length === 0) {
-          if (n.parentNode.childElementCount === 1) {
-            ans += '\\xmlClass{temp-cursor my-elem my-blank loc_' +
-              n.getAttribute('path') + '_0}{[?]}';
-          } else {
-            ans += '\\xmlClass{temp-cursor my-elem my-blank loc_' +
-              n.getAttribute('path') + '_0}{' + caret + '}';
+        if (Doc.getCAttribute(p, 'delete')) {
+          this.deleteFromC();
+        } else {
+          this.deleteFromF(p.parentNode);
+        }
+      }
+    }
+  };
+
+  deleteForward () {
+    if (this.deleteSelection() != null) {
+      return;
+    }
+    if (this.mainCursor.pos < this.mainCursor.value.length) {
+      const value = this.mainCursor.value;
+      this.mainCursor.value = value.slice(0, this.mainCursor.pos) +
+        value.slice(this.mainCursor.pos + 1);
+    } else if (this.mainCursor.node.nextSibling != null) {
+      this.deleteFromF(this.mainCursor.node.nextSibling);
+    }
+  };
+
+  extendList (dir, copy) {
+    const vertical = dir === 'up' || dir === 'down';
+    const before = dir === 'up' || dir === 'left';
+    const index = Doc.getArrayIndex(this.mainCursor.node, vertical);
+    if (!index) {
+      return;
+    }
+    const [n, pos] = index[vertical ? 1 : 0];
+
+    this.clearSelection();
+    this.saveState();
+
+    for (let nn = n.parentNode.parentNode.firstChild; nn != null; nn =
+        nn.nextSibling) {
+      if (nn.nodeName !== 'l') {
+        continue;
+      }
+      const node = nn.childNodes[pos];
+      let newNode;
+      if (!copy) {
+        if (vertical) {
+          newNode = this.doc.base.createElement('l')
+          for (let i = 0; i < node.childElementCount; i++) {
+            const c = this.doc.base.createElement('c');
+            c.appendChild(this.makeE());
+            newNode.appendChild(c);
           }
         } else {
-          ans += '\\xmlClass{temp-cursor}{' + caret + '}';
+          newNode = this.doc.base.createElement('c')
+          newNode.appendChild(this.makeE());
+        }
+      } else {
+        newNode = node.cloneNode(true);
+      }
+      nn.insertBefore(newNode, before ? node : node.nextSibling);
+    }
+    const cur = before ? n.previousSibling : n.nextSibling;
+    this.mainCursor.set(vertical ? cur.childNodes[index[0][1]] : cur, before);
+  };
+
+  removeList (vertical) {
+    const index = Doc.getArrayIndex(this.mainCursor.node, vertical);
+    if (!index) {
+      return;
+    }
+    const [n, pos] = index[vertical ? 1 : 0];
+    const before = n.previousSibling != null;
+    const cur = before ? n.previousSibling : n.nextSibling;
+    if (cur == null) {
+      return;
+    }
+
+    this.clearSelection();
+    this.saveState();
+
+    for (let nn = n.parentNode.parentNode.firstChild; nn != null; nn =
+        nn.nextSibling) {
+      if (nn.nodeName !== 'l') {
+        continue;
+      }
+      nn.removeChild(nn.childNodes[pos]);
+    }
+    this.mainCursor.set(vertical ? cur.childNodes[index[0][1]] : cur, before);
+  };
+
+  renderE (n, path) {
+    const text = n.textContent;
+    let result = '';
+
+    const caret = Doc.isSmall(n) ? '\\cursor{-0.05em}{0.5em}' :
+      '\\cursor{-0.2ex}{0.7em}';
+    for (let i = 0; i < text.length + 1; i++) {
+      const current = new Cursor(n, i);
+      if (current.equals(this.mainCursor)) {
+        if (this.selStatus > 0) {
+          result += '}';
+        }
+        if (text.length === 0) {
+          result += `\\class{main-cursor my-elem my-blank loc${path}-0}{${caret}}`;
+        } else {
+          result += `\\class{main-cursor}{${caret}}`;
+        }
+        if (this.selStatus < 0) {
+          result += '\\class{selection}{';
+        }
+      } else if (current.equals(this.selCursor)) {
+        if (this.selStatus < 0) {
+          result += '}';
+        }
+        if (text.length === 0 && n.parentNode.childElementCount > 1) {
+          result += `\\class{sel-cursor my-elem my-blank loc${path}-0}{${caret}}`;
+        } else {
+          result += `\\class{sel-cursor}{${caret}}`;
+        }
+        if (this.selStatus > 0) {
+          result += '\\class{selection}{';
+        }
+      } else if (current.equals(this.tempCursor)) {
+        if (text.length > 0) {
+          result += `\\class{temp-cursor}{${caret}}`;
+        } else if (n.parentNode.childElementCount === 1) {
+          result += `\\class{temp-cursor my-elem my-blank loc${path}-0}{[?]}`;
+        } else {
+          result += `\\class{temp-cursor my-elem my-blank loc${path}-0}{${caret}}`;
         }
       } else if (text.length === 0) {
         if (n.parentNode.childElementCount === 1) {
-          ans = '\\xmlClass{placeholder my-elem my-blank loc_' +
-            n.getAttribute('path') + '_0}{[?]}';
+          result = `\\class{placeholder my-elem my-blank loc${path}-0}{[?]}`;
         } else {
-          // Here, we add in a small element so that we can
-          // use the mouse to select these areas
-          ans = '\\phantom{\\xmlClass{my-elem my-blank loc_' +
-            n.getAttribute('path') + '_0}{\\cursor{0.1ex}{1ex}}}';
+          result = `\\phantom{\\class{my-elem my-blank loc${path}-0}{\\cursor{0.1ex}{1ex}}}`;
         }
       }
       if (i < text.length) {
-        ans += '\\xmlClass{my-elem loc_' + n.getAttribute('path') + '_' + i +
-          '}{' + text[i] + '}';
+        result += `\\class{my-elem loc${path}-${i}}{${text[i]}}`;
       }
     }
     if (Doc.getCAttribute(n, 'text')) {
-      if (n === this.current) {
-        ans = '\\xmlClass{my-text my-active}{{' + ans + '}}';
+      if (n === this.mainCursor.node) {
+        result = `\\class{my-text my-active}{{${result}}}`;
       } else {
-        ans = '\\xmlClass{my-text}{{' + ans + '}}';
+        result = `\\class{my-text}{{${result}}}`;
       }
     }
-    n.setAttribute('render', ans);
-    n.removeAttribute('path');
-  } else {
-    for (var c = n.firstChild; c != null; c = c.nextSibling) {
-      this.addCursorClasses(c);
-    }
-  }
-};
-
-Backend.prototype.removeCursorClasses = function (n) {
-  if (n.nodeName === 'e') {
-    n.removeAttribute('path');
-    n.removeAttribute('render');
-    n.removeAttribute('current');
-    n.removeAttribute('temp');
-  } else {
-    for (var c = n.firstChild; c != null; c = c.nextSibling) {
-      if (c.nodeType === 1) {
-        this.removeCursorClasses(c);
-      }
-    }
-  }
-};
-
-Backend.prototype.downFromF = function () {
-  var nn = this.current.firstChild;
-  while (nn.nodeName === 'l') {
-    nn = nn.firstChild;
-  }
-  this.current = nn.firstChild;
-};
-
-Backend.prototype.downFromFToBlank = function () {
-  var nn = this.current.firstChild;
-  while (nn != null && !(nn.childNodes.length === 1 &&
-      nn.firstChild.textContent.length === 0)) {
-    nn = nn.nextSibling;
-  }
-  if (nn != null) {
-    while (nn.nodeName === 'l') {
-      nn = nn.firstChild;
-    }
-    this.current = nn.firstChild;
-  } else {
-    this.downFromF();
-  }
-};
-
-Backend.prototype.deleteFromF = function (toInsert) {
-  var n = this.current;
-  var p = n.parentNode;
-  var prev = n.previousSibling;
-  var next = n.nextSibling;
-  var middle = toInsert || '';
-  var newNode = this.makeE(prev.textContent + middle + next.textContent);
-  this.current = newNode;
-  this.caret = prev.textContent.length;
-  p.insertBefore(newNode, prev);
-  p.removeChild(prev);
-  p.removeChild(n);
-  p.removeChild(next);
-};
-
-Backend.prototype.symbolToNode = function (name, content) {
-  var base = this.doc.base;
-  var s = Symbols[name];
-  var f = base.createElement('f');
-  f.setAttribute('type', name);
-
-  var refsCount = 0;
-  var lists = {};
-
-  // Make the b nodes for rendering each output
-  var out = s['output']['latex'].split(/(\{\$[0-9]+(?:\{[^}]+\})*\})/g);
-  for (var i = 0; i < out.length; i++) {
-    var m = out[i].match(/^\{\$([0-9]+)((?:\{[^}]+\})*)\}$/);
-    if (m) {
-      if (m[2].length > 0) {
-        lists[refsCount] = m[2].match(/\{[^}]*\}/g).length;
-      }
-      refsCount++;
-    }
+    return result;
   }
 
-  // Now make the c nodes for storing the content
-  for (var i = 0; i < refsCount; i++) { // eslint-disable-line no-redeclare
-    var nc = base.createElement('c');
-    if (i in content) {
-      var nodeList = content[i];
-      for (var se = 0; se < nodeList.length; se++) {
-        nc.appendChild(nodeList[se].cloneNode(true));
+  prepareOutput = function (n, render, path='') {
+    if (n.nodeName === 'e') {
+      if (render) {
+        n.setAttribute('render', this.renderE(n, path));
       }
     } else {
-      nc.appendChild(this.makeE(''));
-    }
-    if (i in lists) {
-      var par = f;
-      for (var j = 0; j < lists[i]; j++) {
-        var nl = base.createElement('l');
-        par.appendChild(nl);
-        par = nl;
-        if (j === lists[i] - 1) {
-          nl.appendChild(nc);
-        }
+      if (n.nodeName === 'c' && Doc.getCAttribute(n, 'parentheses') && (n === this
+          .mainCursor.node.parentNode || (this.tempCursor.node && n === this
+          .tempCursor.node.parentNode) || !Doc.isParenthesesOmittable(n))) {
+        n.setAttribute('parentheses', '');
       }
+
+      let count = 0;
+      for (let c = n.firstChild; c != null; c = c.nextSibling) {
+        this.prepareOutput(c, render, path + '_' + count++);
+      }
+    }
+  };
+
+  postOutput (n) {
+    if (n.nodeName === 'e') {
+      n.removeAttribute('render');
     } else {
-      f.appendChild(nc);
+      if (n.nodeName === 'c') {
+        n.removeAttribute('parentheses');
+      }
+
+      for (let c = n.firstChild; c != null; c = c.nextSibling) {
+        this.postOutput(c);
+      }
     }
-  }
-  return f;
-};
+  };
 
-Backend.prototype.insertSymbol = function (name) {
-  if (Doc.getCAttribute(this.current, 'text') || this.isBlacklisted(name)) {
-    return false;
-  }
+  makeF (name, content=[]) {
+    const base = this.doc.base;
+    const f = base.createElement('f');
+    f.setAttribute('type', name);
 
-  if (name === 'pow' && this.caret === 0 && this.current.parentNode.parentNode
-    .nodeName === 'f' && this.current.parentNode.childNodes.length === 1) {
-    this.current = this.current.parentNode.parentNode.nextSibling;
-  }
-
-  var s = Symbols[name];
-  var content = {};
-  var leftPiece, rightPiece;
-  var cur = s['current'] == null ? 0 : parseInt(s['current']);
-  var toRemove = [];
-  var toReplace = null;
-  var replace = false;
-
-  if (cur > 0) {
-    cur--;
-    if (this.selStatus !== Backend.SEL_NONE) {
-      var sel = this.getSelection();
-      toRemove = sel.involved;
-      leftPiece = this.makeE(sel.remnant.textContent.slice(0, this.selStart.caret));
-      rightPiece = this.makeE(sel.remnant.textContent.slice(this.selStart.caret));
-      content[cur] = sel.nodeList;
-    } else if (s['current_type'] === 'token') {
-      // If we're at the beginning, then the token is the previous f node
-      if (this.caret === 0 && this.current.previousSibling != null) {
-        content[cur] = [this.makeE(''), this.current.previousSibling,
-          this.makeE('')];
-        toReplace = this.current.previousSibling;
-        replace = true;
+    const regex = /{\$([0-9]+)((?:\{[^}]+})*)}/g;
+    const output = Symbols[name].output.latex;
+    let m;
+    while ((m = regex.exec(output)) !== null) {
+      const index = parseInt(m[1]) - 1;
+      const c = base.createElement('c');
+      if (index in content) {
+        content[index].forEach(x => c.appendChild(x.cloneNode(true)));
       } else {
-        // look for [0-9.]+|[a-zA-Z] immediately preceeding the caret and
-        // use that as token
-        var prev = this.current.textContent.substring(0, this.caret);
-        var token = prev.match(/[0-9.]+$|[a-zA-Z]$/);
-        if (token != null && token.length > 0) {
-          token = token[0];
-          leftPiece = this.makeE(this.current.textContent
-            .slice(0, this.caret - token.length));
-          rightPiece = this.makeE(this.current.textContent.slice(this.caret));
-          content[cur] = [this.makeE(token)];
-        }
+        c.appendChild(this.makeE());
       }
-    }
-  }
-  if (!replace && (leftPiece == null || rightPiece == null)) {
-    leftPiece = this.makeE(this.current.textContent.slice(0, this.caret));
-    rightPiece = this.makeE(this.current.textContent.slice(this.caret));
-    toRemove = [this.current];
-  }
 
-  // By now:
-  // 
-  // content contains whatever we want to pre-populate the 'current' field
-  // with (if any)
-  //
-  // rightPiece contains whatever content was in an involved node
-  // to the right of the cursor but is not part of the insertion.
-  // Analogously for leftPiece
-  //
-  // Thus all we should have to do now is symbolToNode(sym_type,
-  // content) and then add the leftPiece, resulting node, and
-  // rightPiece in that order.
-  var currentParent = this.current.parentNode;
-
-  var f = this.symbolToNode(name, content);
-
-  var next = this.current.nextSibling;
-
-  if (replace) {
-    currentParent.replaceChild(f, toReplace);
-  } else {
-    if (toRemove.length === 0) {
-      this.current.parentNode.removeChild(this.current);
-    }
-
-    for (var i = 0; i < toRemove.length; i++) {
-      if (next === toRemove[i]) {
-        next = next.nextSibling;
+      const count = m[2].split('}').length - 1;
+      let par = f;
+      for (let j = 0; j < count; j++) {
+        const l = base.createElement('l');
+        par.appendChild(l);
+        par = l;
       }
-      currentParent.removeChild(toRemove[i]);
+      par.appendChild(c);
     }
-    currentParent.insertBefore(leftPiece, next);
-    currentParent.insertBefore(f, next);
-    currentParent.insertBefore(rightPiece, next);
-  }
+    return f;
+  };
 
-  this.caret = 0;
-  this.current = f;
-  if (s['char']) {
-    this.current = this.current.nextSibling;
-  } else {
-    this.downFromFToBlank();
-  }
+  makeE = function (text='') {
+    const e = this.doc.base.createElement('e');
+    e.appendChild(this.doc.base.createTextNode(text));
+    return e;
+  };
 
-  this.clearSelection();
-  this.checkpoint();
-  return true;
-};
-
-Backend.prototype.getSelection = function () {
-  if (this.selStatus === Backend.SEL_NONE) {
-    return null;
-  }
-  var involved = [];
-  var nodeList = [];
-  var remnant = null;
-
-  if (this.selStart.node === this.selEnd.node) {
-    return {
-      'nodeList': [this.makeE(this.selStart.node.textContent
-        .substring(this.selStart.caret, this.selEnd.caret))],
-      'remnant': this.makeE(this.selStart.node.textContent
-        .substring(0, this.selStart.caret) + this.selEnd.node.textContent
-          .substring(this.selEnd.caret)),
-      'involved': [this.selStart.node]
-    };
-  }
-
-  nodeList.push(this.makeE(this.selStart.node.textContent
-    .substring(this.selStart.caret)));
-  involved.push(this.selStart.node);
-  involved.push(this.selEnd.node);
-  remnant = this.makeE(this.selStart.node.textContent.substring(0, this.selStart
-    .caret) + this.selEnd.node.textContent.substring(this.selEnd.caret));
-  var n = this.selStart.node.nextSibling;
-  while (n != null && n !== this.selEnd.node) {
-    involved.push(n);
-    nodeList.push(n);
-    n = n.nextSibling;
-  }
-  nodeList.push(this.makeE(this.selEnd.node.textContent
-    .substring(0, this.selEnd.caret)));
-  return { 'nodeList': nodeList,
-    'remnant': remnant,
-    'involved': involved,
-    'cursor': 0 };
-};
-
-Backend.prototype.makeE = function (text) {
-  var base = this.doc.base;
-  var newNode = base.createElement('e');
-  newNode.appendChild(base.createTextNode(text));
-  return newNode;
-};
-
-Backend.prototype.insertString = function (s) {
-  if (this.selStatus !== Backend.SEL_NONE) {
+  insertString (s) {
     this.deleteSelection();
-  }
-  if ((s === '*' && this.checkForPow()) || (s === '=' && this.checkForIneq())) {
-    return;
-  }
-  var value = this.current.textContent;
-  this.current.textContent = value.slice(0, this.caret) + s +
-    value.slice(this.caret);
-  this.caret += s.length;
-  this.checkpoint();
-  if (this.config.autoreplace) {
-    this.checkForSymbol();
-  }
-};
 
-Backend.prototype.copySelection = function () {
-  var sel = this.getSelection();
-  if (!sel) {
-    return;
-  }
-  Backend.Clipboard = [];
-  for (var i = 0; i < sel.nodeList.length; i++) {
-    Backend.Clipboard.push(sel.nodeList[i].cloneNode(true));
-  }
-  this.clearSelection();
-};
-
-Backend.prototype.cutSelection = function () {
-  var nodeList = this.deleteSelection();
-  if (!nodeList) {
-    return;
-  }
-  Backend.Clipboard = [];
-  for (var i = 0; i < nodeList.length; i++) {
-    Backend.Clipboard.push(nodeList[i].cloneNode(true));
-  }
-  this.checkpoint();
-};
-
-Backend.prototype.insertNodes = function (nodeList, moveCursor) {
-  var clipboard = [];
-  for (var i = 0; i < nodeList.length; i++) {
-    clipboard.push(nodeList[i].cloneNode(true));
-  }
-
-  if (clipboard.length === 1) {
-    if (clipboard[0].firstChild) {
-      this.current.textContent = this.current.textContent.substring(0, this.caret) +
-        clipboard[0].textContent + this.current.textContent.substring(this.caret);
-      if (moveCursor) {
-        this.caret += clipboard[0].textContent.length;
-      }
-    }
-  } else {
-    var nn = this.makeE(clipboard[clipboard.length - 1].textContent +
-      this.current.textContent.substring(this.caret));
-    this.current.textContent = this.current.textContent.substring(0, this.caret) +
-      clipboard[0].textContent;
-    if (this.current.nextSibling == null) {
-      this.current.parentNode.appendChild(nn);
-    } else {
-      this.current.parentNode.insertBefore(nn, this.current.nextSibling);
-    }
-    for (var i = 1; i < clipboard.length - 1; i++) { // eslint-disable-line no-redeclare
-      this.current.parentNode.insertBefore(clipboard[i], nn);
-    }
-    if (moveCursor) {
-      this.current = nn;
-      this.caret = clipboard[clipboard.length - 1].textContent.length;
-    }
-  }
-};
-
-Backend.prototype.paste = function () {
-  this.deleteSelection();
-  if (!Backend.Clipboard || Backend.Clipboard.length === 0) {
-    return;
-  }
-  this.insertNodes(Backend.Clipboard, true);
-  this.checkpoint();
-};
-
-Backend.prototype.clearSelection = function () {
-  this.selStart = null;
-  this.selEnd = null;
-  this.selStatus = Backend.SEL_NONE;
-};
-
-Backend.prototype.deleteSelection = function () {
-  var sel = this.getSelection();
-  if (!sel) {
-    return null;
-  }
-  var selParent = sel.involved[0].parentNode;
-  var selPrev = sel.involved[0].previousSibling;
-  for (var i = 0; i < sel.involved.length; i++) {
-    var n = sel.involved[i];
-    selParent.removeChild(n);
-  }
-  if (selPrev == null) {
-    if (selParent.firstChild == null) {
-      selParent.appendChild(sel.remnant);
-    } else {
-      selParent.insertBefore(sel.remnant, selParent.firstChild);
-    }
-  } else if (selPrev.nodeName === 'f') {
-    if (selPrev.nextSibling == null) {
-      selParent.appendChild(sel.remnant);
-    } else {
-      selParent.insertBefore(sel.remnant, selPrev.nextSibling);
-    }
-  }
-  this.current = sel.remnant;
-  this.caret = this.selStart.caret;
-  this.clearSelection();
-  return sel.nodeList;
-};
-
-Backend.prototype.selectAll = function () {
-  this.home(true);
-  this.setSelStart();
-  this.end(true);
-  this.setSelEnd();
-  if (this.selStart.node !== this.selEnd.node ||
-      this.selStart.caret !== this.selEnd.caret) {
-    this.selStatus = Backend.SEL_CURSOR_AT_END;
-  }
-};
-
-Backend.prototype.selectRight = function () {
-  if (this.selStatus === Backend.SEL_NONE) {
-    this.setSelStart();
-    this.selStatus = Backend.SEL_CURSOR_AT_END;
-  }
-  if (this.caret >= this.current.textContent.length) {
-    var nn = this.current.nextSibling;
-    if (nn != null) {
-      this.current = nn.nextSibling;
-      this.caret = 0;
-      this.setSelection(Backend.SEL_CURSOR_AT_END);
-    } else {
-      this.setSelection(Backend.SEL_CURSOR_AT_END);
-    }
-  } else {
-    this.caret += 1;
-    this.setSelection(Backend.SEL_CURSOR_AT_END);
-  }
-  if (this.selStart.node === this.selEnd.node &&
-      this.selStart.caret === this.selEnd.caret) {
-    this.clearSelection();
-  }
-};
-
-Backend.prototype.setSelection = function (sstatus, mouse) {
-  if (this.selStatus === Backend.SEL_NONE || mouse) {
-    this.selStatus = sstatus;
-  }
-  if (this.selStatus === Backend.SEL_CURSOR_AT_START) {
-    this.setSelStart();
-  } else if (this.selStatus === Backend.SEL_CURSOR_AT_END) {
-    this.setSelEnd();
-  }
-};
-
-Backend.prototype.selectLeft = function () {
-  if (this.selStatus === Backend.SEL_NONE) {
-    this.setSelEnd();
-    this.selStatus = Backend.SEL_CURSOR_AT_START;
-  }
-  if (this.caret <= 0) {
-    var nn = this.current.previousSibling;
-    if (nn != null) {
-      this.current = nn.previousSibling;
-      this.caret = this.current.textContent.length;
-      this.setSelection(Backend.SEL_CURSOR_AT_START);
-    } else {
-      this.setSelection(Backend.SEL_CURSOR_AT_START);
-    }
-  } else {
-    this.caret -= 1;
-    this.setSelection(Backend.SEL_CURSOR_AT_START);
-  }
-  if (this.selStart.node === this.selEnd.node &&
-      this.selStart.caret === this.selEnd.caret) {
-    this.clearSelection();
-  }
-};
-
-Backend.prototype.copyExtendListRight = function () {
-  this.extendList('right', true);
-};
-Backend.prototype.copyExtendListLeft = function () {
-  this.extendList('left', true);
-};
-Backend.prototype.extendListRight = function () {
-  this.extendList('right', false);
-};
-Backend.prototype.extendListLeft = function () {
-  this.extendList('left', false);
-};
-Backend.prototype.extendListUp = function () {
-  this.extendList('up', false);
-};
-Backend.prototype.extendListDown = function () {
-  this.extendList('down', false);
-};
-Backend.prototype.copyExtendListUp = function () {
-  this.extendList('up', true);
-};
-Backend.prototype.copyExtendListDown = function () {
-  this.extendList('down', true);
-};
-
-Backend.prototype.moveVerticalList = function (down) {
-  var n = this.current;
-  while (n.parentNode && n.parentNode.parentNode && !(n.nodeName === 'c' &&
-      n.parentNode.nodeName === 'l' && n.parentNode.parentNode.nodeName === 'l')) {
-    n = n.parentNode;
-  }
-  if (!n.parentNode) {
-    return;
-  }
-  var pos = 1;
-  var cc = n;
-  while (cc.previousSibling != null) {
-    pos++;
-    cc = cc.previousSibling;
-  }
-  var newRow = down ? n.parentNode.nextSibling : n.parentNode.previousSibling;
-  if (!newRow) {
-    return;
-  }
-  var idx = 1;
-  var nn = newRow.firstChild;
-  while (idx < pos) {
-    idx++;
-    nn = nn.nextSibling;
-  }
-  this.current = nn.firstChild;
-  this.caret = down ? 0 : this.current.textContent.length;
-};
-
-Backend.prototype.extendList = function (direction, copy) {
-  var base = this.doc.base;
-  var vertical = direction === 'up' || direction === 'down';
-  var before = direction === 'up' || direction === 'left';
-  var name = vertical ? 'l' : 'c';
-  var n = this.current;
-  while (n.parentNode && !(n.nodeName === name && n.parentNode.nodeName === 'l')) {
-    n = n.parentNode;
-  }
-  if (!n.parentNode) {
-    return;
-  }
-  this.clearSelection();
-  var toInsert;
-
-  // check if 2D and horizontal and extend all the other rows if so 
-  if (!vertical && n.parentNode.parentNode.nodeName === 'l') {
-    toInsert = base.createElement('c');
-    toInsert.appendChild(this.makeE(''));
-    var pos = 0;
-    var cc = n;
-    while (cc.previousSibling != null) {
-      pos++;
-      cc = cc.previousSibling;
-    }
-    var toModify = [];
-    for (var nn = n.parentNode.parentNode.firstChild; nn != null; nn =
-        nn.nextSibling) {
-      toModify.push(nn.childNodes[pos]);
-    }
-    for (var j = 0; j < toModify.length; j++) {
-      var node = toModify[j];
-      if (copy) {
-        node.parentNode.insertBefore(node.cloneNode(true),
-          before ? node : node.nextSibling);
-      } else {
-        node.parentNode.insertBefore(toInsert.cloneNode(true),
-          before ? node : node.nextSibling);
-      }
-    }
-    this.current = before ? n.previousSibling.lastChild : n.nextSibling.firstChild;
-    this.caret = this.current.textContent.length;
-    this.checkpoint();
-    return;
-  }
-
-  if (copy) {
-    toInsert = n.cloneNode(true);
-  } else {
-    if (vertical) {
-      toInsert = base.createElement('l');
-      for (var i = 0; i < n.childElementCount; i++) {
-        var c = base.createElement('c');
-        c.appendChild(this.makeE(''));
-        toInsert.appendChild(c);
-      }
-    } else {
-      toInsert = base.createElement('c');
-      toInsert.appendChild(this.makeE(''));
-    }
-  }
-  n.parentNode.insertBefore(toInsert, before ? n : n.nextSibling);
-  if (vertical) {
-    this.current = toInsert.firstChild.firstChild;
-  } else {
-    this.current = toInsert.firstChild;
-  }
-  this.caret = 0;
-  this.checkpoint();
-};
-
-Backend.prototype.removeListColumn = function () {
-  var n = this.current;
-  while (n.parentNode && n.parentNode.parentNode && !(n.nodeName === 'c' &&
-      n.parentNode.nodeName === 'l' && n.parentNode.parentNode.nodeName === 'l')) {
-    n = n.parentNode;
-  }
-  if (!n.parentNode) {
-    return;
-  }
-
-  // Don't remove if there is only a single column:
-  if (n.previousSibling != null) {
-    this.current = n.previousSibling.lastChild;
-    this.caret = this.current.textContent.length;
-  } else if (n.nextSibling != null) {
-    this.current = n.nextSibling.firstChild;
-    this.caret = 0;
-  } else {
-    return;
-  }
-  this.clearSelection();
-
-  var pos = 0;
-  var cc = n;
-
-  // Find position of column
-  while (cc.previousSibling != null) {
-    pos++;
-    cc = cc.previousSibling;
-  }
-  var toModify = [];
-  for (var nn = n.parentNode.parentNode.firstChild; nn != null; nn =
-      nn.nextSibling) {
-    toModify.push(nn.childNodes[pos]);
-  }
-  for (var j = 0; j < toModify.length; j++) {
-    var node = toModify[j];
-    node.parentNode.removeChild(node);
-  }
-};
-
-Backend.prototype.removeListRow = function () {
-  var n = this.current;
-  while (n.parentNode && !(n.nodeName === 'l' && n.parentNode.nodeName === 'l')) {
-    n = n.parentNode;
-  }
-  if (!n.parentNode) {
-    return;
-  }
-  // Don't remove if there is only a single row:
-  if (n.previousSibling != null) {
-    this.current = n.previousSibling.lastChild.lastChild;
-    this.caret = this.current.textContent.length;
-  } else if (n.nextSibling != null) {
-    this.current = n.nextSibling.firstChild.firstChild;
-    this.caret = 0;
-  } else {
-    return;
-  }
-  this.clearSelection();
-  n.parentNode.removeChild(n);
-};
-
-Backend.prototype.removeListItem = function () {
-  var n = this.current;
-  while (n.parentNode && !(n.nodeName === 'c' && n.parentNode.nodeName === 'l')) {
-    n = n.parentNode;
-  }
-  if (!n.parentNode) {
-    return;
-  }
-  if (n.parentNode.parentNode && n.parentNode.parentNode.nodeName === 'l') {
-    this.removeListColumn();
-    return;
-  }
-  if (n.previousSibling != null) {
-    this.current = n.previousSibling.lastChild;
-    this.caret = this.current.textContent.length;
-  } else if (n.nextSibling != null) {
-    this.current = n.nextSibling.firstChild;
-    this.caret = 0;
-  } else {
-    return;
-  }
-  this.clearSelection();
-  n.parentNode.removeChild(n);
-};
-
-Backend.prototype.right = function () {
-  this.clearSelection();
-  if (this.caret >= this.current.textContent.length) {
-    var nodes = this.doc.root.getElementsByTagName('e');
-    var index = Array.prototype.indexOf.call(nodes, this.current);
-    if (index < nodes.length - 1) {
-      this.current = nodes[index + 1];
-      this.caret = 0;
-    }
-  } else {
-    this.caret += 1;
-  }
-};
-
-Backend.prototype.spacebar = function () {
-  var type = Doc.getFName(this.current);
-  if (type === 'text') {
-    this.insertString(' ');
-  } else if (type !== 'symbol') {
-    this.clearSelection();
-    this.checkForSymbol(true);
-  } else if (this.candidates != null) {
-    var suggestion = this.candidates.shift();
-    this.candidates.push(suggestion);
-    this.clearSelection();
-    this.current.textContent = suggestion;
-    this.caret = suggestion.length;
-  } else {
-    this.checkpoint();
-    var name = this.current.textContent;
-    this.candidates = [];
-    for (var n in Symbols) {
-      if (n.substr(0, name.length) === name) {
-        this.candidates.push(n);
-      }
-    }
-    if (this.candidates.length > 0) {
-      this.tab();
-    } else {
-      this.candidates = null;
-    }
-  }
-};
-
-Backend.prototype.left = function () {
-  this.clearSelection();
-  if (this.caret <= 0) {
-    var nodes = this.doc.root.getElementsByTagName('e');
-    var index = Array.prototype.indexOf.call(nodes, this.current);
-    if (index > 0) {
-      this.current = nodes[index - 1];
-      this.caret = this.current.textContent.length;
-    }
-  } else {
-    this.caret -= 1;
-  }
-};
-
-Backend.prototype.deleteFromC = function () {
-  var pos = 0;
-  var c = this.current.parentNode;
-  while ((c = c.previousSibling) != null) {
-    pos++;
-  }
-  var idx = Doc.getCAttribute(this.current, 'delete');
-  var node = this.current.parentNode.parentNode.childNodes[pos];
-  var remaining = [];
-  for (var n = node.firstChild; n != null; n = n.nextSibling) {
-    remaining.push(n);
-  }
-  this.current = this.current.parentNode.parentNode;
-  this.deleteFromF();
-  this.insertNodes(remaining, pos > idx);
-};
-
-Backend.prototype.deleteFromE = function () {
-  // return false if we deleted something, and true otherwise.
-  if (this.caret > 0) {
-    var value = this.current.textContent;
-    this.current.textContent = value.slice(0, this.caret - 1) +
-      value.slice(this.caret);
-    this.caret--;
-  } else {
-    // The order of these is important
-    var prev = this.current.previousSibling;
-    var par = this.current.parentNode;
-    if (prev != null && prev.nodeName === 'f') {
-      // We're in an e node just after an f node. 
-      // Move back into the f node (delete it?)
-      if (Symbols[prev.getAttribute('type')]['char']) {
-        // The previous node is an f node but is really just a character. Delete it.
-        this.current = prev;
-        this.deleteFromF();
-        return true;
-      }
-      this.left();
-      return false;
-    } else if (par.previousSibling != null) {
-      // We're in a c child of an f node, but not the first one.
-      // Go to the previous c
-      if (Doc.getCAttribute(this.current, 'delete')) {
-        this.deleteFromC();
-      } else {
-        this.left();
-        return false;
-      }
-    } else if (prev == null && par.nodeName === 'c' &&
-        par.previousSibling == null) {
-      // We're in the first c child of an f node and at the beginning
-      // delete the f node
-      while (par.parentNode.nodeName === 'l' || par.parentNode.nodeName === 'c') {
-        par = par.parentNode;
-      }
-      if (Doc.getCAttribute(par, 'delete')) {
-        this.deleteFromC();
-      } else {
-        this.current = par.parentNode;
-        this.deleteFromF();
-      }
-    } else {
-      // We're at the beginning (hopefully!) 
-      return false;
-    }
-  }
-  return true;
-};
-
-Backend.prototype.deleteForwardFromE = function () {
-  // return false if we deleted something, and true otherwise.
-  if (this.caret < this.current.textContent.length) {
-    var value = this.current.textContent;
-    this.current.textContent = value.slice(0, this.caret) +
-      value.slice(this.caret + 1);
-  } else {
-    // We're at the end
-    if (this.current.nextSibling != null) {
-      // The next node is an f node.  Delete it.
-      this.current = this.current.nextSibling;
-      this.deleteFromF();
-    } else if (this.current.parentNode.nodeName === 'c') {
-      // We're in a c child of an f node.  Do nothing
-      return false;
-    }
-  }
-  return true;
-};
-
-Backend.prototype.backspace = function () {
-  if (this.selStatus !== Backend.SEL_NONE) {
-    this.deleteSelection();
-    this.checkpoint();
-  } else if (this.deleteFromE()) {
-    this.checkpoint();
-  }
-};
-
-Backend.prototype.deleteKey = function () {
-  if (this.selStatus !== Backend.SEL_NONE) {
-    this.deleteSelection();
-    this.checkpoint();
-  } else if (this.deleteForwardFromE()) {
-    this.checkpoint();
-  }
-};
-
-Backend.prototype.leftParen = function () {
-  if (Doc.getFName(this.current) === 'symbol') {
-    this.clearSelection();
-    this.replaceSymbol(this.current.parentNode.parentNode, 'func',
-      [[this.current]]);
-  } else {
-    this.insertSymbol('paren');
-  }
-};
-
-Backend.prototype.rightParen = function () {
-  if (this.current.nodeName !== 'e' ||
-      this.caret === this.current.textContent.length) {
-    this.right();
-  }
-};
-
-Backend.prototype.up = function () {
-  this.clearSelection();
-  var t = Doc.getCAttribute(this.current, 'up');
-  if (t) {
-    var f = this.current.parentNode.parentNode;
-    var n = f.firstChild;
-    for (var i = 0; i < t - 1; i++) {
-      n = n.nextSibling;
-    }
-    this.current = n.lastChild;
-    this.caret = this.current.textContent.length;
-  } else {
-    this.moveVerticalList(false);
-  }
-};
-
-Backend.prototype.down = function () {
-  this.clearSelection();
-  var t = Doc.getCAttribute(this.current, 'down');
-  if (t) {
-    var f = this.current.parentNode.parentNode;
-    var n = f.firstChild;
-    for (var i = 0; i < t - 1; i++) {
-      n = n.nextSibling;
-    }
-    this.current = n.lastChild;
-    this.caret = this.current.textContent.length;
-  } else {
-    this.moveVerticalList(true);
-  }
-};
-
-Backend.prototype.home = function (select) {
-  if (!select) {
-    this.clearSelection();
-  }
-  this.current = this.doc.root.firstChild;
-  this.caret = 0;
-};
-
-Backend.prototype.end = function (select) {
-  if (!select) {
-    this.clearSelection();
-  }
-  this.current = this.doc.root.lastChild;
-  this.caret = this.current.textContent.length;
-};
-
-Backend.prototype.checkpoint = function () {
-  var base = this.doc.base;
-  this.current.setAttribute('current', '');
-  this.current.setAttribute('caret', this.caret.toString());
-  this.undoCurrent++;
-  this.undoData[this.undoCurrent] = base.cloneNode(true);
-  this.undoData.splice(this.undoCurrent + 1, this.undoData.length);
-  this.emit('change', { 'old': this.undoData[this.undoCurrent - 1],
-    'new': this.undoData[this.undoCurrent] });
-  this.current.removeAttribute('current');
-  this.current.removeAttribute('caret');
-  this.candidates = null;
-  if (this.editor) {
-    this.editor.render();
-  }
-};
-
-Backend.prototype.restore = function (t) {
-  this.doc.base = this.undoData[t].cloneNode(true);
-  this.findCurrent();
-  this.current.removeAttribute('current');
-  this.current.removeAttribute('caret');
-};
-
-Backend.prototype.findCurrent = function () {
-  this.current = this.doc.root.querySelector('e[current]');
-  this.caret = parseInt(this.current.getAttribute('caret'));
-};
-
-Backend.prototype.undo = function () {
-  this.clearSelection();
-  if (this.undoCurrent <= 0) {
-    return;
-  }
-  this.undoCurrent--;
-  this.restore(this.undoCurrent);
-};
-
-Backend.prototype.redo = function () {
-  this.clearSelection();
-  if (this.undoCurrent >= this.undoData.length - 1) {
-    return;
-  }
-  this.undoCurrent++;
-  this.restore(this.undoCurrent);
-};
-
-Backend.prototype.done = function (s) {
-  if (Doc.getFName(this.current) === 'symbol') {
-    this.completeSymbol();
-  } else {
-    this.emit('done');
-  }
-};
-
-Backend.prototype.completeSymbol = function () {
-  var name = this.current.textContent;
-  if (!Symbols[name]) {
-    return;
-  }
-  this.current = this.current.parentNode.parentNode;
-  this.clearSelection();
-  this.deleteFromF();
-  this.insertSymbol(name);
-};
-
-Backend.prototype.isBlacklisted = function (type) {
-  for (var i = 0; i < this.config.blacklist.length; i++) {
-    if (type === this.config.blacklist[i]) {
-      return true;
-    }
-  }
-  return false;
-};
-
-Backend.prototype.replaceSymbol = function (node, name, content) {
-  var symbol = Symbols[name];
-  if (!symbol || this.isBlacklisted(name)) {
-    return false;
-  }
-  var f = this.symbolToNode(name, content || []);
-  node.parentNode.replaceChild(f, node);
-  if (!symbol['char']) {
-    this.caret = 0;
-    this.current = f;
-    this.downFromFToBlank();
-  }
-  this.checkpoint();
-  return true;
-};
-
-Backend.prototype.checkForPow = function () {
-  if (this.config.autoreplace && this.caret === 0 && this.current
-    .previousSibling && this.current.previousSibling.nodeName === 'f' &&
-      this.current.previousSibling.getAttribute('type') === '*') {
-    this.current = this.current.previousSibling;
-    this.deleteFromF();
-    this.insertSymbol('pow');
-    return true;
-  }
-  return false;
-};
-
-Backend.prototype.checkForIneq = function () {
-  if (this.config.autoreplace && this.caret === 0 && this.current
-    .previousSibling && this.current.previousSibling.nodeName === 'f' &&
-      ['<', '>'].indexOf(this.current.previousSibling.getAttribute('type')) > -1) {
-    var n = this.current.previousSibling;
-    return this.replaceSymbol(n, n.getAttribute('type') + '=');
-  }
-  return false;
-};
-
-Backend.prototype.checkForSymbol = function (force) {
-  if (Doc.getCAttribute(this.current, 'text')) {
-    return;
-  }
-  var value = this.current.textContent;
-
-  if (this.current.parentNode.parentNode.nodeName === 'f' &&
-      this.current.parentNode.childNodes.length === 1 && value === 'h') {
-    var n = this.current.parentNode.parentNode;
-    this.replaceSymbol(n, n.getAttribute('type') + 'h');
-    return;
-  }
-  for (var s in Symbols) {
-    if (!force && ['psi', 'xi'].indexOf(s) > -1) {
-      continue;
-    }
-    if (this.current.nodeName === 'e' &&
-        value.substring(this.caret - s.length, this.caret) === s) {
-      var temp = value;
-      var tempCaret = this.caret;
-      this.current.textContent = value.slice(0, this.caret - s.length) +
-        value.slice(this.caret);
-      this.caret -= s.length;
-      var success = this.insertSymbol(s);
-      if (!success) {
-        this.current.textContent = temp;
-        this.caret = tempCaret;
-      }
+    //
+    const prev = this.mainCursor.node.previousSibling;
+    if (s === '=' && this.config.autoreplace && this.mainCursor.pos === 0 && prev && prev
+        .nodeName === 'f' && ['<', '>'].indexOf(prev.getAttribute('type')) > -1 &&
+        this.replaceSymbol(prev, prev.getAttribute('type') + '=')) {
       return;
     }
-  }
-};
 
-module.exports = Backend;
+    this.saveState();
+    const value = this.mainCursor.value;
+    this.mainCursor.value = value.slice(0, this.mainCursor.pos) + s +
+      value.slice(this.mainCursor.pos);
+    this.mainCursor.pos += s.length;
+    if (this.config.autoreplace) {
+      this.checkSymbol();
+    }
+  };
+
+  replaceSymbol (node, name, content) {
+    const symbol = Symbols[name];
+    if (!symbol || this.config.blacklist.indexOf(name) > -1) {
+      return false;
+    }
+
+    this.saveState();
+    const f = this.makeF(name, content);
+    node.parentNode.replaceChild(f, node);
+    this.mainCursor.set(symbol.char ? f.nextSibling : f);
+    return true;
+  };
+
+  checkSymbol (force) {
+    if (Doc.getCAttribute(this.mainCursor.node, 'text')) {
+      return;
+    }
+    if (force) {
+      this.clearSelection();
+    }
+    const value = this.mainCursor.value;
+
+    const par = this.mainCursor.node.parentNode;
+    if (par.parentNode.nodeName === 'f' && par.childNodes.length === 1 && value === 'h') {
+      const n = par.parentNode;
+      this.replaceSymbol(n, n.getAttribute('type') + 'h');
+      return;
+    }
+
+    for (const s in Symbols) {
+      if ((!force && ['psi', 'xi'].indexOf(s) > -1) || this.config.blacklist.indexOf(s) > -1) {
+        continue;
+      }
+      if (value.substring(this.mainCursor.pos - s.length, this.mainCursor.pos) === s) {
+        this.saveState();
+        this.mainCursor.value = value.slice(0, this.mainCursor.pos - s.length) +
+          value.slice(this.mainCursor.pos);
+        this.mainCursor.pos -= s.length;
+        this.insertSymbol(s, true);
+        return;
+      }
+    }
+  };
+
+  insertSymbol (name, silent) {
+    if (Doc.getCAttribute(this.mainCursor.node, 'text') || this.config.blacklist.indexOf(name) > -1) {
+      return;
+    }
+    if (!silent) {
+      this.saveState();
+    }
+    const prev = this.mainCursor.node.previousSibling;
+    const par = this.mainCursor.node.parentNode;
+    const pp = par.parentNode;
+    const value = this.mainCursor.value;
+
+    if (name === '*' && this.config.autoreplace && this.mainCursor.pos === 0 && prev &&
+        prev.nodeName === 'f' && prev.getAttribute('type') === '*') {
+      this.deleteFromF(prev);
+      this.insertSymbol('pow', true);
+      return;
+    }
+    if (name === 'pow' && this.mainCursor.pos === 0 && pp.nodeName === 'f' &&
+        pp.childNodes.length === 1) {
+      this.mainCursor.node = pp.nextSibling;
+      this.insertSymbol('pow', true);
+      return;
+    }
+
+    const s = Symbols[name];
+    let content = {};
+    let leftPiece, rightPiece;
+    let cur = s.current || 0;
+    let toRemove = [];
+    let toReplace = null;
+
+    if (cur > 0) {
+      cur--; //
+      if (this.selStatus) {
+        const selStartPos = this.selStatus < 0 ? this.mainCursor.pos : this.selCursor.pos;
+        const sel = this.getSelection();
+        this.clearSelection();
+
+        toRemove = sel.involved;
+        leftPiece = this.makeE(sel.remnant.textContent.slice(0, selStartPos));
+        rightPiece = this.makeE(sel.remnant.textContent.slice(selStartPos));
+        content[cur] = sel.nodeList;
+      } else if (s.current_type === 'token') { //
+        if (this.mainCursor.pos === 0 && prev != null) {
+          toReplace = prev;
+          content[cur] = [this.makeE(), prev, this.makeE()];
+        } else {
+          const token = value.substring(0, this.mainCursor.pos).match(/[0-9.]+$|[a-zA-Z]$/);
+          if (token != null && token.length > 0) {
+            toRemove = [this.mainCursor.node];
+            leftPiece = this.makeE(value.slice(0, this.mainCursor.pos - token[0].length));
+            rightPiece = this.makeE(value.slice(this.mainCursor.pos));
+            content[cur] = [this.makeE(token[0])];
+          }
+        }
+      }
+    }
+    if (toReplace == null && leftPiece == null) {
+      toRemove = [this.mainCursor.node];
+      leftPiece = this.makeE(value.slice(0, this.mainCursor.pos));
+      rightPiece = this.makeE(value.slice(this.mainCursor.pos));
+    }
+
+    const f = this.makeF(name, content);
+
+    if (toReplace != null) {
+      par.replaceChild(f, toReplace);
+    } else {
+      const next = toRemove[toRemove.length - 1].nextSibling;
+      toRemove.forEach(x => par.removeChild(x));
+
+      par.insertBefore(leftPiece, next);
+      par.insertBefore(f, next);
+      par.insertBefore(rightPiece, next);
+    }
+
+    // XXX
+    if (s.char || (s.current >= f.childElementCount)) {
+      this.mainCursor.set(f.nextSibling);
+    } else {
+      this.mainCursor.set(f);
+    }
+  };
+
+  executeAction (action) {
+    if (Array.isArray(action)) {
+      this[action[0]](...action.slice(1));
+    } else if (typeof action !== 'string') {
+      const name = Doc.getFName(this.mainCursor.node);
+      if (name in action) {
+        this.executeAction(action[name]);
+      } else if ('*' in action) {
+        this.executeAction(action['*']);
+      }
+    } else if (action in Editor.prototype) {
+      this[action]();
+    } else if (action in Symbols) {
+      this.insertSymbol(action);
+    } else {
+      this.insertString(action);
+    }
+    this.render();
+  }
+
+  autocompleteSymbol () {
+    if (this.candidates != null) {
+      const suggestion = this.candidates.shift();
+      this.candidates.push(suggestion);
+      this.clearSelection();
+      this.mainCursor.value = suggestion;
+      this.mainCursor.pos = suggestion.length;
+    } else {
+      this.saveState();
+      const value = this.mainCursor.value;
+      this.candidates = Object.keys(MathYlem.Symbols).filter(n => n.substr(0, value.length) === value);
+      if (this.candidates.length > 0) {
+        this.autocompleteSymbol();
+      } else {
+        this.candidates = null;
+      }
+    }
+  }
+  
+  replaceF (symbol, content=-1) {
+    this.clearSelection();
+    this.replaceSymbol(this.mainCursor.node.parentNode.parentNode, symbol,
+      {[content]: [this.mainCursor.node]});
+  }
+
+  completeSymbol () {
+    this.replaceF(this.mainCursor.value);
+  }
+}

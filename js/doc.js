@@ -14,8 +14,7 @@ export default class Doc {
     }
   }
 
-  setContent (data) {
-    data = data || '<m><e></e></m>';
+  setContent (data='<m><e></e></m>') {
     this.base = (new DOMParser()).parseFromString(data, 'text/xml');
   }
 
@@ -30,7 +29,6 @@ export default class Doc {
         result = node.getAttribute('render');
       } else if (type === 'text') {
         result = node.textContent;
-
         const prev = node.previousSibling;
         const next = node.nextSibling;
         if (prev && next && result === '' && !Symbols[prev.getAttribute('type')]
@@ -51,12 +49,15 @@ export default class Doc {
       } else {
         result = node.textContent;
       }
-    } else if (node.nodeName === 'f') {
-      let cs = [];
-      for (let n = node.firstChild; n != null; n = n.nextSibling) {
-        cs.push(this.render(type, n, render));
-      }
+      return result;
+    }
 
+    let results = [];
+    for (let n = node.firstChild; n != null; n = n.nextSibling) {
+      results.push(this.render(type, n, render));
+    }
+    
+    if (node.nodeName === 'f') {
       const output = Symbols[node.getAttribute('type')].output;
       if (type === 'latex' && Doc.isSmall(node) && 'small_latex' in output) {
         type = 'small_latex';
@@ -69,47 +70,19 @@ export default class Doc {
           result += out[i];
         } else {
           if (m[2].length === 0) {
-            result += cs[parseInt(m[1]) - 1];
+            result += results[parseInt(m[1]) - 1];
           } else {
             const mm = m[2].match(/\{[^}]*\}/g);
             const joiner = (d, l) => d === 0 ? l : l.map(x => joiner(d - 1, x))
               .join(mm[d - 1].substring(1, mm[d - 1].length - 1));
-            result += joiner(mm.length, cs[parseInt(m[1]) - 1]);
+            result += joiner(mm.length, results[parseInt(m[1]) - 1]);
           }
         }
       }
-    } else if (node.nodeName === 'l') {
-      result = [];
-      for (let n = node.firstChild; n != null; n = n.nextSibling) {
-        result.push(this.render(type, n, render));
-      }
-    } else if (node.nodeName === 'c' || node.nodeName === 'm') {
-      for (let n = node.firstChild; n != null; n = n.nextSibling) {
-        result += this.render(type, n, render);
-      }
-
-      if (type === 'latex' && Doc.getCAttribute(node, 'bracket')) {
-        let bracket = true;
-        const first = node.firstChild;
-        const last = node.lastChild;
-        if (node.childElementCount === 3 &&
-            first.textContent === '' && last.textContent === '') {
-          const name = first.nextSibling.getAttribute('type');
-          if ((Symbols[name].char && !first.hasAttribute('temp') &&
-              !first.hasAttribute('current') && !last.hasAttribute('temp') &&
-              !last.hasAttribute('current')) || name === 'paren') {
-            bracket = false;
-          }
-        } else if (node.childElementCount === 1) {
-          const value = first.textContent;
-          if ((value.length === 1 || !isNaN(value - parseFloat(value))) &&
-              !first.hasAttribute('current') && !first.hasAttribute('temp')) {
-            bracket = false;
-          }
-        }
-        if (bracket) {
-          result = '\\left(' + result + '\\right)';
-        }
+    } else if (node.nodeName !== 'l') {
+      result = results.join('');
+      if (type === 'latex' && node.hasAttribute('parentheses')) {
+        result = `\\left(${result}\\right)`;
       }
     }
     return result;
@@ -128,6 +101,17 @@ export default class Doc {
     }
     return false;
   }
+  
+  static isParenthesesOmittable (n) {
+    const value = n.firstChild.textContent;
+    if (n.childElementCount === 3 &&
+        value === '' && n.lastChild.textContent === '') {
+      const name = n.childNodes[1].getAttribute('type');
+      return Symbols[name].char || name === 'paren';
+    }
+    return n.childElementCount === 1 && (value.length === 1 ||
+      !isNaN(value - parseFloat(value)));
+  }
 
   static getFName (node) {
     if (node.nodeName === 'e') {
@@ -144,16 +128,43 @@ export default class Doc {
     }
     const name = Doc.getFName(node);
     if (name) {
-      let index = 0;
-      while (node.previousSibling != null) {
-        index++;
-        node = node.previousSibling;
-      }
+      const index = Doc.indexOfNode(node);
 
       const attrs = Symbols[name].attrs;
       if (attrs && attrs[index] && attrs[index][attr]) {
         return attrs[index][attr];
       }
     }
+  }
+  
+  static indexOfNode (node) {
+    let pos = 0;
+    while ((node = node.previousSibling) != null) {
+      pos++;
+    }
+    return pos;
+  }
+
+  static getPath (node) {
+    return node.nodeName === 'm' ? 'loc' :
+      Doc.getPath(node.parentNode) + '_' + Doc.indexOfNode(node);
+  };
+  
+  static getArrayIndex (node, twod) {
+    while (node.parentNode && !(node.nodeName === 'c' &&
+        node.parentNode.nodeName === 'l' && (!twod ||
+        node.parentNode.parentNode.nodeName === 'l'))) {
+      node = node.parentNode;
+    }
+    if (!node.parentNode) {
+      return null;
+    }
+    
+    let index = [];
+    while (node.parentNode.nodeName === 'l') {
+      index.push([node, Doc.indexOfNode(node)]);
+      node = node.parentNode;
+    }
+    return index;
   }
 }

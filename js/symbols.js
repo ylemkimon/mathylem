@@ -1,4 +1,4 @@
-export let Symbols = {}
+export let Symbols = {};
 
 export function addSymbols (data) {
   if (typeof data === 'string' || data instanceof String) {
@@ -8,14 +8,13 @@ export function addSymbols (data) {
   for (const name in data) {
     const symbol = data[name];
     if (symbol.builder) {
-      for (let i = 0; i < symbol.arguments.length; i++) {
-        const item = symbol.arguments[i];
+      symbol.arguments.forEach(item => {
         if (Array.isArray(item)) {
           Symbols[item[0]] = symbol.builder(...item);
         } else {
           Symbols[item] = symbol.builder(item);
         }
-      }
+      });
     } else {
       Symbols[name] = symbol;
     }
@@ -26,7 +25,7 @@ const defaultSymbols = {
   text: {
     output: {
       latex: '\\text{{$1}}',
-      text: "'{$1}'"
+      text: '\'{$1}\''
     },
     attrs: [
       {
@@ -101,7 +100,7 @@ const defaultSymbols = {
     attrs: [
       {
         delete: 1,
-        bracket: true
+        parentheses: true
       }
     ]
   },
@@ -148,12 +147,12 @@ const defaultSymbols = {
       latex: '{{$1}}^{{$2}}',
       text: '({$1})**({$2})'
     },
-    current: 1,
+    current: 2,
     current_type: 'token',
     attrs: [
       {
         up: 2,
-        bracket: true,
+        parentheses: true,
         delete: 1
       },
       {
@@ -173,7 +172,7 @@ const defaultSymbols = {
     attrs: [
       {
         down: 2,
-        bracket: true,
+        parentheses: true,
         delete: 1
       },
       {
@@ -196,7 +195,8 @@ const defaultSymbols = {
         down: 2
       },
       {
-        up: 1
+        up: 1,
+        delete: 1
       }
     ]
   },
@@ -211,12 +211,12 @@ const defaultSymbols = {
       {
         down: 2,
         delete: 1,
-        bracket: true
+        parentheses: true
       },
       {
         up: 1,
         delete: 1,
-        bracket: true
+        parentheses: true
       }
     ]
   },
@@ -252,7 +252,7 @@ const defaultSymbols = {
       {
         down: 2,
         delete: 3,
-        bracket: true
+        parentheses: true
       }
     ]
   },
@@ -268,7 +268,7 @@ const defaultSymbols = {
       },
       {
         delete: 1,
-        bracket: true
+        parentheses: true
       }
     ]
   },
@@ -295,7 +295,7 @@ const defaultSymbols = {
       {
         down: 1,
         up: 2,
-        bracket: true,
+        parentheses: true,
         delete: 3
       }
     ]
@@ -309,12 +309,12 @@ const defaultSymbols = {
     attrs: [
       {
         up: 2,
-        bracket: true
+        parentheses: true
       },
       {
         down: 1,
         delete: 2,
-        bracket: true
+        parentheses: true
       }
     ]
   },
@@ -341,7 +341,7 @@ const defaultSymbols = {
         down: 2,
         up: 3,
         delete: 4,
-        bracket: true
+        parentheses: true
       }
     ]
   },
@@ -368,7 +368,7 @@ const defaultSymbols = {
         down: 2,
         up: 3,
         delete: 4,
-        bracket: true
+        parentheses: true
       }
     ]
   },
@@ -397,7 +397,7 @@ const defaultSymbols = {
   },
   set: {
     output: {
-      latex: '\\left\\{ {$1{ , }} \\right\\}',
+      latex: '\\left\\{ {$1{ ,\\; }} \\right\\}',
       text: '{{$1{,}}}'
     }
   },
@@ -414,17 +414,19 @@ const defaultSymbols = {
     }
   },
   _func_nonlatex: {
-    builder: function (name) { return {
-      output: {
-        latex: '\\mathrm{' + name + '}\\left({$1}\\right)',
-        text: name + '({$1})'
-      },
-      attrs: [
-        {
-          delete: 1
-        }
-      ]
-    }; },
+    builder: function (name) {
+      return {
+        output: {
+          latex: '\\mathrm{' + name + '}\\left({$1}\\right)',
+          text: name + '({$1})'
+        },
+        attrs: [
+          {
+            delete: 1
+          }
+        ]
+      };
+    },
     arguments: [
       'sech',
       'csch',
@@ -443,17 +445,19 @@ const defaultSymbols = {
     ]
   },
   _func: {
-    builder: function (name) { return {
-      output: {
-        latex: '\\' + name + '\\left({$1}\\right)',
-        text: name + '({$1})'
-      },
-      attrs: [
-        {
-          delete: 1
-        }
-      ]
-    }; },
+    builder: function (name) {
+      return {
+        output: {
+          latex: '\\' + name + '\\left({$1}\\right)',
+          text: name + '({$1})'
+        },
+        attrs: [
+          {
+            delete: 1
+          }
+        ]
+      };
+    },
     arguments: [
       'sin',
       'cos',
@@ -473,14 +477,16 @@ const defaultSymbols = {
     ]
   },
   _operator: {
-    builder: function (name, ...subs) { return {
-      output: {
-        latex: subs[0],
-        text: name
-      },
-      char: true,
-      operator: true
-    }; },
+    builder: function (name, ...subs) {
+      return {
+        output: {
+          latex: subs[0],
+          text: name
+        },
+        char: true,
+        operator: true
+      };
+    },
     arguments: [
       ['*', '\\cdot'],
       ['<=', '\\leq'],
@@ -490,13 +496,15 @@ const defaultSymbols = {
     ]
   },
   _greek: {
-    builder: function (name) { return {
-      output: {
-        latex: '\\' + name,
-        text: name
-      },
-      char: true
-    }; },
+    builder: function (name) {
+      return {
+        output: {
+          latex: '\\' + name,
+          text: name
+        },
+        char: true
+      };
+    },
     arguments: [
       'alpha',
       'beta',
