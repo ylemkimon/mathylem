@@ -5,15 +5,21 @@ import EventEmitter from 'eventemitter3';
 
 export default class Editor extends EventEmitter {
   static Clipboard = [];
+  static DEFAULT_CONFIG = {
+    autoreplace: true,
+    blacklist: [],
+    events: {},
+    xmlContent: '<m><e></e></m>'
+  };
 
   constructor (config) {
     super()
 
-    this.config = config;
+    this.config = Object.assign({}, Editor.DEFAULT_CONFIG, config);
     this.autoreplace = true;
 
-    for (let e in config.events) {
-      this.on(e, config.events[e]);
+    for (let e in this.config.events) {
+      this.on(e, this.config.events[e]);
     }
 
     this.doc = new Doc();
@@ -22,7 +28,7 @@ export default class Editor extends EventEmitter {
     this.selCursor = new Cursor();
     this.tempCursor = new Cursor();
 
-    this.setContent(config.xmlContent);
+    this.setContent(this.config.xmlContent);
   };
 
   getContent (type, render) {

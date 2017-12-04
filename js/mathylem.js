@@ -11,12 +11,8 @@ import Doc from './doc';
 const touchCapable = 'ontouchstart' in window;
 
 export default class MathYlem extends Editor {
-  static DEFAULT_CONFIG = {
+  static DEFAULT_CONFIG = Object.assign({}, Editor.DEFAULT_CONFIG, {
     emptyContent: '\\red{[?]}',
-    autoreplace: true,
-    blacklist: [],
-    events: {},
-    xmlContent: '<m><e></e></m>',
     toolbar: [
       {
         action: 'undo',
@@ -92,19 +88,14 @@ export default class MathYlem extends Editor {
         hideWhenDisabled: true
       }
     ]
-  };
+  });
 
   static instances = {};
   static activeMathYlem = null;
   static isMouseDown = false;
 
-  constructor (el, config={}) {
-    for (let option in MathYlem.DEFAULT_CONFIG) {
-      if (config[option] === undefined) {
-        config[option] = MathYlem.DEFAULT_CONFIG[option];
-      }
-    }
-    super(config);
+  constructor (el, config) {
+    super(Object.assign({}, MathYlem.DEFAULT_CONFIG, config));
 
     if (typeof el === 'string' || el instanceof String) {
       el = document.getElementById(el);
@@ -128,7 +119,7 @@ export default class MathYlem extends Editor {
     el.mathylem = this;
 
     this.editor = this.createEditor();
-    if (config.toolbar) {
+    if (this.config.toolbar) {
       this.toolbar = this.createToolbar();
     }
 
