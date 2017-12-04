@@ -1,7 +1,7 @@
 /* eslint-env browser */
 import Mousetrap from 'mousetrap';
 import katex from 'katex';
-import Editor from './backend';
+import Editor from './editor';
 import { Symbols } from './symbols';
 import Cursor from './cursor';
 import Doc from './doc';
