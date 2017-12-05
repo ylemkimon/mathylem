@@ -1,9 +1,9 @@
 export default class Cursor {
-  constructor (node=null, pos) {
+  constructor(node = null, pos) {
     this.set(node, pos);
   }
 
-  set (node, pos) {
+  set(node, pos) {
     if (!node) {
       this.node = null;
       this.pos = NaN;
@@ -12,8 +12,7 @@ export default class Cursor {
 
     if (node.nodeName === 'f') {
       let nn = node.firstChild;
-      while (nn != null && !(nn.childNodes.length === 1 &&
-          nn.firstChild.textContent.length === 0)) {
+      while (nn != null && (nn.childNodes.length > 1 || nn.firstChild.textContent.length > 0)) {
         nn = nn.nextSibling;
       }
       if (nn != null) {
@@ -33,24 +32,24 @@ export default class Cursor {
       this.pos = pos ? this.node.textContent.length : 0;
     }
   }
-  
-  get value () {
+
+  get value() {
     return this.node.textContent;
   }
-  
-  set value (val) {
+
+  set value(val) {
     this.node.textContent = val;
   }
-  
-  clone () {
+
+  clone() {
     return new Cursor(this.node, this.pos);
-  } 
-  
-  equals (other) {
+  }
+
+  equals(other) {
     return other != null && this.node === other.node && this.pos === other.pos;
   }
-  
-  directionTo (other) {
+
+  directionTo(other) {
     if (this.node !== other.node) {
       for (let node = other.node; node != null; node = node.previousSibling) {
         if (node === this.node) {
@@ -58,8 +57,7 @@ export default class Cursor {
         }
       }
       return -1;
-    } else {
-      return Math.sign(other.pos - this.pos);
     }
+    return Math.sign(other.pos - this.pos);
   }
 }

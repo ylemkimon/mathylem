@@ -1,7 +1,7 @@
+import EventEmitter from 'eventemitter3';
 import Doc from './doc';
 import { Symbols } from './symbols';
 import Cursor from './cursor';
-import EventEmitter from 'eventemitter3';
 
 export default class Editor extends EventEmitter {
   static Clipboard = [];
@@ -9,16 +9,16 @@ export default class Editor extends EventEmitter {
     autoreplace: true,
     blacklist: [],
     events: {},
-    xmlContent: '<m><e></e></m>'
+    xmlContent: '<m><e></e></m>',
   };
 
-  constructor (config) {
-    super()
+  constructor(config) {
+    super();
 
     this.config = Object.assign({}, Editor.DEFAULT_CONFIG, config);
     this.autoreplace = true;
 
-    for (let e in this.config.events) {
+    for (const e in this.config.events) {
       this.on(e, this.config.events[e]);
     }
 
@@ -29,36 +29,36 @@ export default class Editor extends EventEmitter {
     this.tempCursor = new Cursor();
 
     this.setContent(this.config.xmlContent);
-  };
+  }
 
-  getContent (type, render) {
+  getContent(type, render) {
     this.prepareOutput(this.doc.root, render);
     const output = this.doc.getContent(type, render);
     this.postOutput(this.doc.root);
     return output;
-  };
+  }
 
-  get xml () {
+  get xml() {
     return this.doc.getContent('xml');
-  };
+  }
 
-  get latex () {
+  get latex() {
     return this.doc.getContent('latex');
-  };
+  }
 
-  get text () {
+  get text() {
     return this.doc.getContent('text');
-  };
+  }
 
-  setContent (data, cursorPos) {
+  setContent(data, cursorPos) {
     this.doc.setContent(data);
     this.mainCursor.set(this.doc.root, cursorPos);
     this.clearSelection();
     this.undoData = [];
     this.redoData = [];
-  };
+  }
 
-  select (from, to) {
+  select(from, to) {
     this.mainCursor = to;
     this.selCursor = from;
     if (!from.equals(to)) {
@@ -66,7 +66,7 @@ export default class Editor extends EventEmitter {
     } else {
       this.clearSelection();
     }
-  };
+  }
 
   moveSelection(dir) {
     if (!this.selStatus) {
@@ -91,32 +91,33 @@ export default class Editor extends EventEmitter {
     }
   }
 
-  selectAll () {
+  selectAll() {
     this.select(new Cursor(this.doc.root), new Cursor(this.doc.root, true));
-  };
+  }
 
-  clearSelection () {
+  clearSelection() {
     this.selCursor.set(null);
     this.selStatus = 0;
-  };
+  }
 
-  getSelection () {
+  getSelection() {
     if (!this.selStatus) {
       return null;
     }
-    const [start, end] = this.selStatus < 0 ? [this.mainCursor, this.selCursor] : [this.selCursor, this.mainCursor];
+    const [start, end] = this.selStatus < 0
+      ? [this.mainCursor, this.selCursor] : [this.selCursor, this.mainCursor];
     const left = start.value;
     const right = end.value;
 
-    let nodeList = [];
-    let involved = [];
+    const nodeList = [];
+    const involved = [];
     const remnant = this.makeE(left.substring(0, start.pos) + right.substring(end.pos));
 
     if (start.node === end.node) {
       return {
         nodeList: [this.makeE(left.substring(start.pos, end.pos))],
         involved: [start.node],
-        remnant
+        remnant,
       };
     }
 
@@ -132,11 +133,11 @@ export default class Editor extends EventEmitter {
     return {
       nodeList,
       involved,
-      remnant
+      remnant,
     };
-  };
+  }
 
-  deleteSelection () {
+  deleteSelection() {
     const sel = this.getSelection();
     if (!sel) {
       return null;
@@ -152,28 +153,26 @@ export default class Editor extends EventEmitter {
       } else {
         selParent.insertBefore(sel.remnant, selParent.firstChild);
       }
+    } else if (selPrev.nextSibling == null) {
+      selParent.appendChild(sel.remnant);
     } else {
-      if (selPrev.nextSibling == null) {
-        selParent.appendChild(sel.remnant);
-      } else {
-        selParent.insertBefore(sel.remnant, selPrev.nextSibling);
-      }
+      selParent.insertBefore(sel.remnant, selPrev.nextSibling);
     }
     this.mainCursor.set(sel.remnant, this.selStatus < 0 ? this.mainCursor.pos : this.selCursor.pos);
     this.clearSelection();
     return sel;
-  };
+  }
 
-  clipboardSelection (cut) {
+  clipboardSelection(cut) {
     const sel = cut ? this.deleteSelection() : this.getSelection();
     if (!sel) {
       return;
     }
     Editor.Clipboard = sel.nodeList.map(x => x.cloneNode(true));
-  };
+  }
 
-  insertNodes (nodeList, moveCursor) {
-    let clipboard = nodeList.map(x => x.cloneNode(true));
+  insertNodes(nodeList, moveCursor) {
+    const clipboard = nodeList.map(x => x.cloneNode(true));
     const value = this.mainCursor.value;
     const first = clipboard.shift().textContent;
     if (clipboard.length === 0) {
@@ -198,17 +197,17 @@ export default class Editor extends EventEmitter {
         this.mainCursor.set(node, last.length);
       }
     }
-  };
+  }
 
-  paste () {
+  paste() {
     if (Editor.Clipboard.length === 0) {
       return;
     }
     this.deleteSelection();
     this.insertNodes(Editor.Clipboard, true);
-  };
+  }
 
-  moveCursor (dir, out) {
+  moveCursor(dir, out) {
     this.clearSelection();
     if (dir === 'up' || dir === 'down') {
       const t = Doc.getCAttribute(this.mainCursor.node, dir);
@@ -224,31 +223,29 @@ export default class Editor extends EventEmitter {
           this.mainCursor.set(newRow.childNodes[index[0][1]], dir === 'up');
         }
       }
-    } else {
-      if ((dir < 0 && this.mainCursor.pos <= 0) ||
-          (dir > 0 && this.mainCursor.pos >= this.mainCursor.value.length)) {
-        const nodes = this.doc.root.getElementsByTagName('e');
-        const index = Array.prototype.indexOf.call(nodes, this.mainCursor.node);
-        if ((dir < 0 && index > 0) || (dir > 0 && index < nodes.length - 1)) {
-          this.mainCursor.set(nodes[index + dir], dir < 0);
-        }
-      } else if (!out) {
-        this.mainCursor.pos += dir;
+    } else if ((dir < 0 && this.mainCursor.pos <= 0) ||
+        (dir > 0 && this.mainCursor.pos >= this.mainCursor.value.length)) {
+      const nodes = this.doc.root.getElementsByTagName('e');
+      const index = Array.prototype.indexOf.call(nodes, this.mainCursor.node);
+      if ((dir < 0 && index > 0) || (dir > 0 && index < nodes.length - 1)) {
+        this.mainCursor.set(nodes[index + dir], dir < 0);
       }
+    } else if (!out) {
+      this.mainCursor.pos += dir;
     }
   }
 
-  home () {
+  home() {
     this.clearSelection();
     this.mainCursor.set(this.doc.root);
-  };
+  }
 
-  end () {
+  end() {
     this.clearSelection();
     this.mainCursor.set(this.doc.root, true);
-  };
+  }
 
-  pushState (stack) {
+  pushState(stack) {
     this.candidates = null;
 
     this.mainCursor.node.setAttribute('current', this.mainCursor.pos.toString());
@@ -256,9 +253,9 @@ export default class Editor extends EventEmitter {
     this.mainCursor.node.removeAttribute('current');
   }
 
-  popState (from, to) {
+  popState(from, to) {
     this.clearSelection();
-    if (from.length == 0) {
+    if (from.length === 0) {
       return;
     }
     this.pushState(to);
@@ -266,34 +263,34 @@ export default class Editor extends EventEmitter {
     this.mainCursor.node = this.doc.root.querySelector('e[current]');
     this.mainCursor.pos = parseInt(this.mainCursor.node.getAttribute('current'));
     this.mainCursor.node.removeAttribute('current');
-  };
+  }
 
-  saveState () {
+  saveState() {
     this.pushState(this.undoData);
     this.redoData = [];
 
     this.emit('change');
     this.render();
-  };
+  }
 
-  undo () {
+  undo() {
     this.popState(this.undoData, this.redoData);
-  };
+  }
 
-  redo () {
+  redo() {
     this.popState(this.redoData, this.undoData);
-  };
+  }
 
-  deleteFromC () {
+  deleteFromC() {
     const pos = Doc.indexOfNode(this.mainCursor.node.parentNode);
     const index = Doc.getCAttribute(this.mainCursor.node, 'delete');
     const f = this.mainCursor.node.parentNode.parentNode;
     const remaining = Array.from(f.childNodes[index - 1].childNodes);
     this.deleteFromF(f);
     this.insertNodes(remaining, pos >= index);
-  };
+  }
 
-  deleteFromF (node) {
+  deleteFromF(node) {
     const p = node.parentNode;
     const prev = node.previousSibling;
     const next = node.nextSibling;
@@ -303,9 +300,9 @@ export default class Editor extends EventEmitter {
     p.removeChild(prev);
     p.removeChild(node);
     p.removeChild(next);
-  };
+  }
 
-  deleteBackward () {
+  deleteBackward() {
     if (this.deleteSelection() != null) {
       return;
     }
@@ -340,9 +337,9 @@ export default class Editor extends EventEmitter {
         }
       }
     }
-  };
+  }
 
-  deleteForward () {
+  deleteForward() {
     if (this.deleteSelection() != null) {
       return;
     }
@@ -353,9 +350,9 @@ export default class Editor extends EventEmitter {
     } else if (this.mainCursor.node.nextSibling != null) {
       this.deleteFromF(this.mainCursor.node.nextSibling);
     }
-  };
+  }
 
-  extendList (dir, copy) {
+  extendList(dir, copy) {
     const vertical = dir === 'up' || dir === 'down';
     const before = dir === 'up' || dir === 'left';
     const index = Doc.getArrayIndex(this.mainCursor.node, vertical);
@@ -367,35 +364,33 @@ export default class Editor extends EventEmitter {
     this.clearSelection();
     this.saveState();
 
-    for (let nn = n.parentNode.parentNode.firstChild; nn != null; nn =
-        nn.nextSibling) {
-      if (nn.nodeName !== 'l') {
-        continue;
-      }
-      const node = nn.childNodes[pos];
-      let newNode;
-      if (!copy) {
-        if (vertical) {
-          newNode = this.doc.base.createElement('l')
-          for (let i = 0; i < node.childElementCount; i++) {
-            const c = this.doc.base.createElement('c');
-            c.appendChild(this.makeE());
-            newNode.appendChild(c);
+    for (let nn = n.parentNode.parentNode.firstChild; nn != null; nn = nn.nextSibling) {
+      if (nn.nodeName === 'l') {
+        const node = nn.childNodes[pos];
+        let newNode;
+        if (!copy) {
+          if (vertical) {
+            newNode = this.doc.base.createElement('l');
+            for (let i = 0; i < node.childElementCount; i++) {
+              const c = this.doc.base.createElement('c');
+              c.appendChild(this.makeE());
+              newNode.appendChild(c);
+            }
+          } else {
+            newNode = this.doc.base.createElement('c');
+            newNode.appendChild(this.makeE());
           }
         } else {
-          newNode = this.doc.base.createElement('c')
-          newNode.appendChild(this.makeE());
+          newNode = node.cloneNode(true);
         }
-      } else {
-        newNode = node.cloneNode(true);
+        nn.insertBefore(newNode, before ? node : node.nextSibling);
       }
-      nn.insertBefore(newNode, before ? node : node.nextSibling);
     }
     const cur = before ? n.previousSibling : n.nextSibling;
     this.mainCursor.set(vertical ? cur.childNodes[index[0][1]] : cur, before);
-  };
+  }
 
-  removeList (vertical) {
+  removeList(vertical) {
     const index = Doc.getArrayIndex(this.mainCursor.node, vertical);
     if (!index) {
       return;
@@ -410,22 +405,20 @@ export default class Editor extends EventEmitter {
     this.clearSelection();
     this.saveState();
 
-    for (let nn = n.parentNode.parentNode.firstChild; nn != null; nn =
-        nn.nextSibling) {
-      if (nn.nodeName !== 'l') {
-        continue;
+    for (let nn = n.parentNode.parentNode.firstChild; nn != null; nn = nn.nextSibling) {
+      if (nn.nodeName === 'l') {
+        nn.removeChild(nn.childNodes[pos]);
       }
-      nn.removeChild(nn.childNodes[pos]);
     }
     this.mainCursor.set(vertical ? cur.childNodes[index[0][1]] : cur, before);
-  };
+  }
 
-  renderE (n, path) {
+  renderE(n, path) {
     const text = n.textContent;
     let result = '';
 
-    const caret = Doc.isSmall(n) ? '\\cursor{-0.05em}{0.5em}' :
-      '\\cursor{-0.2ex}{0.7em}';
+    const caret = Doc.isSmall(n) ? '\\cursor{-0.05em}{0.5em}'
+      : '\\cursor{-0.2ex}{0.7em}';
     for (let i = 0; i < text.length + 1; i++) {
       const current = new Cursor(n, i);
       if (current.equals(this.mainCursor)) {
@@ -481,26 +474,26 @@ export default class Editor extends EventEmitter {
     return result;
   }
 
-  prepareOutput = function (n, render, path='') {
+  prepareOutput(n, render, path = '') {
     if (n.nodeName === 'e') {
       if (render) {
         n.setAttribute('render', this.renderE(n, path));
       }
     } else {
-      if (n.nodeName === 'c' && Doc.getCAttribute(n, 'parentheses') && (n === this
-          .mainCursor.node.parentNode || (this.tempCursor.node && n === this
-          .tempCursor.node.parentNode) || !Doc.isParenthesesOmittable(n))) {
+      if (n.nodeName === 'c' && Doc.getCAttribute(n, 'parentheses') && (n === this.mainCursor.node
+        .parentNode || (this.tempCursor.node && n === this.tempCursor.node.parentNode) ||
+          !Doc.isParenthesesOmittable(n))) {
         n.setAttribute('parentheses', '');
       }
 
       let count = 0;
       for (let c = n.firstChild; c != null; c = c.nextSibling) {
-        this.prepareOutput(c, render, path + '_' + count++);
+        this.prepareOutput(c, render, `${path}_${count++}`);
       }
     }
-  };
+  }
 
-  postOutput (n) {
+  postOutput(n) {
     if (n.nodeName === 'e') {
       n.removeAttribute('render');
     } else {
@@ -512,9 +505,9 @@ export default class Editor extends EventEmitter {
         this.postOutput(c);
       }
     }
-  };
+  }
 
-  makeF (name, content=[]) {
+  makeF(name, content = []) {
     const base = this.doc.base;
     const f = base.createElement('f');
     f.setAttribute('type', name);
@@ -541,22 +534,22 @@ export default class Editor extends EventEmitter {
       par.appendChild(c);
     }
     return f;
-  };
+  }
 
-  makeE = function (text='') {
+  makeE(text = '') {
     const e = this.doc.base.createElement('e');
     e.appendChild(this.doc.base.createTextNode(text));
     return e;
-  };
+  }
 
-  insertString (s) {
+  insertString(s) {
     this.deleteSelection();
 
     //
     const prev = this.mainCursor.node.previousSibling;
-    if (s === '=' && this.config.autoreplace && this.mainCursor.pos === 0 && prev && prev
-        .nodeName === 'f' && ['<', '>'].indexOf(prev.getAttribute('type')) > -1 &&
-        this.replaceSymbol(prev, prev.getAttribute('type') + '=')) {
+    if (s === '=' && this.config.autoreplace && this.mainCursor.pos === 0 && prev &&
+      prev.nodeName === 'f' && ['<', '>'].indexOf(prev.getAttribute('type')) > -1 &&
+        this.replaceSymbol(prev, `${prev.getAttribute('type')}=`)) {
       return;
     }
 
@@ -568,9 +561,9 @@ export default class Editor extends EventEmitter {
     if (this.config.autoreplace) {
       this.checkSymbol();
     }
-  };
+  }
 
-  replaceSymbol (node, name, content) {
+  replaceSymbol(node, name, content) {
     const symbol = Symbols[name];
     if (!symbol || this.config.blacklist.indexOf(name) > -1) {
       return false;
@@ -581,9 +574,9 @@ export default class Editor extends EventEmitter {
     node.parentNode.replaceChild(f, node);
     this.mainCursor.set(symbol.char ? f.nextSibling : f);
     return true;
-  };
+  }
 
-  checkSymbol (force) {
+  checkSymbol(force) {
     if (Doc.getCAttribute(this.mainCursor.node, 'text')) {
       return;
     }
@@ -595,15 +588,13 @@ export default class Editor extends EventEmitter {
     const par = this.mainCursor.node.parentNode;
     if (par.parentNode.nodeName === 'f' && par.childNodes.length === 1 && value === 'h') {
       const n = par.parentNode;
-      this.replaceSymbol(n, n.getAttribute('type') + 'h');
+      this.replaceSymbol(n, `${n.getAttribute('type')}h`);
       return;
     }
 
     for (const s in Symbols) {
-      if ((!force && ['psi', 'xi'].indexOf(s) > -1) || this.config.blacklist.indexOf(s) > -1) {
-        continue;
-      }
-      if (value.substring(this.mainCursor.pos - s.length, this.mainCursor.pos) === s) {
+      if ((force || ['psi', 'xi'].indexOf(s) === -1) && this.config.blacklist.indexOf(s) === -1 &&
+          value.substring(this.mainCursor.pos - s.length, this.mainCursor.pos) === s) {
         this.saveState();
         this.mainCursor.value = value.slice(0, this.mainCursor.pos - s.length) +
           value.slice(this.mainCursor.pos);
@@ -612,10 +603,11 @@ export default class Editor extends EventEmitter {
         return;
       }
     }
-  };
+  }
 
-  insertSymbol (name, silent) {
-    if (Doc.getCAttribute(this.mainCursor.node, 'text') || this.config.blacklist.indexOf(name) > -1) {
+  insertSymbol(name, silent) {
+    if (Doc.getCAttribute(this.mainCursor.node, 'text') ||
+        this.config.blacklist.indexOf(name) > -1) {
       return;
     }
     if (!silent) {
@@ -626,8 +618,8 @@ export default class Editor extends EventEmitter {
     const pp = par.parentNode;
     const value = this.mainCursor.value;
 
-    if (name === '*' && this.config.autoreplace && this.mainCursor.pos === 0 && prev &&
-        prev.nodeName === 'f' && prev.getAttribute('type') === '*') {
+    if (name === '*' && this.config.autoreplace && this.mainCursor.pos === 0 &&
+        prev && prev.nodeName === 'f' && prev.getAttribute('type') === '*') {
       this.deleteFromF(prev);
       this.insertSymbol('pow', true);
       return;
@@ -640,8 +632,9 @@ export default class Editor extends EventEmitter {
     }
 
     const s = Symbols[name];
-    let content = {};
-    let leftPiece, rightPiece;
+    const content = {};
+    let leftPiece;
+    let rightPiece;
     let cur = s.current || 0;
     let toRemove = [];
     let toReplace = null;
@@ -697,9 +690,9 @@ export default class Editor extends EventEmitter {
     } else {
       this.mainCursor.set(f);
     }
-  };
+  }
 
-  executeAction (action) {
+  executeAction(action) {
     if (Array.isArray(action)) {
       this[action[0]](...action.slice(1));
     } else if (typeof action !== 'string') {
@@ -719,7 +712,7 @@ export default class Editor extends EventEmitter {
     this.render();
   }
 
-  autocompleteSymbol () {
+  autocompleteSymbol() {
     if (this.candidates != null) {
       const suggestion = this.candidates.shift();
       this.candidates.push(suggestion);
@@ -729,7 +722,7 @@ export default class Editor extends EventEmitter {
     } else {
       this.saveState();
       const value = this.mainCursor.value;
-      this.candidates = Object.keys(MathYlem.Symbols).filter(n => n.substr(0, value.length) === value);
+      this.candidates = Object.keys(Symbols).filter(n => n.substr(0, value.length) === value);
       if (this.candidates.length > 0) {
         this.autocompleteSymbol();
       } else {
@@ -737,14 +730,17 @@ export default class Editor extends EventEmitter {
       }
     }
   }
-  
-  replaceF (symbol, content=-1) {
+
+  replaceF(symbol, content = -1) {
     this.clearSelection();
-    this.replaceSymbol(this.mainCursor.node.parentNode.parentNode, symbol,
-      {[content]: [this.mainCursor.node]});
+    this.replaceSymbol(
+      this.mainCursor.node.parentNode.parentNode,
+      symbol,
+      { [content]: [this.mainCursor.node] },
+    );
   }
 
-  completeSymbol () {
+  completeSymbol() {
     this.replaceF(this.mainCursor.value);
   }
 }
