@@ -34,10 +34,6 @@ EventEmitter3
 https://github.com/primus/eventemitter3
 Copyright (c) 2014 Arnout Kazemier
 
-throttle-debounce
-https://github.com/niksy/throttle-debounce
-Copyright (c) Ivan Nikolic
-
 The original module of throttle-debounce is licensed under MIT License with
 the following copyright:
 Copyright (c) 2010 "Cowboy" Ben Alman
