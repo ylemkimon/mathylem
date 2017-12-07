@@ -1,2761 +1,2368 @@
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.MathYlem = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-module.exports={
-  "text": {
-    "output": {
-      "latex": "\\text{{$1}}",
-      "text": "'{$1}'"
-    },
-    "attrs": [
-      {
-        "text": true
-      }
-    ]
-  },
-  "symbol": {
-    "output": {
-      "latex": "\\backslash\\texttt{{$1}}",
-      "text": "{$1}"
-    },
-    "attrs": [
-      {
-        "text": true
-      }
-    ]
-  },
-  "func": {
-    "output": {
-      "latex": "\\backslash\\mathrm{{$1}}\\left( {$2{ , }} \\right)",
-      "text": "$1({$2{,}})"
-    },
-    "attrs": [
-      {
-        "text": true
-      }
-    ]
-  },
-  "abs": {
-    "output": {
-      "latex": "\\left|{$1}\\right|",
-      "text": "abs({$1})"
-    },
-    "current": 1,
-    "attrs": [
-      {
-        "delete": 1
-      }
-    ]
-  },
-  "sqrt": {
-    "output": {
-      "latex": "\\sqrt{{$1}}",
-      "text": "sqrt({$1})"
-    },
-    "attrs": [
-      {
-        "delete": 1
-      }
-    ]
-  },
-  "exp": {
-    "output": {
-      "latex": "e^{{$1}}",
-      "text": "exp({$1})"
-    },
-    "attrs": [
-      {
-        "delete": 1,
-        "small": true
-      }
-    ]
-  },
-  "fact": {
-    "output": {
-      "latex": "{{$1}}!",
-      "text": "factorial({$1})"
-    },
-    "current": 1,
-    "current_type": "token",
-    "attrs": [
-      {
-        "delete": 1,
-        "bracket": true
-      }
-    ]
-  },
-  "binom": {
-    "output": {
-      "latex": "\\displaystyle\\binom{{$1}}{{$2}}",
-      "small_latex": "\\binom{{$1}}{{$2}}",
-      "text": "binomial({$1},{$2})"
-    },
-    "attrs": [
-      {
-        "down": 2
-      },
-      {
-        "up": 1
-      }
-    ]
-  },
-  "paren": {
-    "output": {
-      "latex": "\\left({$1}\\right)",
-      "text": "({$1})"
-    },
-    "current": 1,
-    "attrs": [
-      {
-        "delete": 1
-      }
-    ]
-  },
-  "floor": {
-    "output": {
-      "latex": "\\lfloor{$1}\\rfloor",
-      "text": "floor({$1})"
-    },
-    "attrs": [
-      {
-        "delete": 1
-      }
-    ]
-  },
-  "pow": {
-    "output": {
-      "latex": "{{$1}}^{{$2}}",
-      "text": "({$1})**({$2})"
-    },
-    "current": 1,
-    "current_type": "token",
-    "attrs": [
-      {
-        "up": 2,
-        "bracket": true,
-        "delete": 1
-      },
-      {
-        "down": 1,
-        "delete": 1,
-        "small": true
-      }
-    ]
-  },
-  "sub": {
-    "output": {
-      "latex": "{{$1}}_{{$2}}",
-      "text": "{$1}_{$2}"
-    },
-    "current": 1,
-    "current_type": "token",
-    "attrs": [
-      {
-        "down": 2,
-        "bracket": true,
-        "delete": 1
-      },
-      {
-        "up": 1,
-        "delete": 1,
-        "small": true
-      }
-    ]
-  },
-  "frac": {
-    "output": {
-      "latex": "\\dfrac{{$1}}{{$2}}",
-      "small_latex": "\\frac{{$1}}{{$2}}",
-      "text": "({$1})/({$2})"
-    },
-    "current": 1,
-    "current_type": "token",
-    "attrs": [
-      {
-        "down": 2
-      },
-      {
-        "up": 1
-      }
-    ]
-  },
-  "mod": {
-    "output": {
-      "latex": "{$1}\\bmod{$2}",
-      "text": "({$1})%({$2})"
-    },
-    "current": 1,
-    "current_type": "token",
-    "attrs": [
-      {
-        "down": 2,
-        "delete": 1,
-        "bracket": true
-      },
-      {
-        "up": 1,
-        "delete": 1,
-        "bracket": true
-      }
-    ]
-  },
-  "infty": {
-    "output": {
-      "latex": "\\infty",
-      "text": "oo"
-    },
-    "char": true
-  },
-  "zoo": {
-    "output": {
-      "latex": "\\tilde{\\infty}",
-      "text": "zoo"
-    },
-    "char": true
-  },
-  "lim": {
-    "output": {
-      "latex": "\\displaystyle\\lim_{{$1}\\to{$2}}{$3}",
-      "small_latex": "\\lim_{{$1}\\to{$2}}{$3}",
-      "text": "Limit({$3},{$1},{$2})"
-    },
-    "attrs": [
-      {
-        "up": 3,
-        "small": true
-      },
-      {
-        "up": 3,
-        "small": true
-      },
-      {
-        "down": 2,
-        "delete": 3,
-        "bracket": true
-      }
-    ]
-  },
-  "antid": {
-    "output": {
-      "latex": "\\displaystyle\\int{{$1}}d{$2}",
-      "small_latex": "\\int{{$1}}d{$2}",
-      "text": "Integral({$1},{$2})"
-    },
-    "attrs": [
-      {
-        "delete": 1
-      },
-      {
-        "delete": 1,
-        "bracket": true
-      }
-    ]
-  },
-  "int": {
-    "output": {
-      "latex": "\\displaystyle\\int_{{$1}}^{{$2}}{$3}d{$4}",
-      "small_latex": "\\int_{{$1}}^{{$2}}{$3}d{$4}",
-      "text": "Integral({$3},({$4},{$1},{$2}))"
-    },
-    "attrs": [
-      {
-        "up": 2,
-        "small": true
-      },
-      {
-        "down": 1,
-        "small": true
-      },
-      {
-        "down": 1,
-        "up": 2,
-        "delete": 3
-      },
-      {
-        "down": 1,
-        "up": 2,
-        "bracket": true,
-        "delete": 3
-      }
-    ]
-  },
-  "deriv": {
-    "output": {
-      "latex": "\\dfrac{d}{d{$1}}{$2}",
-      "small_latex": "\\frac{d}{d{$1}}{$2}",
-      "text": "Derivative({$2},{$1})"
-    },
-    "attrs": [
-      {
-        "up": 2,
-        "bracket": true
-      },
-      {
-        "down": 1,
-        "delete": 2,
-        "bracket": true
-      }
-    ]
-  },
-  "sum": {
-    "output": {
-      "latex": "\\displaystyle\\sum_{{$1}={$2}}^{{$3}}{$4}",
-      "small_latex": "\\sum_{{$1}={$2}}^{{$3}}{$4}",
-      "text": "Sum({$4},({$1},{$2},{$3}))"
-    },
-    "attrs": [
-      {
-        "up": 3,
-        "small": true
-      },
-      {
-        "up": 3,
-        "small": true
-      },
-      {
-        "down": 2,
-        "small": true
-      },
-      {
-        "down": 2,
-        "up": 3,
-        "delete": 4,
-        "bracket": true
-      }
-    ]
-  },
-  "prod": {
-    "output": {
-      "latex": "\\displaystyle\\prod_{{$1}={$2}}^{{$3}}{$4}",
-      "small_latex": "\\prod_{{$1}={$2}}^{{$3}}{$4}",
-      "text": "Product({$4},({$1},{$2},{$3}))"
-    },
-    "attrs": [
-      {
-        "up": 3,
-        "small": true
-      },
-      {
-        "up": 3,
-        "small": true
-      },
-      {
-        "down": 2,
-        "small": true
-      },
-      {
-        "down": 2,
-        "up": 3,
-        "delete": 4,
-        "bracket": true
-      }
-    ]
-  },
-  "root": {
-    "output": {
-      "latex": "\\sqrt[{$1}]{{$2}}",
-      "text": "root({$2},{$1})"
-    },
-    "attrs": [
-      {
-        "down": 2,
-        "small": true,
-        "delete": 2
-      },
-      {
-        "up": 1,
-        "delete": 2
-      }
-    ]
-  },
-  "list": {
-    "output": {
-      "latex": "\\left[ {$1{ , }} \\right]",
-      "text": "[{$1{,}}]"
-    }
-  },
-  "set": {
-    "output": {
-      "latex": "\\left\\{ {$1{ , }} \\right\\}",
-      "text": "{{$1{,}}}"
-    }
-  },
-  "tuple": {
-    "output": {
-      "latex": "\\left\\langle {$1{ , }} \\right\\rangle",
-      "text": "({$1{,}})"
-    }
-  },
-  "mat": {
-    "output": {
-      "latex": "\\left(\\begin{matrix} {$1{ & }{\\\\}} \\end{matrix}\\right)",
-      "text": "Matrix([[{$1{,}{],[}}]])"
-    }
-  },
-  "_func_nonlatex": [
-    "sech",
-    "csch",
-    "asin",
-    "acos",
-    "atan",
-    "acot",
-    "asec",
-    "acsc",
-    "asinh",
-    "acosh",
-    "atanh",
-    "acoth",
-    "asech",
-    "acsch"
-  ],
-  "_func": [
-    "sin",
-    "cos",
-    "tan",
-    "sec",
-    "csc",
-    "cot",
-    "log",
-    "ln",
-    "sinh",
-    "cosh",
-    "tanh",
-    "coth",
-    "Re",
-    "Im",
-    "arg"
-  ],
-  "_operator": {
-    "*": "\\cdot",
-    "<=": "\\leq",
-    "<": "<",
-    ">=": "\\geq",
-    ">": ">"
-  },
-  "_greek": [
-    "alpha",
-    "beta",
-    "gamma",
-    "delta",
-    "epsilon",
-    "zeta",
-    "theta",
-    "iota",
-    "kappa",
-    "lambda",
-    "mu",
-    "nu",
-    "xi",
-    "omicron",
-    "pi",
-    "rho",
-    "sigma",
-    "tau",
-    "upsilon",
-    "phi",
-    "chi",
-    "psi",
-    "omega",
-    "Gamma",
-    "Delta",
-    "Theta",
-    "Lambda",
-    "Xi",
-    "Pi",
-    "Sigma",
-    "Upsilon",
-    "Phi",
-    "Psi",
-    "Omega",
-    "eta"
-  ]
-}
+'use strict';
 
-},{}],2:[function(require,module,exports){
-var Doc = require('./doc.js');
-var Symbols = require('./symbols.js');
-var EventEmitter = require('eventemitter3');
-
-var Backend = function (config, editor) {
-  config = config || {};
-  var events = config['events'] || {};
-
-  this.editor = editor;
-  this.blacklist = [];
-  this.autoreplace = true;
-
-  EventEmitter.call(this);
-  for (var e in events) {
-    this.on(e, events[e]);
-  }
-
-  var opts = ['blacklist', 'autoreplace'];
-
-  for (var i = 0; i < opts.length; i++) {
-    var p = opts[i];
-    if (p in config) {
-      this[p] = config[p];
-    }
-  }
-
-  this.doc = new Doc(config['xmlContent']);
-
-  this.current = this.doc.root().firstChild;
-  this.caret = 0;
-  this.clearSelection();
-  this.undoData = [];
-  this.undoCurrent = -1;
-};
-
-Backend.prototype = Object.create(EventEmitter.prototype, {
-  constructor: { value: Backend }
+Object.defineProperty(exports, "__esModule", {
+  value: true
 });
 
-Backend.CARET = '\\cursor{-0.2ex}{0.7em}';
-Backend.SMALL_CARET = '\\cursor{-0.05em}{0.5em}';
+var _sign = require('babel-runtime/core-js/math/sign');
 
-Backend.SEL_NONE = 0;
-Backend.SEL_CURSOR_AT_START = 1;
-Backend.SEL_CURSOR_AT_END = 2;
+var _sign2 = _interopRequireDefault(_sign);
 
-Backend.Clipboard = null;
+var _classCallCheck2 = require('babel-runtime/helpers/classCallCheck');
 
-Backend.prototype.getContent = function (t, r) {
-  return this.doc.getContent(t, r);
-};
+var _classCallCheck3 = _interopRequireDefault(_classCallCheck2);
 
-Backend.prototype.xml = function () {
-  return this.doc.getContent('xml');
-};
+var _createClass2 = require('babel-runtime/helpers/createClass');
 
-Backend.prototype.latex = function () {
-  return this.doc.getContent('latex');
-};
+var _createClass3 = _interopRequireDefault(_createClass2);
 
-Backend.prototype.text = function () {
-  return this.doc.getContent('text');
-};
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-Backend.prototype.setContent = function (xmlData) {
-  this.doc = new Doc(xmlData);
-  this.current = this.doc.root().lastChild;
-  this.caret = this.current.textContent.length;
-  this.clearSelection();
-  this.undoData = [];
-  this.undoCurrent = -1;
-  this.checkpoint();
-};
+var Cursor = function () {
+  function Cursor() {
+    var node = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : null;
+    var pos = arguments[1];
+    (0, _classCallCheck3.default)(this, Cursor);
 
-Backend.prototype.selectTo = function (loc, selCursor, selCaret, mouse) {
-  this.current = loc.current;
-  this.caret = loc.caret;
-  if (loc.current === selCursor && loc.caret === selCaret) {
-    this.clearSelection();
-  } else if (loc.pos === 'left') {
-    this.selEnd = {
-      'node': selCursor,
-      'caret': selCaret
-    };
-    this.setSelection(Backend.SEL_CURSOR_AT_START, mouse);
-  } else if (loc.pos === 'right') {
-    this.selStart = {
-      'node': selCursor,
-      'caret': selCaret
-    };
-    this.setSelection(Backend.SEL_CURSOR_AT_END, mouse);
+    this.set(node, pos);
   }
-};
 
-Backend.prototype.setSelStart = function () {
-  this.selStart = { 'node': this.current, 'caret': this.caret };
-};
+  (0, _createClass3.default)(Cursor, [{
+    key: 'set',
+    value: function set(node, pos) {
+      if (!node) {
+        this.node = null;
+        this.pos = NaN;
+        return;
+      }
 
-Backend.prototype.setSelEnd = function () {
-  this.selEnd = { 'node': this.current, 'caret': this.caret };
-};
-
-Backend.prototype.addPaths = function (n, path) {
-  if (n.nodeName === 'e') {
-    n.setAttribute('path', path);
-  } else {
-    var es = 1;
-    var fs = 1;
-    var cs = 1;
-    var ls = 1;
-    for (var c = n.firstChild; c != null; c = c.nextSibling) {
-      if (c.nodeName === 'c') {
-        this.addPaths(c, path + '_c' + cs);
-        cs++;
-      } else if (c.nodeName === 'f') {
-        this.addPaths(c, path + '_f' + fs);
-        fs++;
-      } else if (c.nodeName === 'l') {
-        this.addPaths(c, path + '_l' + ls);
-        ls++;
-      } else if (c.nodeName === 'e') {
-        this.addPaths(c, path + '_e' + es);
-        es++;
+      if (node.nodeName === 'f') {
+        var nn = node.firstChild;
+        while (nn != null && (nn.childNodes.length > 1 || nn.firstChild.textContent.length > 0)) {
+          nn = nn.nextSibling;
+        }
+        if (nn != null) {
+          node = nn;
+        } else {
+          node = this.node.firstChild;
+          pos = true;
+        }
+      }
+      while (node.nodeName !== 'e') {
+        node = pos ? node.lastChild : node.firstChild;
+      }
+      this.node = node;
+      if (typeof pos === 'number') {
+        this.pos = pos;
+      } else {
+        this.pos = pos ? this.node.textContent.length : 0;
       }
     }
-  }
-};
-
-Backend.prototype.addCursorClasses = function (n, path) {
-  if (n.nodeName === 'e') {
-    var text = n.textContent;
-    var ans = '';
-    var selCursor;
-    if (this.selStatus === Backend.SEL_CURSOR_AT_START) {
-      selCursor = this.selEnd;
-    } else if (this.selStatus === Backend.SEL_CURSOR_AT_END) {
-      selCursor = this.selStart;
+  }, {
+    key: 'clone',
+    value: function clone() {
+      return new Cursor(this.node, this.pos);
     }
+  }, {
+    key: 'equals',
+    value: function equals(other) {
+      return other != null && this.node === other.node && this.pos === other.pos;
+    }
+  }, {
+    key: 'directionTo',
+    value: function directionTo(other) {
+      if (this.node !== other.node) {
+        for (var node = other.node; node != null; node = node.previousSibling) {
+          if (node === this.node) {
+            return 1;
+          }
+        }
+        return -1;
+      }
+      return (0, _sign2.default)(other.pos - this.pos);
+    }
+  }, {
+    key: 'value',
+    get: function get() {
+      return this.node.textContent;
+    },
+    set: function set(val) {
+      this.node.textContent = val;
+    }
+  }]);
+  return Cursor;
+}();
 
-    var caret = Doc.isSmall(this.current) ? Backend.SMALL_CARET : Backend.CARET;
-    for (var i = 0; i < text.length + 1; i++) {
-      if (n === this.current && i === this.caret) {
-        if (this.selStatus === Backend.SEL_CURSOR_AT_END) {
-          ans += '}';
-        }
-        if (text.length === 0) {
-          ans += '\\xmlClass{main-cursor my-elem my-blank loc_' +
-            n.getAttribute('path') + '_0}{' + caret + '}';
-        } else {
-          ans += '\\xmlClass{main-cursor}{' + caret + '}';
-        }
-        if (this.selStatus === Backend.SEL_CURSOR_AT_START) {
-          ans += '\\xmlClass{selection}{';
-        }
-      } else if (selCursor && n === selCursor.node && i === selCursor.caret) {
-        if (this.selStatus === Backend.SEL_CURSOR_AT_START) {
-          ans += '}';
-        }
-        var selCaret = Doc.isSmall(selCursor.node)
-          ? Backend.SMALL_CARET : Backend.CARET;
-        if (text.length === 0 && n.parentNode.childElementCount > 1) {
-          ans += '\\xmlClass{sel-cursor my-elem my-blank loc_' +
-            n.getAttribute('path') + '_0}{' + selCaret + '}';
-        } else {
-          ans += '\\xmlClass{sel-cursor}{' + selCaret + '}';
-        }
-        if (this.selStatus === Backend.SEL_CURSOR_AT_END) {
-          ans += '\\xmlClass{selection}{';
-        }
-      } else if (n === this.tempCursor.node && i === this.tempCursor.caret) {
-        if (text.length === 0) {
-          if (n.parentNode.childElementCount === 1) {
-            ans += '\\xmlClass{temp-cursor my-elem my-blank loc_' +
-              n.getAttribute('path') + '_0}{[?]}';
-          } else {
-            ans += '\\xmlClass{temp-cursor my-elem my-blank loc_' +
-              n.getAttribute('path') + '_0}{' + caret + '}';
+exports.default = Cursor;
+
+},{"babel-runtime/core-js/math/sign":11,"babel-runtime/helpers/classCallCheck":22,"babel-runtime/helpers/createClass":23}],2:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _isNan = require('babel-runtime/core-js/number/is-nan');
+
+var _isNan2 = _interopRequireDefault(_isNan);
+
+var _classCallCheck2 = require('babel-runtime/helpers/classCallCheck');
+
+var _classCallCheck3 = _interopRequireDefault(_classCallCheck2);
+
+var _createClass2 = require('babel-runtime/helpers/createClass');
+
+var _createClass3 = _interopRequireDefault(_createClass2);
+
+var _xmldom = require('xmldom');
+
+var _symbols = require('./symbols');
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+var Doc = function () {
+  function Doc(data) {
+    (0, _classCallCheck3.default)(this, Doc);
+
+    this.setContent(data);
+  }
+
+  (0, _createClass3.default)(Doc, [{
+    key: 'getContent',
+    value: function getContent(type, render) {
+      if (type === 'xml') {
+        return new _xmldom.XMLSerializer().serializeToString(this.base);
+      }
+      return this.render(type, this.root, render);
+    }
+  }, {
+    key: 'setContent',
+    value: function setContent() {
+      var data = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : '<m><e></e></m>';
+
+      this.base = new _xmldom.DOMParser().parseFromString(data, 'text/xml');
+    }
+  }, {
+    key: 'render',
+    value: function render(type, node, _render) {
+      var result = '';
+      if (node.nodeName === 'e') {
+        if (type === 'latex' && _render) {
+          result = node.getAttribute('render');
+        } else if (type === 'text') {
+          result = node.textContent;
+          var prev = node.previousSibling && !_symbols.Symbols[node.previousSibling.getAttribute('type')].op;
+          var next = node.nextSibling && !_symbols.Symbols[node.nextSibling.getAttribute('type')].op;
+          if (result === '' && prev && next) {
+            result = '*';
+          } else if (!Doc.getCAttribute(node, 'text')) {
+            result = result.replace(/([a-zA-Z])(?=\.)/g, '$1*').replace(/(\.)(?=[a-zA-Z])/g, '$1*').replace(/([a-zA-Z])(?=[a-zA-Z0-9])/g, '$1*').replace(/([a-zA-Z0-9])(?=[a-zA-Z])/g, '$1*');
+            if (prev) {
+              result = result.replace(/^([a-zA-Z0-9])/g, '*$1');
+            }
+            if (next) {
+              result = result.replace(/([a-zA-Z0-9])$/g, '$1*');
+            }
           }
         } else {
-          ans += '\\xmlClass{temp-cursor}{' + caret + '}';
+          result = node.textContent;
         }
-      } else if (text.length === 0) {
-        if (n.parentNode.childElementCount === 1) {
-          ans = '\\xmlClass{placeholder my-elem my-blank loc_' +
-            n.getAttribute('path') + '_0}{[?]}';
-        } else {
-          // Here, we add in a small element so that we can
-          // use the mouse to select these areas
-          ans = '\\phantom{\\xmlClass{my-elem my-blank loc_' +
-            n.getAttribute('path') + '_0}{\\cursor{0.1ex}{1ex}}}';
+        return result;
+      }
+
+      var results = [];
+      for (var n = node.firstChild; n != null; n = n.nextSibling) {
+        results.push(this.render(type, n, _render));
+      }
+
+      if (node.nodeName === 'l') {
+        return results;
+      } else if (node.nodeName === 'f') {
+        var output = _symbols.Symbols[node.getAttribute('type')].output;
+        if (type === 'latex' && Doc.isSmall(node) && 'small_latex' in output) {
+          type = 'small_latex';
         }
-      }
-      if (i < text.length) {
-        ans += '\\xmlClass{my-elem loc_' + n.getAttribute('path') + '_' + i +
-          '}{' + text[i] + '}';
-      }
-    }
-    if (Doc.getCAttribute(n, 'text') && n === this.current) {
-      ans = '\\xmlClass{my-text}{{' + ans + '}}';
-    }
-    n.setAttribute('render', ans);
-    n.removeAttribute('path');
-  } else {
-    for (var c = n.firstChild; c != null; c = c.nextSibling) {
-      this.addCursorClasses(c);
-    }
-  }
-};
 
-Backend.prototype.removeCursorClasses = function (n) {
-  if (n.nodeName === 'e') {
-    n.removeAttribute('path');
-    n.removeAttribute('render');
-    n.removeAttribute('current');
-    n.removeAttribute('temp');
-  } else {
-    for (var c = n.firstChild; c != null; c = c.nextSibling) {
-      if (c.nodeType === 1) {
-        this.removeCursorClasses(c);
-      }
-    }
-  }
-};
-
-Backend.prototype.downFromF = function () {
-  var nn = this.current.firstChild;
-  while (nn.nodeName === 'l') {
-    nn = nn.firstChild;
-  }
-  this.current = nn.firstChild;
-};
-
-Backend.prototype.downFromFToBlank = function () {
-  var nn = this.current.firstChild;
-  while (nn != null && !(nn.childNodes.length === 1 &&
-      nn.firstChild.textContent.length === 0)) {
-    nn = nn.nextSibling;
-  }
-  if (nn != null) {
-    while (nn.nodeName === 'l') {
-      nn = nn.firstChild;
-    }
-    this.current = nn.firstChild;
-  } else {
-    this.downFromF();
-  }
-};
-
-Backend.prototype.deleteFromF = function (toInsert) {
-  var n = this.current;
-  var p = n.parentNode;
-  var prev = n.previousSibling;
-  var next = n.nextSibling;
-  var middle = toInsert || '';
-  var newNode = this.makeE(prev.textContent + middle + next.textContent);
-  this.current = newNode;
-  this.caret = prev.textContent.length;
-  p.insertBefore(newNode, prev);
-  p.removeChild(prev);
-  p.removeChild(n);
-  p.removeChild(next);
-};
-
-Backend.prototype.symbolToNode = function (name, content) {
-  var base = this.doc.base;
-  var s = Symbols.symbols[name];
-  var f = base.createElement('f');
-  f.setAttribute('type', name);
-
-  var refsCount = 0;
-  var lists = {};
-
-  // Make the b nodes for rendering each output
-  var out = s['output']['latex'].split(/(\{\$[0-9]+(?:\{[^}]+\})*\})/g);
-  for (var i = 0; i < out.length; i++) {
-    var m = out[i].match(/^\{\$([0-9]+)((?:\{[^}]+\})*)\}$/);
-    if (m) {
-      if (m[2].length > 0) {
-        lists[refsCount] = m[2].match(/\{[^}]*\}/g).length;
-      }
-      refsCount++;
-    }
-  }
-
-  // Now make the c nodes for storing the content
-  for (var i = 0; i < refsCount; i++) { // eslint-disable-line no-redeclare
-    var nc = base.createElement('c');
-    if (i in content) {
-      var nodeList = content[i];
-      for (var se = 0; se < nodeList.length; se++) {
-        nc.appendChild(nodeList[se].cloneNode(true));
-      }
-    } else {
-      nc.appendChild(this.makeE(''));
-    }
-    if (i in lists) {
-      var par = f;
-      for (var j = 0; j < lists[i]; j++) {
-        var nl = base.createElement('l');
-        par.appendChild(nl);
-        par = nl;
-        if (j === lists[i] - 1) {
-          nl.appendChild(nc);
+        var out = output[type].split(/(\{\$[0-9]+(?:\{[^}]+\})*\})/g);
+        for (var i = 0; i < out.length; i++) {
+          var m = out[i].match(/^\{\$([0-9]+)((?:\{[^}]+\})*)\}$/);
+          if (!m) {
+            result += out[i];
+          } else if (m[2].length === 0) {
+            result += results[parseInt(m[1]) - 1];
+          } else {
+            (function () {
+              var mm = m[2].match(/\{[^}]*\}/g);
+              var joiner = function joiner(d, l) {
+                return d === 0 ? l : l.map(function (x) {
+                  return joiner(d - 1, x);
+                }).join(mm[d - 1].substring(1, mm[d - 1].length - 1));
+              };
+              result += joiner(mm.length, results[parseInt(m[1]) - 1]);
+            })();
+          }
         }
-      }
-    } else {
-      f.appendChild(nc);
-    }
-  }
-  return f;
-};
-
-Backend.prototype.insertSymbol = function (name) {
-  if (Doc.getCAttribute(this.current, 'text') || this.isBlacklisted(name)) {
-    return false;
-  }
-
-  if (name === 'pow' && this.caret === 0 && this.current.parentNode.parentNode
-    .nodeName === 'f' && this.current.parentNode.childNodes.length === 1) {
-    this.current = this.current.parentNode.parentNode.nextSibling;
-  }
-
-  var s = Symbols.symbols[name];
-  var content = {};
-  var leftPiece, rightPiece;
-  var cur = s['current'] == null ? 0 : parseInt(s['current']);
-  var toRemove = [];
-  var toReplace = null;
-  var replace = false;
-
-  if (cur > 0) {
-    cur--;
-    if (this.selStatus !== Backend.SEL_NONE) {
-      var sel = this.getSelection();
-      toRemove = sel.involved;
-      leftPiece = this.makeE(sel.remnant.textContent.slice(0, this.selStart.caret));
-      rightPiece = this.makeE(sel.remnant.textContent.slice(this.selStart.caret));
-      content[cur] = sel.nodeList;
-    } else if (s['current_type'] === 'token') {
-      // If we're at the beginning, then the token is the previous f node
-      if (this.caret === 0 && this.current.previousSibling != null) {
-        content[cur] = [this.makeE(''), this.current.previousSibling,
-          this.makeE('')];
-        toReplace = this.current.previousSibling;
-        replace = true;
       } else {
-        // look for [0-9.]+|[a-zA-Z] immediately preceeding the caret and
-        // use that as token
-        var prev = this.current.textContent.substring(0, this.caret);
-        var token = prev.match(/[0-9.]+$|[a-zA-Z]$/);
-        if (token != null && token.length > 0) {
-          token = token[0];
-          leftPiece = this.makeE(this.current.textContent
-            .slice(0, this.caret - token.length));
-          rightPiece = this.makeE(this.current.textContent.slice(this.caret));
-          content[cur] = [this.makeE(token)];
+        result = results.join('');
+        if (type === 'latex' && node.hasAttribute('parentheses')) {
+          result = '\\left(' + result + '\\right)';
         }
       }
+      return result;
     }
-  }
-  if (!replace && (leftPiece == null || rightPiece == null)) {
-    leftPiece = this.makeE(this.current.textContent.slice(0, this.caret));
-    rightPiece = this.makeE(this.current.textContent.slice(this.caret));
-    toRemove = [this.current];
-  }
-
-  // By now:
-  // 
-  // content contains whatever we want to pre-populate the 'current' field
-  // with (if any)
-  //
-  // rightPiece contains whatever content was in an involved node
-  // to the right of the cursor but is not part of the insertion.
-  // Analogously for leftPiece
-  //
-  // Thus all we should have to do now is symbolToNode(sym_type,
-  // content) and then add the leftPiece, resulting node, and
-  // rightPiece in that order.
-  var currentParent = this.current.parentNode;
-
-  var f = this.symbolToNode(name, content);
-
-  var next = this.current.nextSibling;
-
-  if (replace) {
-    currentParent.replaceChild(f, toReplace);
-  } else {
-    if (toRemove.length === 0) {
-      this.current.parentNode.removeChild(this.current);
+  }, {
+    key: 'root',
+    get: function get() {
+      return this.base.documentElement;
     }
-
-    for (var i = 0; i < toRemove.length; i++) {
-      if (next === toRemove[i]) {
-        next = next.nextSibling;
+  }], [{
+    key: 'isSmall',
+    value: function isSmall(node) {
+      node = node.parentNode;
+      while (node != null && node.nodeName !== 'm') {
+        if (Doc.getCAttribute(node, 'small')) {
+          return true;
+        }
+        node = node.parentNode;
+        while (node != null && node.nodeName !== 'c') {
+          node = node.parentNode;
+        }
       }
-      currentParent.removeChild(toRemove[i]);
-    }
-    currentParent.insertBefore(leftPiece, next);
-    currentParent.insertBefore(f, next);
-    currentParent.insertBefore(rightPiece, next);
-  }
-
-  this.caret = 0;
-  this.current = f;
-  if (s['char']) {
-    this.current = this.current.nextSibling;
-  } else {
-    this.downFromFToBlank();
-  }
-
-  this.clearSelection();
-  this.checkpoint();
-  return true;
-};
-
-Backend.prototype.getSelection = function () {
-  if (this.selStatus === Backend.SEL_NONE) {
-    return null;
-  }
-  var involved = [];
-  var nodeList = [];
-  var remnant = null;
-
-  if (this.selStart.node === this.selEnd.node) {
-    return {
-      'nodeList': [this.makeE(this.selStart.node.textContent
-        .substring(this.selStart.caret, this.selEnd.caret))],
-      'remnant': this.makeE(this.selStart.node.textContent
-        .substring(0, this.selStart.caret) + this.selEnd.node.textContent
-          .substring(this.selEnd.caret)),
-      'involved': [this.selStart.node]
-    };
-  }
-
-  nodeList.push(this.makeE(this.selStart.node.textContent
-    .substring(this.selStart.caret)));
-  involved.push(this.selStart.node);
-  involved.push(this.selEnd.node);
-  remnant = this.makeE(this.selStart.node.textContent.substring(0, this.selStart
-    .caret) + this.selEnd.node.textContent.substring(this.selEnd.caret));
-  var n = this.selStart.node.nextSibling;
-  while (n != null && n !== this.selEnd.node) {
-    involved.push(n);
-    nodeList.push(n);
-    n = n.nextSibling;
-  }
-  nodeList.push(this.makeE(this.selEnd.node.textContent
-    .substring(0, this.selEnd.caret)));
-  return { 'nodeList': nodeList,
-    'remnant': remnant,
-    'involved': involved,
-    'cursor': 0 };
-};
-
-Backend.prototype.makeE = function (text) {
-  var base = this.doc.base;
-  var newNode = base.createElement('e');
-  newNode.appendChild(base.createTextNode(text));
-  return newNode;
-};
-
-Backend.prototype.insertString = function (s) {
-  if (this.selStatus !== Backend.SEL_NONE) {
-    this.deleteSelection();
-  }
-  if ((s === '*' && this.checkForPow()) || (s === '=' && this.checkForIneq())) {
-    return;
-  }
-  var value = this.current.textContent;
-  this.current.textContent = value.slice(0, this.caret) + s +
-    value.slice(this.caret);
-  this.caret += s.length;
-  this.checkpoint();
-  if (this.autoreplace) {
-    this.checkForSymbol();
-  }
-};
-
-Backend.prototype.copySelection = function () {
-  var sel = this.getSelection();
-  if (!sel) {
-    return;
-  }
-  Backend.Clipboard = [];
-  for (var i = 0; i < sel.nodeList.length; i++) {
-    Backend.Clipboard.push(sel.nodeList[i].cloneNode(true));
-  }
-  this.clearSelection();
-};
-
-Backend.prototype.cutSelection = function () {
-  var nodeList = this.deleteSelection();
-  if (!nodeList) {
-    return;
-  }
-  Backend.Clipboard = [];
-  for (var i = 0; i < nodeList.length; i++) {
-    Backend.Clipboard.push(nodeList[i].cloneNode(true));
-  }
-  this.checkpoint();
-};
-
-Backend.prototype.insertNodes = function (nodeList, moveCursor) {
-  var clipboard = [];
-  for (var i = 0; i < nodeList.length; i++) {
-    clipboard.push(nodeList[i].cloneNode(true));
-  }
-
-  if (clipboard.length === 1) {
-    if (clipboard[0].firstChild) {
-      this.current.textContent = this.current.textContent.substring(0, this.caret) +
-        clipboard[0].textContent + this.current.textContent.substring(this.caret);
-      if (moveCursor) {
-        this.caret += clipboard[0].textContent.length;
-      }
-    }
-  } else {
-    var nn = this.makeE(clipboard[clipboard.length - 1].textContent +
-      this.current.textContent.substring(this.caret));
-    this.current.textContent = this.current.textContent.substring(0, this.caret) +
-      clipboard[0].textContent;
-    if (this.current.nextSibling == null) {
-      this.current.parentNode.appendChild(nn);
-    } else {
-      this.current.parentNode.insertBefore(nn, this.current.nextSibling);
-    }
-    for (var i = 1; i < clipboard.length - 1; i++) { // eslint-disable-line no-redeclare
-      this.current.parentNode.insertBefore(clipboard[i], nn);
-    }
-    if (moveCursor) {
-      this.current = nn;
-      this.caret = clipboard[clipboard.length - 1].textContent.length;
-    }
-  }
-};
-
-Backend.prototype.paste = function () {
-  this.deleteSelection();
-  if (!Backend.Clipboard || Backend.Clipboard.length === 0) {
-    return;
-  }
-  this.insertNodes(Backend.Clipboard, true);
-  this.checkpoint();
-};
-
-Backend.prototype.clearSelection = function () {
-  this.selStart = null;
-  this.selEnd = null;
-  this.selStatus = Backend.SEL_NONE;
-};
-
-Backend.prototype.deleteSelection = function () {
-  var sel = this.getSelection();
-  if (!sel) {
-    return null;
-  }
-  var selParent = sel.involved[0].parentNode;
-  var selPrev = sel.involved[0].previousSibling;
-  for (var i = 0; i < sel.involved.length; i++) {
-    var n = sel.involved[i];
-    selParent.removeChild(n);
-  }
-  if (selPrev == null) {
-    if (selParent.firstChild == null) {
-      selParent.appendChild(sel.remnant);
-    } else {
-      selParent.insertBefore(sel.remnant, selParent.firstChild);
-    }
-  } else if (selPrev.nodeName === 'f') {
-    if (selPrev.nextSibling == null) {
-      selParent.appendChild(sel.remnant);
-    } else {
-      selParent.insertBefore(sel.remnant, selPrev.nextSibling);
-    }
-  }
-  this.current = sel.remnant;
-  this.caret = this.selStart.caret;
-  this.clearSelection();
-  return sel.nodeList;
-};
-
-Backend.prototype.selectAll = function () {
-  this.home(true);
-  this.setSelStart();
-  this.end(true);
-  this.setSelEnd();
-  if (this.selStart.node !== this.selEnd.node ||
-      this.selStart.caret !== this.selEnd.caret) {
-    this.selStatus = Backend.SEL_CURSOR_AT_END;
-  }
-};
-
-Backend.prototype.selectRight = function () {
-  if (this.selStatus === Backend.SEL_NONE) {
-    this.setSelStart();
-    this.selStatus = Backend.SEL_CURSOR_AT_END;
-  }
-  if (this.caret >= this.current.textContent.length) {
-    var nn = this.current.nextSibling;
-    if (nn != null) {
-      this.current = nn.nextSibling;
-      this.caret = 0;
-      this.setSelection(Backend.SEL_CURSOR_AT_END);
-    } else {
-      this.setSelection(Backend.SEL_CURSOR_AT_END);
-    }
-  } else {
-    this.caret += 1;
-    this.setSelection(Backend.SEL_CURSOR_AT_END);
-  }
-  if (this.selStart.node === this.selEnd.node &&
-      this.selStart.caret === this.selEnd.caret) {
-    this.clearSelection();
-  }
-};
-
-Backend.prototype.setSelection = function (sstatus, mouse) {
-  if (this.selStatus === Backend.SEL_NONE || mouse) {
-    this.selStatus = sstatus;
-  }
-  if (this.selStatus === Backend.SEL_CURSOR_AT_START) {
-    this.setSelStart();
-  } else if (this.selStatus === Backend.SEL_CURSOR_AT_END) {
-    this.setSelEnd();
-  }
-};
-
-Backend.prototype.selectLeft = function () {
-  if (this.selStatus === Backend.SEL_NONE) {
-    this.setSelEnd();
-    this.selStatus = Backend.SEL_CURSOR_AT_START;
-  }
-  if (this.caret <= 0) {
-    var nn = this.current.previousSibling;
-    if (nn != null) {
-      this.current = nn.previousSibling;
-      this.caret = this.current.textContent.length;
-      this.setSelection(Backend.SEL_CURSOR_AT_START);
-    } else {
-      this.setSelection(Backend.SEL_CURSOR_AT_START);
-    }
-  } else {
-    this.caret -= 1;
-    this.setSelection(Backend.SEL_CURSOR_AT_START);
-  }
-  if (this.selStart.node === this.selEnd.node &&
-      this.selStart.caret === this.selEnd.caret) {
-    this.clearSelection();
-  }
-};
-
-Backend.prototype.copyExtendListRight = function () {
-  this.extendList('right', true);
-};
-Backend.prototype.copyExtendListLeft = function () {
-  this.extendList('left', true);
-};
-Backend.prototype.extendListRight = function () {
-  this.extendList('right', false);
-};
-Backend.prototype.extendListLeft = function () {
-  this.extendList('left', false);
-};
-Backend.prototype.extendListUp = function () {
-  this.extendList('up', false);
-};
-Backend.prototype.extendListDown = function () {
-  this.extendList('down', false);
-};
-Backend.prototype.copyExtendListUp = function () {
-  this.extendList('up', true);
-};
-Backend.prototype.copyExtendListDown = function () {
-  this.extendList('down', true);
-};
-
-Backend.prototype.moveVerticalList = function (down) {
-  var n = this.current;
-  while (n.parentNode && n.parentNode.parentNode && !(n.nodeName === 'c' &&
-      n.parentNode.nodeName === 'l' && n.parentNode.parentNode.nodeName === 'l')) {
-    n = n.parentNode;
-  }
-  if (!n.parentNode) {
-    return;
-  }
-  var pos = 1;
-  var cc = n;
-  while (cc.previousSibling != null) {
-    pos++;
-    cc = cc.previousSibling;
-  }
-  var newRow = down ? n.parentNode.nextSibling : n.parentNode.previousSibling;
-  if (!newRow) {
-    return;
-  }
-  var idx = 1;
-  var nn = newRow.firstChild;
-  while (idx < pos) {
-    idx++;
-    nn = nn.nextSibling;
-  }
-  this.current = nn.firstChild;
-  this.caret = down ? 0 : this.current.textContent.length;
-};
-
-Backend.prototype.extendList = function (direction, copy) {
-  var base = this.doc.base;
-  var vertical = direction === 'up' || direction === 'down';
-  var before = direction === 'up' || direction === 'left';
-  var name = vertical ? 'l' : 'c';
-  var n = this.current;
-  while (n.parentNode && !(n.nodeName === name && n.parentNode.nodeName === 'l')) {
-    n = n.parentNode;
-  }
-  if (!n.parentNode) {
-    return;
-  }
-  this.clearSelection();
-  var toInsert;
-
-  // check if 2D and horizontal and extend all the other rows if so 
-  if (!vertical && n.parentNode.parentNode.nodeName === 'l') {
-    toInsert = base.createElement('c');
-    toInsert.appendChild(this.makeE(''));
-    var pos = 0;
-    var cc = n;
-    while (cc.previousSibling != null) {
-      pos++;
-      cc = cc.previousSibling;
-    }
-    var toModify = [];
-    for (var nn = n.parentNode.parentNode.firstChild; nn != null; nn =
-        nn.nextSibling) {
-      toModify.push(nn.childNodes[pos]);
-    }
-    for (var j = 0; j < toModify.length; j++) {
-      var node = toModify[j];
-      if (copy) {
-        node.parentNode.insertBefore(node.cloneNode(true),
-          before ? node : node.nextSibling);
-      } else {
-        node.parentNode.insertBefore(toInsert.cloneNode(true),
-          before ? node : node.nextSibling);
-      }
-    }
-    this.current = before ? n.previousSibling.lastChild : n.nextSibling.firstChild;
-    this.caret = this.current.textContent.length;
-    this.checkpoint();
-    return;
-  }
-
-  if (copy) {
-    toInsert = n.cloneNode(true);
-  } else {
-    if (vertical) {
-      toInsert = base.createElement('l');
-      for (var i = 0; i < n.childElementCount; i++) {
-        var c = base.createElement('c');
-        c.appendChild(this.makeE(''));
-        toInsert.appendChild(c);
-      }
-    } else {
-      toInsert = base.createElement('c');
-      toInsert.appendChild(this.makeE(''));
-    }
-  }
-  n.parentNode.insertBefore(toInsert, before ? n : n.nextSibling);
-  if (vertical) {
-    this.current = toInsert.firstChild.firstChild;
-  } else {
-    this.current = toInsert.firstChild;
-  }
-  this.caret = 0;
-  this.checkpoint();
-};
-
-Backend.prototype.removeListColumn = function () {
-  var n = this.current;
-  while (n.parentNode && n.parentNode.parentNode && !(n.nodeName === 'c' &&
-      n.parentNode.nodeName === 'l' && n.parentNode.parentNode.nodeName === 'l')) {
-    n = n.parentNode;
-  }
-  if (!n.parentNode) {
-    return;
-  }
-
-  // Don't remove if there is only a single column:
-  if (n.previousSibling != null) {
-    this.current = n.previousSibling.lastChild;
-    this.caret = this.current.textContent.length;
-  } else if (n.nextSibling != null) {
-    this.current = n.nextSibling.firstChild;
-    this.caret = 0;
-  } else {
-    return;
-  }
-  this.clearSelection();
-
-  var pos = 0;
-  var cc = n;
-
-  // Find position of column
-  while (cc.previousSibling != null) {
-    pos++;
-    cc = cc.previousSibling;
-  }
-  var toModify = [];
-  for (var nn = n.parentNode.parentNode.firstChild; nn != null; nn =
-      nn.nextSibling) {
-    toModify.push(nn.childNodes[pos]);
-  }
-  for (var j = 0; j < toModify.length; j++) {
-    var node = toModify[j];
-    node.parentNode.removeChild(node);
-  }
-};
-
-Backend.prototype.removeListRow = function () {
-  var n = this.current;
-  while (n.parentNode && !(n.nodeName === 'l' && n.parentNode.nodeName === 'l')) {
-    n = n.parentNode;
-  }
-  if (!n.parentNode) {
-    return;
-  }
-  // Don't remove if there is only a single row:
-  if (n.previousSibling != null) {
-    this.current = n.previousSibling.lastChild.lastChild;
-    this.caret = this.current.textContent.length;
-  } else if (n.nextSibling != null) {
-    this.current = n.nextSibling.firstChild.firstChild;
-    this.caret = 0;
-  } else {
-    return;
-  }
-  this.clearSelection();
-  n.parentNode.removeChild(n);
-};
-
-Backend.prototype.removeListItem = function () {
-  var n = this.current;
-  while (n.parentNode && !(n.nodeName === 'c' && n.parentNode.nodeName === 'l')) {
-    n = n.parentNode;
-  }
-  if (!n.parentNode) {
-    return;
-  }
-  if (n.parentNode.parentNode && n.parentNode.parentNode.nodeName === 'l') {
-    this.removeListColumn();
-    return;
-  }
-  if (n.previousSibling != null) {
-    this.current = n.previousSibling.lastChild;
-    this.caret = this.current.textContent.length;
-  } else if (n.nextSibling != null) {
-    this.current = n.nextSibling.firstChild;
-    this.caret = 0;
-  } else {
-    return;
-  }
-  this.clearSelection();
-  n.parentNode.removeChild(n);
-};
-
-Backend.prototype.right = function () {
-  this.clearSelection();
-  if (this.caret >= this.current.textContent.length) {
-    var nodes = this.doc.root().getElementsByTagName('e');
-    var index = Array.prototype.indexOf.call(nodes, this.current);
-    if (index < nodes.length - 1) {
-      this.current = nodes[index + 1];
-      this.caret = 0;
-    }
-  } else {
-    this.caret += 1;
-  }
-};
-
-Backend.prototype.spacebar = function () {
-  if (Doc.getFName(this.current) === 'text') {
-    this.insertString(' ');
-  } else if (Doc.getFName(this.current) === 'symbol') {
-    this.tab();
-  }
-};
-
-Backend.prototype.left = function () {
-  this.clearSelection();
-  if (this.caret <= 0) {
-    var nodes = this.doc.root().getElementsByTagName('e');
-    var index = Array.prototype.indexOf.call(nodes, this.current);
-    if (index > 0) {
-      this.current = nodes[index - 1];
-      this.caret = this.current.textContent.length;
-    }
-  } else {
-    this.caret -= 1;
-  }
-};
-
-Backend.prototype.deleteFromC = function () {
-  var pos = 0;
-  var c = this.current.parentNode;
-  while ((c = c.previousSibling) != null) {
-    pos++;
-  }
-  var idx = Doc.getCAttribute(this.current, 'delete');
-  var node = this.current.parentNode.parentNode.childNodes[pos];
-  var remaining = [];
-  for (var n = node.firstChild; n != null; n = n.nextSibling) {
-    remaining.push(n);
-  }
-  this.current = this.current.parentNode.parentNode;
-  this.deleteFromF();
-  this.insertNodes(remaining, pos > idx);
-};
-
-Backend.prototype.deleteFromE = function () {
-  // return false if we deleted something, and true otherwise.
-  if (this.caret > 0) {
-    var value = this.current.textContent;
-    this.current.textContent = value.slice(0, this.caret - 1) +
-      value.slice(this.caret);
-    this.caret--;
-  } else {
-    // The order of these is important
-    var prev = this.current.previousSibling;
-    var par = this.current.parentNode;
-    if (prev != null && prev.nodeName === 'f') {
-      // We're in an e node just after an f node. 
-      // Move back into the f node (delete it?)
-      if (Symbols.symbols[prev.getAttribute('type')]['char']) {
-        // The previous node is an f node but is really just a character. Delete it.
-        this.current = prev;
-        this.deleteFromF();
-        return true;
-      }
-      this.left();
       return false;
-    } else if (par.previousSibling != null) {
-      // We're in a c child of an f node, but not the first one.
-      // Go to the previous c
-      if (Doc.getCAttribute(this.current, 'delete')) {
-        this.deleteFromC();
+    }
+  }, {
+    key: 'isParenthesesOmittable',
+    value: function isParenthesesOmittable(n) {
+      var value = n.firstChild.textContent;
+      if (n.childElementCount === 3 && value === '' && n.lastChild.textContent === '') {
+        var name = n.childNodes[1].getAttribute('type');
+        return _symbols.Symbols[name].char || name === 'paren';
+      }
+      return n.childElementCount === 1 && (value.length === 1 || !(0, _isNan2.default)(value - parseFloat(value)));
+    }
+  }, {
+    key: 'getFName',
+    value: function getFName(node) {
+      if (node.nodeName === 'e') {
+        node = node.parentNode;
+      }
+      if (node.parentNode.nodeName === 'f') {
+        return node.parentNode.getAttribute('type');
+      }
+      return null;
+    }
+  }, {
+    key: 'getCAttribute',
+    value: function getCAttribute(node, attr) {
+      if (node.nodeName === 'e') {
+        node = node.parentNode;
+      }
+      var name = Doc.getFName(node);
+      if (name) {
+        var index = Doc.indexOfNode(node);
+
+        var attrs = _symbols.Symbols[name].attrs;
+        if (attrs && attrs[index] && attrs[index][attr]) {
+          return attrs[index][attr];
+        }
+      }
+      return null;
+    }
+  }, {
+    key: 'indexOfNode',
+    value: function indexOfNode(node) {
+      var pos = 0;
+      while ((node = node.previousSibling) != null) {
+        pos++;
+      }
+      return pos;
+    }
+  }, {
+    key: 'getPath',
+    value: function getPath(node) {
+      return node.nodeName === 'm' ? 'loc' : Doc.getPath(node.parentNode) + '_' + Doc.indexOfNode(node);
+    }
+  }, {
+    key: 'getArrayIndex',
+    value: function getArrayIndex(node, twod) {
+      while (node.parentNode && !(node.nodeName === 'c' && node.parentNode.nodeName === 'l' && (!twod || node.parentNode.parentNode.nodeName === 'l'))) {
+        node = node.parentNode;
+      }
+      if (!node.parentNode) {
+        return null;
+      }
+
+      var index = [];
+      while (node.parentNode.nodeName === 'l') {
+        index.push([node, Doc.indexOfNode(node)]);
+        node = node.parentNode;
+      }
+      return index;
+    }
+  }]);
+  return Doc;
+}();
+
+exports.default = Doc;
+
+},{"./symbols":5,"babel-runtime/core-js/number/is-nan":12,"babel-runtime/helpers/classCallCheck":22,"babel-runtime/helpers/createClass":23,"xmldom":6}],3:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _defineProperty2 = require('babel-runtime/helpers/defineProperty');
+
+var _defineProperty3 = _interopRequireDefault(_defineProperty2);
+
+var _keys = require('babel-runtime/core-js/object/keys');
+
+var _keys2 = _interopRequireDefault(_keys);
+
+var _toConsumableArray2 = require('babel-runtime/helpers/toConsumableArray');
+
+var _toConsumableArray3 = _interopRequireDefault(_toConsumableArray2);
+
+var _from = require('babel-runtime/core-js/array/from');
+
+var _from2 = _interopRequireDefault(_from);
+
+var _slicedToArray2 = require('babel-runtime/helpers/slicedToArray');
+
+var _slicedToArray3 = _interopRequireDefault(_slicedToArray2);
+
+var _assign = require('babel-runtime/core-js/object/assign');
+
+var _assign2 = _interopRequireDefault(_assign);
+
+var _getPrototypeOf = require('babel-runtime/core-js/object/get-prototype-of');
+
+var _getPrototypeOf2 = _interopRequireDefault(_getPrototypeOf);
+
+var _classCallCheck2 = require('babel-runtime/helpers/classCallCheck');
+
+var _classCallCheck3 = _interopRequireDefault(_classCallCheck2);
+
+var _createClass2 = require('babel-runtime/helpers/createClass');
+
+var _createClass3 = _interopRequireDefault(_createClass2);
+
+var _possibleConstructorReturn2 = require('babel-runtime/helpers/possibleConstructorReturn');
+
+var _possibleConstructorReturn3 = _interopRequireDefault(_possibleConstructorReturn2);
+
+var _inherits2 = require('babel-runtime/helpers/inherits');
+
+var _inherits3 = _interopRequireDefault(_inherits2);
+
+var _eventemitter = require('eventemitter3');
+
+var _eventemitter2 = _interopRequireDefault(_eventemitter);
+
+var _doc = require('./doc');
+
+var _doc2 = _interopRequireDefault(_doc);
+
+var _symbols = require('./symbols');
+
+var _cursor = require('./cursor');
+
+var _cursor2 = _interopRequireDefault(_cursor);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+var Editor = function (_EventEmitter) {
+  (0, _inherits3.default)(Editor, _EventEmitter);
+
+  function Editor(config) {
+    (0, _classCallCheck3.default)(this, Editor);
+
+    var _this = (0, _possibleConstructorReturn3.default)(this, (Editor.__proto__ || (0, _getPrototypeOf2.default)(Editor)).call(this));
+
+    _this.config = (0, _assign2.default)({}, Editor.DEFAULT_CONFIG, config);
+    _this.autoreplace = true;
+
+    for (var e in _this.config.events) {
+      _this.on(e, _this.config.events[e]);
+    }
+
+    _this.doc = new _doc2.default();
+
+    _this.mainCursor = new _cursor2.default();
+    _this.selCursor = new _cursor2.default();
+    _this.tempCursor = new _cursor2.default();
+
+    _this.setContent(_this.config.xmlContent);
+    return _this;
+  }
+
+  (0, _createClass3.default)(Editor, [{
+    key: 'getContent',
+    value: function getContent(type, render) {
+      this.prepareOutput(this.doc.root, render);
+      var output = this.doc.getContent(type, render);
+      this.postOutput(this.doc.root);
+      return output;
+    }
+  }, {
+    key: 'setContent',
+    value: function setContent(data, cursorPos) {
+      this.doc.setContent(data);
+      this.mainCursor.set(this.doc.root, cursorPos);
+      this.clearSelection();
+      this.undoData = [];
+      this.redoData = [];
+    }
+  }, {
+    key: 'select',
+    value: function select(from, to) {
+      this.mainCursor = to;
+      this.selCursor = from;
+      if (!from.equals(to)) {
+        this.selStatus = from.directionTo(to);
       } else {
-        this.left();
+        this.clearSelection();
+      }
+    }
+  }, {
+    key: 'moveSelection',
+    value: function moveSelection(dir) {
+      if (!this.selStatus) {
+        this.selStatus = dir;
+        this.selCursor = this.mainCursor.clone();
+      }
+      if (dir < 0 && this.mainCursor.pos <= 0) {
+        var prev = this.mainCursor.node.previousSibling;
+        if (prev != null) {
+          this.mainCursor.set(prev.previousSibling, true);
+        }
+      } else if (dir > 0 && this.mainCursor.pos >= this.mainCursor.value.length) {
+        var next = this.mainCursor.node.nextSibling;
+        if (next != null) {
+          this.mainCursor.set(next.nextSibling);
+        }
+      } else {
+        this.mainCursor.pos += dir;
+      }
+      if (this.selCursor.equals(this.mainCursor)) {
+        this.clearSelection();
+      }
+    }
+  }, {
+    key: 'selectAll',
+    value: function selectAll() {
+      this.select(new _cursor2.default(this.doc.root), new _cursor2.default(this.doc.root, true));
+    }
+  }, {
+    key: 'clearSelection',
+    value: function clearSelection() {
+      this.selCursor.set(null);
+      this.selStatus = 0;
+    }
+  }, {
+    key: 'getSelection',
+    value: function getSelection() {
+      if (!this.selStatus) {
+        return null;
+      }
+
+      var _ref = this.selStatus < 0 ? [this.mainCursor, this.selCursor] : [this.selCursor, this.mainCursor],
+          _ref2 = (0, _slicedToArray3.default)(_ref, 2),
+          start = _ref2[0],
+          end = _ref2[1];
+
+      var left = start.value;
+      var right = end.value;
+
+      var nodeList = [];
+      var involved = [];
+      var remnant = this.makeE(left.substring(0, start.pos) + right.substring(end.pos));
+
+      if (start.node === end.node) {
+        return {
+          nodeList: [this.makeE(left.substring(start.pos, end.pos))],
+          involved: [start.node],
+          remnant: remnant
+        };
+      }
+
+      nodeList.push(this.makeE(left.substring(start.pos)));
+      involved.push(start.node);
+      for (var n = start.node.nextSibling; n !== end.node; n = n.nextSibling) {
+        nodeList.push(n);
+        involved.push(n);
+      }
+      nodeList.push(this.makeE(right.substring(0, end.pos)));
+      involved.push(end.node);
+
+      return {
+        nodeList: nodeList,
+        involved: involved,
+        remnant: remnant
+      };
+    }
+  }, {
+    key: 'deleteSelection',
+    value: function deleteSelection() {
+      var sel = this.getSelection();
+      if (!sel) {
+        return null;
+      }
+      this.saveState();
+
+      var selParent = sel.involved[0].parentNode;
+      var selPrev = sel.involved[0].previousSibling;
+      sel.involved.forEach(function (x) {
+        return selParent.removeChild(x);
+      });
+      if (selPrev == null) {
+        if (selParent.firstChild == null) {
+          selParent.appendChild(sel.remnant);
+        } else {
+          selParent.insertBefore(sel.remnant, selParent.firstChild);
+        }
+      } else if (selPrev.nextSibling == null) {
+        selParent.appendChild(sel.remnant);
+      } else {
+        selParent.insertBefore(sel.remnant, selPrev.nextSibling);
+      }
+      this.mainCursor.set(sel.remnant, this.selStatus < 0 ? this.mainCursor.pos : this.selCursor.pos);
+      this.clearSelection();
+      return sel;
+    }
+  }, {
+    key: 'clipboardSelection',
+    value: function clipboardSelection(cut) {
+      var sel = cut ? this.deleteSelection() : this.getSelection();
+      if (!sel) {
+        return;
+      }
+      Editor.Clipboard = sel.nodeList.map(function (x) {
+        return x.cloneNode(true);
+      });
+    }
+  }, {
+    key: 'insertNodes',
+    value: function insertNodes(nodeList, moveCursor) {
+      var clipboard = nodeList.map(function (x) {
+        return x.cloneNode(true);
+      });
+      var value = this.mainCursor.value;
+      var first = clipboard.shift().textContent;
+      if (clipboard.length === 0) {
+        this.mainCursor.value = value.substring(0, this.mainCursor.pos) + first + value.substring(this.mainCursor.pos);
+        if (moveCursor) {
+          this.mainCursor.pos += first.length;
+        }
+      } else {
+        var p = this.mainCursor.node.parentNode;
+        var last = clipboard.pop().textContent;
+        this.mainCursor.value = value.substring(0, this.mainCursor.pos) + first;
+
+        var node = this.makeE(last + value.substring(this.mainCursor.pos));
+        if (this.mainCursor.node.nextSibling == null) {
+          p.appendChild(node);
+        } else {
+          p.insertBefore(node, this.mainCursor.node.nextSibling);
+        }
+        clipboard.forEach(function (x) {
+          return p.insertBefore(x, node);
+        });
+        if (moveCursor) {
+          this.mainCursor.set(node, last.length);
+        }
+      }
+    }
+  }, {
+    key: 'paste',
+    value: function paste() {
+      if (Editor.Clipboard.length === 0) {
+        return;
+      }
+      this.deleteSelection();
+      this.insertNodes(Editor.Clipboard, true);
+    }
+  }, {
+    key: 'moveCursor',
+    value: function moveCursor(dir, out) {
+      this.clearSelection();
+      if (dir === 'up' || dir === 'down') {
+        var t = _doc2.default.getCAttribute(this.mainCursor.node, dir);
+        if (t) {
+          this.mainCursor.set(this.mainCursor.node.parentNode.parentNode.childNodes[t - 1], true);
+        } else {
+          var index = _doc2.default.getArrayIndex(this.mainCursor.node, true);
+          if (!index) {
+            return;
+          }
+          var newRow = dir === 'down' ? index[1][0].nextSibling : index[1][0].previousSibling;
+          if (newRow) {
+            this.mainCursor.set(newRow.childNodes[index[0][1]], dir === 'up');
+          }
+        }
+      } else if (dir < 0 && this.mainCursor.pos <= 0 || dir > 0 && this.mainCursor.pos >= this.mainCursor.value.length) {
+        var nodes = this.doc.root.getElementsByTagName('e');
+        var _index = Array.prototype.indexOf.call(nodes, this.mainCursor.node);
+        if (dir < 0 && _index > 0 || dir > 0 && _index < nodes.length - 1) {
+          this.mainCursor.set(nodes[_index + dir], dir < 0);
+        }
+      } else if (!out) {
+        this.mainCursor.pos += dir;
+      }
+    }
+  }, {
+    key: 'home',
+    value: function home() {
+      this.clearSelection();
+      this.mainCursor.set(this.doc.root);
+    }
+  }, {
+    key: 'end',
+    value: function end() {
+      this.clearSelection();
+      this.mainCursor.set(this.doc.root, true);
+    }
+  }, {
+    key: 'pushState',
+    value: function pushState(stack) {
+      this.candidates = null;
+
+      this.mainCursor.node.setAttribute('current', this.mainCursor.pos.toString());
+      stack.push(this.doc.base.cloneNode(true));
+      this.mainCursor.node.removeAttribute('current');
+    }
+  }, {
+    key: 'popState',
+    value: function popState(from, to) {
+      this.clearSelection();
+      if (from.length === 0) {
+        return;
+      }
+      this.pushState(to);
+      this.doc.base = from.pop().cloneNode(true);
+      this.mainCursor.node = this.doc.root.querySelector('e[current]');
+      this.mainCursor.pos = parseInt(this.mainCursor.node.getAttribute('current'));
+      this.mainCursor.node.removeAttribute('current');
+    }
+  }, {
+    key: 'saveState',
+    value: function saveState() {
+      this.pushState(this.undoData);
+      this.redoData = [];
+
+      this.emit('change');
+      this.render();
+    }
+  }, {
+    key: 'undo',
+    value: function undo() {
+      this.popState(this.undoData, this.redoData);
+    }
+  }, {
+    key: 'redo',
+    value: function redo() {
+      this.popState(this.redoData, this.undoData);
+    }
+  }, {
+    key: 'deleteFromC',
+    value: function deleteFromC() {
+      var pos = _doc2.default.indexOfNode(this.mainCursor.node.parentNode);
+      var index = _doc2.default.getCAttribute(this.mainCursor.node, 'delete');
+      var f = this.mainCursor.node.parentNode.parentNode;
+      var remaining = (0, _from2.default)(f.childNodes[index - 1].childNodes);
+      this.deleteFromF(f);
+      this.insertNodes(remaining, pos >= index);
+    }
+  }, {
+    key: 'deleteFromF',
+    value: function deleteFromF(node) {
+      var p = node.parentNode;
+      var prev = node.previousSibling;
+      var next = node.nextSibling;
+      var newNode = this.makeE(prev.textContent + next.textContent);
+      p.insertBefore(newNode, prev);
+      this.mainCursor.set(newNode, prev.textContent.length);
+      p.removeChild(prev);
+      p.removeChild(node);
+      p.removeChild(next);
+    }
+  }, {
+    key: 'deleteBackward',
+    value: function deleteBackward() {
+      if (this.deleteSelection() != null) {
+        return;
+      }
+      if (this.mainCursor.pos > 0) {
+        var value = this.mainCursor.value;
+        this.mainCursor.value = value.slice(0, this.mainCursor.pos - 1) + value.slice(this.mainCursor.pos);
+        this.mainCursor.pos--;
+      } else {
+        var prev = this.mainCursor.node.previousSibling;
+        var p = this.mainCursor.node.parentNode;
+        if (prev != null) {
+          //  && prev.nodeName === 'f'
+          if (_symbols.Symbols[prev.getAttribute('type')].char) {
+            this.deleteFromF(prev);
+          } else {
+            this.moveCursor(-1);
+          }
+        } else if (p.previousSibling != null) {
+          if (_doc2.default.getCAttribute(this.mainCursor.node, 'delete')) {
+            this.deleteFromC();
+          } else {
+            this.moveCursor(-1);
+          }
+        } else if (prev == null && p.nodeName === 'c' && p.previousSibling == null) {
+          while (p.parentNode.nodeName === 'l') {
+            //  || p.parentNode.nodeName === 'c'
+            p = p.parentNode;
+          }
+          if (_doc2.default.getCAttribute(p, 'delete')) {
+            this.deleteFromC();
+          } else {
+            this.deleteFromF(p.parentNode);
+          }
+        }
+      }
+    }
+  }, {
+    key: 'deleteForward',
+    value: function deleteForward() {
+      if (this.deleteSelection() != null) {
+        return;
+      }
+      if (this.mainCursor.pos < this.mainCursor.value.length) {
+        var value = this.mainCursor.value;
+        this.mainCursor.value = value.slice(0, this.mainCursor.pos) + value.slice(this.mainCursor.pos + 1);
+      } else if (this.mainCursor.node.nextSibling != null) {
+        this.deleteFromF(this.mainCursor.node.nextSibling);
+      }
+    }
+  }, {
+    key: 'extendList',
+    value: function extendList(dir, copy) {
+      var vertical = dir === 'up' || dir === 'down';
+      var before = dir === 'up' || dir === 'left';
+      var index = _doc2.default.getArrayIndex(this.mainCursor.node, vertical);
+      if (!index) {
+        return;
+      }
+
+      var _index2 = (0, _slicedToArray3.default)(index[vertical ? 1 : 0], 2),
+          n = _index2[0],
+          pos = _index2[1];
+
+      this.clearSelection();
+      this.saveState();
+
+      for (var nn = n.parentNode.parentNode.firstChild; nn != null; nn = nn.nextSibling) {
+        if (nn.nodeName === 'l') {
+          var node = nn.childNodes[pos];
+          var newNode = void 0;
+          if (!copy) {
+            if (vertical) {
+              newNode = this.doc.base.createElement('l');
+              for (var i = 0; i < node.childElementCount; i++) {
+                var c = this.doc.base.createElement('c');
+                c.appendChild(this.makeE());
+                newNode.appendChild(c);
+              }
+            } else {
+              newNode = this.doc.base.createElement('c');
+              newNode.appendChild(this.makeE());
+            }
+          } else {
+            newNode = node.cloneNode(true);
+          }
+          nn.insertBefore(newNode, before ? node : node.nextSibling);
+        }
+      }
+      var cur = before ? n.previousSibling : n.nextSibling;
+      this.mainCursor.set(vertical ? cur.childNodes[index[0][1]] : cur, before);
+    }
+  }, {
+    key: 'removeList',
+    value: function removeList(vertical) {
+      var index = _doc2.default.getArrayIndex(this.mainCursor.node, vertical);
+      if (!index) {
+        return;
+      }
+
+      var _index3 = (0, _slicedToArray3.default)(index[vertical ? 1 : 0], 2),
+          n = _index3[0],
+          pos = _index3[1];
+
+      var before = n.previousSibling != null;
+      var cur = before ? n.previousSibling : n.nextSibling;
+      if (cur == null) {
+        return;
+      }
+
+      this.clearSelection();
+      this.saveState();
+
+      for (var nn = n.parentNode.parentNode.firstChild; nn != null; nn = nn.nextSibling) {
+        if (nn.nodeName === 'l') {
+          nn.removeChild(nn.childNodes[pos]);
+        }
+      }
+      this.mainCursor.set(vertical ? cur.childNodes[index[0][1]] : cur, before);
+    }
+  }, {
+    key: 'renderE',
+    value: function renderE(n, path) {
+      var text = n.textContent;
+      var result = '';
+
+      var caret = _doc2.default.isSmall(n) ? '\\cursor{-0.05em}{0.5em}' : '\\cursor{-0.2ex}{0.7em}';
+      for (var i = 0; i < text.length + 1; i++) {
+        var current = new _cursor2.default(n, i);
+        if (current.equals(this.mainCursor)) {
+          if (this.selStatus > 0) {
+            result += '}';
+          }
+          if (text.length === 0) {
+            result += '\\class{main-cursor my-elem my-blank loc' + path + '-0}{' + caret + '}';
+          } else {
+            result += '\\class{main-cursor}{' + caret + '}';
+          }
+          if (this.selStatus < 0) {
+            result += '\\class{selection}{';
+          }
+        } else if (current.equals(this.selCursor)) {
+          if (this.selStatus < 0) {
+            result += '}';
+          }
+          if (text.length === 0 && n.parentNode.childElementCount > 1) {
+            result += '\\class{sel-cursor my-elem my-blank loc' + path + '-0}{' + caret + '}';
+          } else {
+            result += '\\class{sel-cursor}{' + caret + '}';
+          }
+          if (this.selStatus > 0) {
+            result += '\\class{selection}{';
+          }
+        } else if (current.equals(this.tempCursor)) {
+          if (text.length > 0) {
+            result += '\\class{temp-cursor}{' + caret + '}';
+          } else if (n.parentNode.childElementCount === 1) {
+            result += '\\class{temp-cursor my-elem my-blank loc' + path + '-0}{[?]}';
+          } else {
+            result += '\\class{temp-cursor my-elem my-blank loc' + path + '-0}{' + caret + '}';
+          }
+        } else if (text.length === 0) {
+          if (n.parentNode.childElementCount === 1) {
+            result = '\\class{placeholder my-elem my-blank loc' + path + '-0}{[?]}';
+          } else {
+            result = '\\phantom{\\class{my-elem my-blank loc' + path + '-0}{\\cursor{0.1ex}{1ex}}}';
+          }
+        }
+        if (i < text.length) {
+          result += '\\class{my-elem loc' + path + '-' + i + '}{' + text[i] + '}';
+        }
+      }
+      if (_doc2.default.getCAttribute(n, 'text')) {
+        if (n === this.mainCursor.node) {
+          result = '\\class{my-text my-active}{{' + result + '}}';
+        } else {
+          result = '\\class{my-text}{{' + result + '}}';
+        }
+      }
+      return result;
+    }
+  }, {
+    key: 'prepareOutput',
+    value: function prepareOutput(n, render) {
+      var path = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : '';
+
+      if (n.nodeName === 'e') {
+        if (render) {
+          n.setAttribute('render', this.renderE(n, path));
+        }
+      } else {
+        if (n.nodeName === 'c' && _doc2.default.getCAttribute(n, 'parentheses') && (n === this.mainCursor.node.parentNode || this.tempCursor.node && n === this.tempCursor.node.parentNode || !_doc2.default.isParenthesesOmittable(n))) {
+          n.setAttribute('parentheses', '');
+        }
+
+        var count = 0;
+        for (var c = n.firstChild; c != null; c = c.nextSibling) {
+          this.prepareOutput(c, render, path + '_' + count++);
+        }
+      }
+    }
+  }, {
+    key: 'postOutput',
+    value: function postOutput(n) {
+      if (n.nodeName === 'e') {
+        n.removeAttribute('render');
+      } else {
+        if (n.nodeName === 'c') {
+          n.removeAttribute('parentheses');
+        }
+
+        for (var c = n.firstChild; c != null; c = c.nextSibling) {
+          this.postOutput(c);
+        }
+      }
+    }
+  }, {
+    key: 'makeF',
+    value: function makeF(name) {
+      var _this2 = this;
+
+      var content = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : [];
+
+      var base = this.doc.base;
+      var f = base.createElement('f');
+      f.setAttribute('type', name);
+
+      var regex = /{\$([0-9]+)((?:\{[^}]+})*)}/g;
+      var output = _symbols.Symbols[name].output.latex;
+      var m = void 0;
+
+      var _loop = function _loop() {
+        var index = parseInt(m[1]) - 1;
+        var c = base.createElement('c');
+        if (index in content) {
+          content[index].forEach(function (x) {
+            return c.appendChild(x.cloneNode(true));
+          });
+        } else {
+          c.appendChild(_this2.makeE());
+        }
+
+        var count = m[2].split('}').length - 1;
+        var par = f;
+        for (var j = 0; j < count; j++) {
+          var l = base.createElement('l');
+          par.appendChild(l);
+          par = l;
+        }
+        par.appendChild(c);
+      };
+
+      while ((m = regex.exec(output)) !== null) {
+        _loop();
+      }
+      return f;
+    }
+  }, {
+    key: 'makeE',
+    value: function makeE() {
+      var text = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : '';
+
+      var e = this.doc.base.createElement('e');
+      e.appendChild(this.doc.base.createTextNode(text));
+      return e;
+    }
+  }, {
+    key: 'insertString',
+    value: function insertString(s) {
+      this.deleteSelection();
+
+      //
+      var prev = this.mainCursor.node.previousSibling;
+      if (s === '=' && this.config.autoreplace && this.mainCursor.pos === 0 && prev && prev.nodeName === 'f' && ['<', '>'].indexOf(prev.getAttribute('type')) > -1 && this.replaceSymbol(prev, prev.getAttribute('type') + '=')) {
+        return;
+      }
+
+      this.saveState();
+      var value = this.mainCursor.value;
+      this.mainCursor.value = value.slice(0, this.mainCursor.pos) + s + value.slice(this.mainCursor.pos);
+      this.mainCursor.pos += s.length;
+      if (this.config.autoreplace) {
+        this.checkSymbol();
+      }
+    }
+  }, {
+    key: 'replaceSymbol',
+    value: function replaceSymbol(node, name, content) {
+      var symbol = _symbols.Symbols[name];
+      if (!symbol || this.config.blacklist.indexOf(name) > -1) {
         return false;
       }
-    } else if (prev == null && par.nodeName === 'c' &&
-        par.previousSibling == null) {
-      // We're in the first c child of an f node and at the beginning
-      // delete the f node
-      while (par.parentNode.nodeName === 'l' || par.parentNode.nodeName === 'c') {
-        par = par.parentNode;
-      }
-      if (Doc.getCAttribute(par, 'delete')) {
-        this.deleteFromC();
-      } else {
-        this.current = par.parentNode;
-        this.deleteFromF();
-      }
-    } else {
-      // We're at the beginning (hopefully!) 
-      return false;
-    }
-  }
-  return true;
-};
 
-Backend.prototype.deleteForwardFromE = function () {
-  // return false if we deleted something, and true otherwise.
-  if (this.caret < this.current.textContent.length) {
-    var value = this.current.textContent;
-    this.current.textContent = value.slice(0, this.caret) +
-      value.slice(this.caret + 1);
-  } else {
-    // We're at the end
-    if (this.current.nextSibling != null) {
-      // The next node is an f node.  Delete it.
-      this.current = this.current.nextSibling;
-      this.deleteFromF();
-    } else if (this.current.parentNode.nodeName === 'c') {
-      // We're in a c child of an f node.  Do nothing
-      return false;
-    }
-  }
-  return true;
-};
-
-Backend.prototype.backspace = function () {
-  if (this.selStatus !== Backend.SEL_NONE) {
-    this.deleteSelection();
-    this.checkpoint();
-  } else if (this.deleteFromE()) {
-    this.checkpoint();
-  }
-};
-
-Backend.prototype.deleteKey = function () {
-  if (this.selStatus !== Backend.SEL_NONE) {
-    this.deleteSelection();
-    this.checkpoint();
-  } else if (this.deleteForwardFromE()) {
-    this.checkpoint();
-  }
-};
-
-Backend.prototype.tab = function () {
-  if (Doc.getFName(this.current) !== 'symbol') {
-    this.clearSelection();
-    this.checkForSymbol(true);
-    return;
-  }
-  if (this.candidates != null) {
-    var suggestion = this.candidates.shift();
-    this.candidates.push(suggestion);
-    this.clearSelection();
-    this.current.textContent = suggestion;
-    this.caret = suggestion.length;
-  } else {
-    this.checkpoint();
-    var name = this.current.textContent;
-    this.candidates = [];
-    for (var n in Symbols.symbols) {
-      if (n.substr(0, name.length) === name) {
-        this.candidates.push(n);
-      }
-    }
-    if (this.candidates.length > 0) {
-      this.tab();
-    } else {
-      this.candidates = null;
-    }
-  }
-};
-
-Backend.prototype.leftParen = function () {
-  if (Doc.getFName(this.current) === 'symbol') {
-    this.clearSelection();
-    this.replaceSymbol(this.current.parentNode.parentNode, 'func',
-      [[this.current]]);
-  } else {
-    this.insertSymbol('paren');
-  }
-};
-
-Backend.prototype.rightParen = function () {
-  if (this.current.nodeName !== 'e' ||
-      this.caret === this.current.textContent.length) {
-    this.right();
-  }
-};
-
-Backend.prototype.up = function () {
-  this.clearSelection();
-  var t = Doc.getCAttribute(this.current, 'up');
-  if (t) {
-    var f = this.current.parentNode.parentNode;
-    var n = f.firstChild;
-    for (var i = 0; i < t - 1; i++) {
-      n = n.nextSibling;
-    }
-    this.current = n.lastChild;
-    this.caret = this.current.textContent.length;
-  } else {
-    this.moveVerticalList(false);
-  }
-};
-
-Backend.prototype.down = function () {
-  this.clearSelection();
-  var t = Doc.getCAttribute(this.current, 'down');
-  if (t) {
-    var f = this.current.parentNode.parentNode;
-    var n = f.firstChild;
-    for (var i = 0; i < t - 1; i++) {
-      n = n.nextSibling;
-    }
-    this.current = n.lastChild;
-    this.caret = this.current.textContent.length;
-  } else {
-    this.moveVerticalList(true);
-  }
-};
-
-Backend.prototype.home = function (select) {
-  if (!select) {
-    this.clearSelection();
-  }
-  this.current = this.doc.root().firstChild;
-  this.caret = 0;
-};
-
-Backend.prototype.end = function (select) {
-  if (!select) {
-    this.clearSelection();
-  }
-  this.current = this.doc.root().lastChild;
-  this.caret = this.current.textContent.length;
-};
-
-Backend.prototype.checkpoint = function () {
-  var base = this.doc.base;
-  this.current.setAttribute('current', '');
-  this.current.setAttribute('caret', this.caret.toString());
-  this.undoCurrent++;
-  this.undoData[this.undoCurrent] = base.cloneNode(true);
-  this.undoData.splice(this.undoCurrent + 1, this.undoData.length);
-  this.emit('change', { 'old': this.undoData[this.undoCurrent - 1],
-    'new': this.undoData[this.undoCurrent] });
-  this.current.removeAttribute('current');
-  this.current.removeAttribute('caret');
-  this.candidates = null;
-  if (this.editor) {
-    this.editor.render(true);
-  }
-};
-
-Backend.prototype.restore = function (t) {
-  this.doc.base = this.undoData[t].cloneNode(true);
-  this.findCurrent();
-  this.current.removeAttribute('current');
-  this.current.removeAttribute('caret');
-};
-
-Backend.prototype.findCurrent = function () {
-  this.current = this.doc.root().querySelector('e[current]');
-  this.caret = parseInt(this.current.getAttribute('caret'));
-};
-
-Backend.prototype.undo = function () {
-  this.clearSelection();
-  if (this.undoCurrent <= 0) {
-    return;
-  }
-  this.undoCurrent--;
-  this.restore(this.undoCurrent);
-};
-
-Backend.prototype.redo = function () {
-  this.clearSelection();
-  if (this.undoCurrent >= this.undoData.length - 1) {
-    return;
-  }
-  this.undoCurrent++;
-  this.restore(this.undoCurrent);
-};
-
-Backend.prototype.done = function (s) {
-  if (Doc.getFName(this.current) === 'symbol') {
-    this.completeSymbol();
-  } else {
-    this.emit('done');
-  }
-};
-
-Backend.prototype.completeSymbol = function () {
-  var name = this.current.textContent;
-  if (!Symbols.symbols[name]) {
-    return;
-  }
-  this.current = this.current.parentNode.parentNode;
-  this.clearSelection();
-  this.deleteFromF();
-  this.insertSymbol(name);
-};
-
-Backend.prototype.isBlacklisted = function (type) {
-  for (var i = 0; i < this.blacklist.length; i++) {
-    if (type === this.blacklist[i]) {
+      this.saveState();
+      var f = this.makeF(name, content);
+      node.parentNode.replaceChild(f, node);
+      this.mainCursor.set(symbol.char ? f.nextSibling : f);
       return true;
     }
-  }
-  return false;
-};
-
-Backend.prototype.replaceSymbol = function (node, name, content) {
-  var symbol = Symbols.symbols[name];
-  if (!symbol || this.isBlacklisted(name)) {
-    return false;
-  }
-  var f = this.symbolToNode(name, content || []);
-  node.parentNode.replaceChild(f, node);
-  if (!symbol['char']) {
-    this.caret = 0;
-    this.current = f;
-    this.downFromFToBlank();
-  }
-  this.checkpoint();
-  return true;
-};
-
-Backend.prototype.checkForPow = function () {
-  if (this.autoreplace && this.caret === 0 && this.current.previousSibling &&
-      this.current.previousSibling.nodeName === 'f' &&
-      this.current.previousSibling.getAttribute('type') === '*') {
-    this.current = this.current.previousSibling;
-    this.deleteFromF();
-    this.insertSymbol('pow');
-    return true;
-  }
-  return false;
-};
-
-Backend.prototype.checkForIneq = function () {
-  if (this.autoreplace && this.caret === 0 && this.current.previousSibling &&
-      this.current.previousSibling.nodeName === 'f' &&
-      ['<', '>'].indexOf(this.current.previousSibling.getAttribute('type')) > -1) {
-    var n = this.current.previousSibling;
-    return this.replaceSymbol(n, n.getAttribute('type') + '=');
-  }
-  return false;
-};
-
-Backend.prototype.checkForSymbol = function (force) {
-  if (Doc.getCAttribute(this.current, 'text')) {
-    return;
-  }
-  var value = this.current.textContent;
-
-  if (this.current.parentNode.parentNode.nodeName === 'f' &&
-      this.current.parentNode.childNodes.length === 1 && value === 'h') {
-    var n = this.current.parentNode.parentNode;
-    this.replaceSymbol(n, n.getAttribute('type') + 'h');
-    return;
-  }
-  for (var s in Symbols.symbols) {
-    if (!force && ['psi', 'xi'].indexOf(s) > -1) {
-      continue;
-    }
-    if (this.current.nodeName === 'e' &&
-        value.substring(this.caret - s.length, this.caret) === s) {
-      var temp = value;
-      var tempCaret = this.caret;
-      this.current.textContent = value.slice(0, this.caret - s.length) +
-        value.slice(this.caret);
-      this.caret -= s.length;
-      var success = this.insertSymbol(s);
-      if (!success) {
-        this.current.textContent = temp;
-        this.caret = tempCaret;
+  }, {
+    key: 'checkSymbol',
+    value: function checkSymbol(force) {
+      if (_doc2.default.getCAttribute(this.mainCursor.node, 'text')) {
+        return;
       }
-      return;
-    }
-  }
-};
+      if (force) {
+        this.clearSelection();
+      }
+      var value = this.mainCursor.value;
 
-module.exports = Backend;
+      var par = this.mainCursor.node.parentNode;
+      if (par.parentNode.nodeName === 'f' && par.childNodes.length === 1 && value === 'h') {
+        var n = par.parentNode;
+        this.replaceSymbol(n, n.getAttribute('type') + 'h');
+        return;
+      }
 
-},{"./doc.js":3,"./symbols.js":5,"eventemitter3":84}],3:[function(require,module,exports){
-var xmldom = require('./xmldom/node');
-var Symbols = require('./symbols.js');
-
-var Doc = function (data) {
-  this.setContent(data);
-};
-
-Doc.isSmall = function (nn) {
-  var n = nn.parentNode;
-  while (n != null && n.nodeName !== 'm') {
-    if (Doc.getCAttribute(n, 'small')) {
-      return true;
-    }
-    n = n.parentNode;
-    while (n != null && n.nodeName !== 'c') {
-      n = n.parentNode;
-    }
-  }
-  return false;
-};
-
-Doc.getFName = function (n) {
-  if (n.nodeName === 'e') {
-    n = n.parentNode;
-  }
-  if (n.parentNode.nodeName === 'f') {
-    return n.parentNode.getAttribute('type');
-  }
-};
-
-Doc.getCAttribute = function (n, attr) {
-  if (n.nodeName === 'e') {
-    n = n.parentNode;
-  }
-  var name = Doc.getFName(n);
-  if (name) {
-    var index = Array.prototype.indexOf.call(n.parentNode.childNodes, n);
-    var s = Symbols.symbols[name];
-    if (s['attrs'] && s['attrs'][index] && s['attrs'][index][attr]) {
-      return s['attrs'][index][attr];
-    }
-  }
-};
-
-Doc.prototype.isBlank = function () {
-  if (this.base.getElementsByTagName('f').length > 0) {
-    return false;
-  }
-  var l = this.base.getElementsByTagName('e');
-  if (l.length === 1 && (!l[0].firstChild || l[0].firstChild.textContent === '')) {
-    return true;
-  }
-  return false;
-};
-
-Doc.prototype.root = function () {
-  return this.base.documentElement;
-};
-
-Doc.prototype.getContent = function (t, r) {
-  if (t !== 'xml') {
-    return this.render(t, this.root(), r);
-  } else {
-    return (new xmldom.XMLSerializer()).serializeToString(this.base);
-  }
-};
-
-Doc.prototype.setContent = function (data) {
-  data = data || '<m><e></e></m>';
-  this.base = (new xmldom.DOMParser()).parseFromString(data, 'text/xml');
-};
-
-Doc.prototype.render = function (t, n, r) {
-  var ans = '';
-  if (n.nodeName === 'e') {
-    if (t === 'latex' && r) {
-      ans = n.getAttribute('render');
-    } else if (t === 'text') {
-      ans = n.textContent;
-      if (n.previousSibling && n.nextSibling && ans === '' &&
-          !Symbols.symbols[n.previousSibling.getAttribute('type')].operator &&
-          !Symbols.symbols[n.nextSibling.getAttribute('type')].operator) {
-        ans = '*';
-      } else if (!Doc.getCAttribute(n, 'text')) {
-        ans = ans.replace(/([a-zA-Z])(?=\.)/g, '$1*');
-        ans = ans.replace(/(\.)(?=[a-zA-Z])/g, '$1*');
-        ans = ans.replace(/([a-zA-Z])(?=[a-zA-Z0-9])/g, '$1*');
-        ans = ans.replace(/([a-zA-Z0-9])(?=[a-zA-Z])/g, '$1*');
-        if (n.previousSibling &&
-            !Symbols.symbols[n.previousSibling.getAttribute('type')].operator) {
-          ans = ans.replace(/^([a-zA-Z0-9])/g, '*$1');
-        }
-        if (n.nextSibling &&
-            !Symbols.symbols[n.nextSibling.getAttribute('type')].operator) {
-          ans = ans.replace(/([a-zA-Z0-9])$/g, '$1*');
+      for (var s in _symbols.Symbols) {
+        if ((force || ['psi', 'xi'].indexOf(s) === -1) && this.config.blacklist.indexOf(s) === -1 && value.substring(this.mainCursor.pos - s.length, this.mainCursor.pos) === s) {
+          this.saveState();
+          this.mainCursor.value = value.slice(0, this.mainCursor.pos - s.length) + value.slice(this.mainCursor.pos);
+          this.mainCursor.pos -= s.length;
+          this.insertSymbol(s, true);
+          return;
         }
       }
-    } else {
-      ans = n.textContent;
     }
-  } else if (n.nodeName === 'f') {
-    var cs = [];
-    for (var nn = n.firstChild; nn != null; nn = nn.nextSibling) {
-      cs.push(this.render(t, nn, r));
-    }
+  }, {
+    key: 'insertSymbol',
+    value: function insertSymbol(name, silent) {
+      if (_doc2.default.getCAttribute(this.mainCursor.node, 'text') || this.config.blacklist.indexOf(name) > -1) {
+        return;
+      }
+      if (!silent) {
+        this.saveState();
+      }
+      var prev = this.mainCursor.node.previousSibling;
+      var par = this.mainCursor.node.parentNode;
+      var pp = par.parentNode;
+      var value = this.mainCursor.value;
 
-    var s = Symbols.symbols[n.getAttribute('type')];
-    var type = t;
-    if (t === 'latex' && Doc.isSmall(n) && 'small_latex' in s['output']) {
-      type = 'small_latex';
-    }
-    var out = s['output'][type].split(/(\{\$[0-9]+(?:\{[^}]+\})*\})/g);
-    for (var i = 0; i < out.length; i++) {
-      var m = out[i].match(/^\{\$([0-9]+)((?:\{[^}]+\})*)\}$/);
-      if (!m) {
-        ans += out[i];
-      } else {
-        if (m[2].length === 0) {
-          ans += cs[parseInt(m[1]) - 1];
-        } else {
-          var mm = m[2].match(/\{[^}]*\}/g);
-          var joiner = function (d, l) {
-            if (d > 1) {
-              for (var k = 0; k < l.length; k++) {
-                l[k] = joiner(d - 1, l[k]);
-              }
+      if (name === '*' && this.config.autoreplace && this.mainCursor.pos === 0 && prev && prev.nodeName === 'f' && prev.getAttribute('type') === '*') {
+        this.deleteFromF(prev);
+        this.insertSymbol('pow', true);
+        return;
+      }
+      if (name === 'pow' && this.mainCursor.pos === 0 && pp.nodeName === 'f' && pp.childNodes.length === 1) {
+        this.mainCursor.node = pp.nextSibling;
+        this.insertSymbol('pow', true);
+        return;
+      }
+
+      var s = _symbols.Symbols[name];
+      var content = {};
+      var leftPiece = void 0;
+      var rightPiece = void 0;
+      var cur = s.current || 0;
+      var toRemove = [];
+      var toReplace = null;
+
+      if (cur > 0) {
+        cur--; //
+        if (this.selStatus) {
+          var selStartPos = this.selStatus < 0 ? this.mainCursor.pos : this.selCursor.pos;
+          var sel = this.getSelection();
+          this.clearSelection();
+
+          toRemove = sel.involved;
+          leftPiece = this.makeE(sel.remnant.textContent.slice(0, selStartPos));
+          rightPiece = this.makeE(sel.remnant.textContent.slice(selStartPos));
+          content[cur] = sel.nodeList;
+        } else if (s.current_type === 'token') {
+          //
+          if (this.mainCursor.pos === 0 && prev != null) {
+            toReplace = prev;
+            content[cur] = [this.makeE(), prev, this.makeE()];
+          } else {
+            var token = value.substring(0, this.mainCursor.pos).match(/[0-9.]+$|[a-zA-Z]$/);
+            if (token != null && token.length > 0) {
+              toRemove = [this.mainCursor.node];
+              leftPiece = this.makeE(value.slice(0, this.mainCursor.pos - token[0].length));
+              rightPiece = this.makeE(value.slice(this.mainCursor.pos));
+              content[cur] = [this.makeE(token[0])];
             }
-            return l.join(mm[d - 1].substring(1, mm[d - 1].length - 1));
-          };
-          ans += joiner(mm.length, cs[parseInt(m[1]) - 1]);
+          }
+        }
+      }
+      if (toReplace == null && leftPiece == null) {
+        toRemove = [this.mainCursor.node];
+        leftPiece = this.makeE(value.slice(0, this.mainCursor.pos));
+        rightPiece = this.makeE(value.slice(this.mainCursor.pos));
+      }
+
+      var f = this.makeF(name, content);
+
+      if (toReplace != null) {
+        par.replaceChild(f, toReplace);
+      } else {
+        var next = toRemove[toRemove.length - 1].nextSibling;
+        toRemove.forEach(function (x) {
+          return par.removeChild(x);
+        });
+
+        par.insertBefore(leftPiece, next);
+        par.insertBefore(f, next);
+        par.insertBefore(rightPiece, next);
+      }
+
+      // XXX
+      if (s.char || s.current >= f.childElementCount) {
+        this.mainCursor.set(f.nextSibling);
+      } else {
+        this.mainCursor.set(f);
+      }
+    }
+  }, {
+    key: 'executeAction',
+    value: function executeAction(action) {
+      if (Array.isArray(action)) {
+        this[action[0]].apply(this, (0, _toConsumableArray3.default)(action.slice(1)));
+      } else if (typeof action !== 'string') {
+        var name = _doc2.default.getFName(this.mainCursor.node);
+        if (name in action) {
+          this.executeAction(action[name]);
+        } else if ('*' in action) {
+          this.executeAction(action['*']);
+        }
+      } else if (action in Editor.prototype) {
+        this[action]();
+      } else if (action in _symbols.Symbols) {
+        this.insertSymbol(action);
+      } else {
+        this.insertString(action);
+      }
+      this.render();
+    }
+  }, {
+    key: 'autocompleteSymbol',
+    value: function autocompleteSymbol() {
+      if (this.candidates != null) {
+        var suggestion = this.candidates.shift();
+        this.candidates.push(suggestion);
+        this.clearSelection();
+        this.mainCursor.value = suggestion;
+        this.mainCursor.pos = suggestion.length;
+      } else {
+        this.saveState();
+        var value = this.mainCursor.value;
+        this.candidates = (0, _keys2.default)(_symbols.Symbols).filter(function (n) {
+          return n.substr(0, value.length) === value;
+        });
+        if (this.candidates.length > 0) {
+          this.autocompleteSymbol();
+        } else {
+          this.candidates = null;
         }
       }
     }
-  } else if (n.nodeName === 'l') {
-    ans = [];
-    var i = 0; // eslint-disable-line no-redeclare
-    for (var nn = n.firstChild; nn != null; nn = nn.nextSibling) { // eslint-disable-line no-redeclare
-      ans[i++] = this.render(t, nn, r);
+  }, {
+    key: 'replaceF',
+    value: function replaceF(symbol) {
+      var content = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : -1;
+
+      this.clearSelection();
+      this.replaceSymbol(this.mainCursor.node.parentNode.parentNode, symbol, (0, _defineProperty3.default)({}, content, [this.mainCursor.node]));
     }
-  } else if (n.nodeName === 'c' || n.nodeName === 'm') {
-    for (var nn = n.firstChild; nn != null; nn = nn.nextSibling) { // eslint-disable-line no-redeclare
-      ans += this.render(t, nn, r);
+  }, {
+    key: 'completeSymbol',
+    value: function completeSymbol() {
+      this.replaceF(this.mainCursor.value);
     }
-    if (t === 'latex' && Doc.getCAttribute(n, 'bracket')) {
-      var bracket = true;
-      var first = n.firstChild;
-      if (n.childElementCount === 3 && first.textContent === '' &&
-          n.lastChild.textContent === '') {
-        var name = first.nextSibling.getAttribute('type');
-        if ((Symbols.symbols[name]['char'] && !first.hasAttribute('temp') &&
-            !first.hasAttribute('current') && !n.lastChild.hasAttribute('temp') &&
-            !n.lastChild.hasAttribute('current')) || name === 'paren') {
-          bracket = false;
-        }
-      } else if (n.childElementCount === 1) {
-        var value = first.textContent;
-        if ((value.length === 1 || !isNaN(value - parseFloat(value))) &&
-            !first.hasAttribute('current') && !first.hasAttribute('temp')) {
-          bracket = false;
-        }
-      }
-      if (bracket) {
-        ans = '\\left(' + ans + '\\right)';
-      }
+  }, {
+    key: 'xml',
+    get: function get() {
+      return this.doc.getContent('xml');
     }
-  }
-  return ans;
-};
-
-module.exports = Doc;
-
-},{"./symbols.js":5,"./xmldom/node":6}],4:[function(require,module,exports){
-/* eslint-env browser */
-var Mousetrap = require('mousetrap');
-var katex = require('katex');
-var Backend = require('./backend.js');
-var Symbols = require('./symbols.js');
-var Doc = require('./doc.js');
-var debounce = require('throttle-debounce/debounce');
-
-var MathYlem = function (el, config) {
-  config = config || {};
-  config.toolbar = MathYlem.DEFAULT_OPTIONS.toolbar;
-  config.defaultToolbarContents = MathYlem.DEFAULT_OPTIONS.defaultToolbarContents;
-
-  if (typeof el === 'string' || el instanceof String) {
-    el = document.getElementById(el);
-  }
-  if (!el) {
-    throw new Error('Invalid element.');
-  } else if (el.mathylem) {
-    throw new Error('MathYlem already attached.');
-  }
-
-  if (!el.id) {
-    var i = MathYlem.maxUid;
-    while (document.getElementById('mathylem_' + i)) {
-      i++;
+  }, {
+    key: 'latex',
+    get: function get() {
+      return this.doc.getContent('latex');
     }
-    MathYlem.maxUid = i;
-    el.id = 'mathylem_' + i;
-  }
+  }, {
+    key: 'text',
+    get: function get() {
+      return this.doc.getContent('text');
+    }
+  }]);
+  return Editor;
+}(_eventemitter2.default);
 
-  MathYlem.instances[el.id] = this;
-  el.mathylem = this;
-
-  this.editor = this.createEditor(el);
-  if (/Mobi/.test(navigator.userAgent)) { // TODO: Better unfocusable div detection
-    this.fakeInput = this.createFakeInput(el);
-  }
-  this.createToolbar(el, config);
-
-  this.active = true;
-  this.emptyContent = config['emptyContent'] || '\\red{[?]}';
-  this._focus = false;
-  this.tempCursor = { 'node': null, 'caret': 0 };
-
-  this.backend = new Backend(config, this);
-  this.backend.checkpoint();
-  this.deactivate(true);
-};
-
-MathYlem.Backend = Backend;
-MathYlem.Doc = Doc;
-MathYlem.Symbols = Symbols;
-MathYlem.katex = katex;
-
-var hasSelection = function () {
-  return this.backend.selStatus !== Backend.SEL_NONE;
-};
-
-var inList = function () {
-  return this.backend.current.parentNode.parentNode.nodeName === 'l';
-};
-
-var inMatrix = function () {
-  var n = this.backend.current.parentNode.parentNode.parentNode;
-  return n && n.nodeName === 'l';
-};
-
-MathYlem.inMatrix = inMatrix;
-
-MathYlem.DEFAULT_OPTIONS = {
-  emptyContent: '\\red{[?]}',
+Editor.Clipboard = [];
+Editor.DEFAULT_CONFIG = {
   autoreplace: true,
   blacklist: [],
-  toolbar: [
-    {
-      type: 'button',
-      action: 'undo',
-      content: 0,
-      enabled: function () {
-        return this.backend.undoCurrent > 0;
-      }
-    }, {
-      type: 'button',
-      action: 'redo',
-      content: 1,
-      enabled: function () {
-        return this.backend.undoCurrent < this.backend.undoData.length - 1;
-      }
-    }, {
-      type: 'separator'
-    }, {
-      type: 'button',
-      action: 'cutSelection',
-      content: 2,
-      enabled: hasSelection
-    }, {
-      type: 'button',
-      action: 'copySelection',
-      content: 3,
-      enabled: hasSelection
-    }, {
-      type: 'button',
-      action: 'paste',
-      content: 4,
-      enabled: function () {
-        return Backend.Clipboard && Backend.Clipboard.length > 0;
-      }
-    }, {
-      type: 'separator'
-    }, {
-      type: 'select',
-      content: [5, 6, 7, 8, 9, 10, 11, 12, 13]
-    }
-  ],
-  defaultToolbarContents: [ '<i class="far fa-undo"></i>', '<i class="far fa-redo"></i>', '<i class="far fa-cut"></i>', '<i class="far fa-copy"></i>', '<i class="far fa-paste"></i>', 'Matrix actions', 'Add above', 'Add below', 'Add to the left', 'Add to the right', 'Clone below', 'Clone to the right', 'Delete a column', 'Delete a row']
+  events: {},
+  xmlContent: '<m><e></e></m>'
 };
+exports.default = Editor;
 
-MathYlem.maxUid = 0;
-MathYlem.maxTabIndex = 0;
+},{"./cursor":1,"./doc":2,"./symbols":5,"babel-runtime/core-js/array/from":7,"babel-runtime/core-js/object/assign":13,"babel-runtime/core-js/object/get-prototype-of":17,"babel-runtime/core-js/object/keys":18,"babel-runtime/helpers/classCallCheck":22,"babel-runtime/helpers/createClass":23,"babel-runtime/helpers/defineProperty":24,"babel-runtime/helpers/inherits":25,"babel-runtime/helpers/possibleConstructorReturn":26,"babel-runtime/helpers/slicedToArray":27,"babel-runtime/helpers/toConsumableArray":28,"eventemitter3":129}],4:[function(require,module,exports){
+'use strict';
 
-MathYlem.instances = {};
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
 
-MathYlem.activeMathYlem = null;
+var _stringify = require('babel-runtime/core-js/json/stringify');
 
-MathYlem.prototype.createEditor = function (el) {
-  var self = this;
-  var editor = document.createElement('div');
-  editor.className = 'mathylem';
-  editor.tabIndex = MathYlem.maxTabIndex++;
+var _stringify2 = _interopRequireDefault(_stringify);
 
-  editor.addEventListener('click', function () {
-    if (self.active) {
-      return;
+var _assign = require('babel-runtime/core-js/object/assign');
+
+var _assign2 = _interopRequireDefault(_assign);
+
+var _getPrototypeOf = require('babel-runtime/core-js/object/get-prototype-of');
+
+var _getPrototypeOf2 = _interopRequireDefault(_getPrototypeOf);
+
+var _classCallCheck2 = require('babel-runtime/helpers/classCallCheck');
+
+var _classCallCheck3 = _interopRequireDefault(_classCallCheck2);
+
+var _createClass2 = require('babel-runtime/helpers/createClass');
+
+var _createClass3 = _interopRequireDefault(_createClass2);
+
+var _possibleConstructorReturn2 = require('babel-runtime/helpers/possibleConstructorReturn');
+
+var _possibleConstructorReturn3 = _interopRequireDefault(_possibleConstructorReturn2);
+
+var _inherits2 = require('babel-runtime/helpers/inherits');
+
+var _inherits3 = _interopRequireDefault(_inherits2);
+
+var _mousetrap = require('mousetrap');
+
+var _mousetrap2 = _interopRequireDefault(_mousetrap);
+
+var _katex = require('katex');
+
+var _katex2 = _interopRequireDefault(_katex);
+
+var _editor = require('./editor');
+
+var _editor2 = _interopRequireDefault(_editor);
+
+var _symbols = require('./symbols');
+
+var _cursor = require('./cursor');
+
+var _cursor2 = _interopRequireDefault(_cursor);
+
+var _doc = require('./doc');
+
+var _doc2 = _interopRequireDefault(_doc);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+// touch capable devices might have not-div-focusable virtual keyboard
+// https://github.com/ylemkimon/mathylem/issues/27
+/* eslint-env browser */
+var touchCapable = 'ontouchstart' in window;
+
+var MathYlem = function (_Editor) {
+  (0, _inherits3.default)(MathYlem, _Editor);
+
+  function MathYlem(el, config) {
+    (0, _classCallCheck3.default)(this, MathYlem);
+
+    var _this = (0, _possibleConstructorReturn3.default)(this, (MathYlem.__proto__ || (0, _getPrototypeOf2.default)(MathYlem)).call(this, (0, _assign2.default)({}, MathYlem.DEFAULT_CONFIG, config)));
+
+    if (typeof el === 'string' || el instanceof String) {
+      el = document.getElementById(el);
     }
-    self._focus = true;
-    setTimeout(function () {
-      self._focus = false;
-    }, 500);
-    self.backend.end();
-    self.activate(true);
-  });
-
-  el.appendChild(editor);
-  return editor;
-};
-
-MathYlem.prototype.createFakeInput = function (el) {
-  var self = this;
-
-  var fakeInput = document.createElement('textarea');
-  fakeInput.setAttribute('autocapitalize', 'none');
-  fakeInput.setAttribute('autocomplete', 'off');
-  fakeInput.setAttribute('autocorrect', 'off');
-  fakeInput.setAttribute('spellcheck', 'false');
-  fakeInput.value = '____________________';
-
-  fakeInput.style.position = 'absolute';
-  fakeInput.style.top = el.offsetTop + 'px';
-  fakeInput.style.left = el.offsetLeft + 'px';
-  fakeInput.style.width = '1px';
-  fakeInput.style.height = '1px';
-  fakeInput.style.opacity = 0;
-  fakeInput.style.padding = 0;
-  fakeInput.style.margin = 0;
-  fakeInput.style.border = 0;
-
-  this._processedFakeInput = 20;
-  fakeInput.addEventListener('input', debounce(100, function () {
-    for (; self._processedFakeInput >
-        self.fakeInput.value.length; self._processedFakeInput--) {
-      Mousetrap.trigger('backspace');
+    if (!el) {
+      throw new Error('Invalid element.');
+    } else if (el.mathylem) {
+      throw new Error('MathYlem already attached.');
     }
-    if (self.fakeInput.value.length === 0) {
-      self._processedFakeInput = 20;
-      self.fakeInput.value = '____________________';
-    }
-    for (; self._processedFakeInput <
-        self.fakeInput.value.length; self._processedFakeInput++) {
-      var c = self.fakeInput.value[self._processedFakeInput];
-      if (c !== c.toLowerCase()) {
-        Mousetrap.trigger('shift+' + c.toLowerCase());
-      } else if (c === ' ') {
-        Mousetrap.trigger('space');
-      } else {
-        Mousetrap.trigger(c);
+
+    if (!el.id) {
+      var i = 0;
+      while (document.getElementById('mathylem_' + i)) {
+        i++;
       }
+      el.id = 'mathylem_' + i;
     }
-  }));
-  fakeInput.addEventListener('keydown', function (e) {
-    if (e.keycode === 8) {
-      Mousetrap.trigger('backspace');
-      e.preventDefault();
-    } else if (e.keycode === 13) {
-      Mousetrap.trigger('enter');
-      e.preventDefault();
-    }
-  });
-  fakeInput.addEventListener('focus', function () {
-    self.activate(false);
-  });
-  fakeInput.addEventListener('blur', function () {
-    if (self._focus) {
-      self._focus = false;
-      this.focus();
-    } else {
-      self.deactivate(false);
-    }
-  });
 
-  el.appendChild(fakeInput);
-  return fakeInput;
-};
+    _this.container = el;
+    MathYlem.instances[el.id] = _this;
+    el.mathylem = _this;
 
-var createAction = function (a, b) {
-  var onclick;
-  if (typeof b === 'string' || b instanceof String) {
-    if (Backend.prototype[b]) {
-      onclick = (function (inst, action) {
-        return function () {
-          inst.backend[action]();
-          inst.render(true);
-        };
-      }(a, b));
-    } else if (b in Symbols.symbols) {
-      onclick = (function (inst, action) {
-        return function () {
-          inst.backend.insertSymbol(action);
-          inst.render(true);
-        };
-      }(a, b));
-    } else {
-      onclick = (function (inst, action) {
-        return function () {
-          inst.backend.insertString(action);
-          inst.render(true);
-        };
-      }(a, b));
+    _this.editor = _this.createEditor();
+    if (_this.config.toolbar) {
+      _this.toolbar = _this.createToolbar();
     }
-  } else {
-    onclick = (function (inst, action) {
-      return function () {
-        action(inst);
-        inst.render(true);
-      };
-    }(a, b));
-  }
-  return onclick;
-};
 
-MathYlem.prototype.createToolbar = function (el, options) {
-  var btns = document.createElement('div');
-  var self = this;
-  btns.className = 'my-toolbar';
-
-  for (var i = 0; i < options.toolbar.length; i++) {
-    var item = options.toolbar[i];
-    var itemEl;
-    var content = (typeof item.content === 'number')
-      ? options.defaultToolbarContents[item.content] : item.content;
-    
-    if (item.type === 'button') {
-      itemEl = document.createElement('a');
-      itemEl.innerHTML = content;
-      //itemEl.addEventListener('click', createAction(self, options.toolbar[i].action));
-      //itemEl.id = 'button' + i;
-    } else if (item.type === 'separator') {
-      itemEl = document.createElement('i');
-      itemEl.innerHTML = '|';
-      itemEl.className = 'separator';
-    } else if (item.type === 'select') {
-      itemEl = document.createElement('select');
-      var options = '';
-      for (var j = 0; j < content.length; j++) {
-        options += '<option>' + content + '</option>';
-      }
-      itemEl.innerHTML = options;
-    }
-    btns.appendChild(itemEl);
-    // <button type="button" class="btn btn-default">Left</button>
+    _this.active = true;
+    _this._focus = false;
+    _this.deactivate(true);
+    return _this;
   }
 
-  el.insertAdjacentElement('afterbegin', btns);
-};
+  (0, _createClass3.default)(MathYlem, [{
+    key: 'createEditor',
+    value: function createEditor() {
+      var _this2 = this;
 
-MathYlem.prototype.isChanged = function () {
-  var bb = this.editor.getElementsByClassName('katex')[0];
-  if (!bb) {
-    return;
-  }
-  var rect = bb.getBoundingClientRect();
-  var ans = !this.boundingBox || this.boundingBox.top !== rect.top ||
-    this.boundingBox.bottom !== rect.bottom || this.boundingBox.right !==
-    rect.right || this.boundingBox.left !== rect.left;
-  this.boundingBox = rect;
-  return ans;
-};
+      var editor = document.createElement('div');
+      editor.className = 'mathylem';
 
-MathYlem.prototype.computeLocations = function () {
-  var ans = [];
-  var bb = this.editor.getElementsByClassName('katex')[0];
-  if (!bb) {
-    return;
-  }
-  var rect = bb.getBoundingClientRect();
-  ans.push({
-    'path': 'all',
-    'top': rect.top,
-    'bottom': rect.bottom,
-    'left': rect.left,
-    'right': rect.right
-  });
-  var elts = this.editor.getElementsByClassName('my-elem');
-  for (var i = 0; i < elts.length; i++) {
-    var elt = elts[i];
-    if (elt.nodeName === 'mstyle') {
-      continue;
-    }
-    rect = elt.getBoundingClientRect();
-    if (rect.top === 0 && rect.bottom === 0 &&
-        rect.left === 0 && rect.right === 0) {
-      continue;
-    }
-    var cl = elt.className.split(/\s+/);
-    for (var j = 0; j < cl.length; j++) {
-      if (cl[j].substr(0, 3) === 'loc') {
-        ans.push({
-          'path': cl[j],
-          'top': rect.top,
-          'bottom': rect.bottom,
-          'left': rect.left,
-          'right': rect.right,
-          'midX': (rect.left + rect.right) / 2,
-          'midY': (rect.bottom + rect.top) / 2,
-          'blank': cl.indexOf('my-blank') >= 0
-        });
-        break;
-      }
-    }
-  }
-  this.boxes = ans;
-};
-
-MathYlem.getPath = function (n) {
-  var name = n.nodeName;
-  if (name === 'm') {
-    return 'loc_m';
-  }
-  var ns = 0;
-  for (var nn = n; nn != null; nn = nn.previousSibling) {
-    if (nn.nodeType === 1 && nn.nodeName === name) {
-      ns++;
-    }
-  }
-  return MathYlem.getPath(n.parentNode) + '_' + name + '' + ns;
-};
-
-MathYlem.getLocation = function (x, y, currentNode, currentCaret) {
-  var g = MathYlem.activeMathYlem;
-  var minDist = -1;
-  var midDist = 0;
-  var opt = null;
-  // check if we go to first or last element
-  if (currentNode) {
-    var currentPath = MathYlem.getPath(currentNode);
-    var currentPos = parseInt(currentPath.substring(
-      currentPath.lastIndexOf('e') + 1));
-  }
-
-  var boxes = g.boxes;
-  if (!boxes) {
-    return;
-  }
-  if (currentNode) {
-    currentPath = currentPath.replace(/e[0-9]+$/, 'e');
-    var boxes2 = [];
-    for (var i = 0; i < boxes.length; i++) {
-      if (boxes[i].path === 'all') {
-        continue;
-      }
-      var path = boxes[i].path.substring(0, boxes[i].path.lastIndexOf('_'));
-      path = path.replace(/e[0-9]+$/, 'e');
-      if (path === currentPath) {
-        boxes2.push(boxes[i]);
-      }
-    }
-    boxes = boxes2;
-  }
-  if (!boxes) {
-    return;
-  }
-  for (var i = 0; i < boxes.length; i++) { // eslint-disable-line no-redeclare
-    var box = boxes[i];
-    if (box.path === 'all') {
-      if (!opt) {
-        opt = { 'path': 'loc_m_e1_0' };
-      }
-      continue;
-    }
-    var xdist = Math.max(box.left - x, x - box.right, 0);
-    var ydist = Math.max(box.top - y, y - box.bottom, 0);
-    var dist = Math.sqrt(xdist * xdist + ydist * ydist);
-    if (minDist === -1 || dist < minDist) {
-      minDist = dist;
-      midDist = x - box.midX;
-      opt = box;
-    }
-  }
-  var loc = opt.path.substring('loc_m_'.length).split(/_/);
-  var node = g.backend.doc.root();
-  for (var i = 0; i < loc.length - 1; i++) { // eslint-disable-line no-redeclare
-    var name = loc[i][0];
-    var index = parseInt(loc[i].substring(1));
-    for (node = node.firstChild; ; node = node.nextSibling) {
-      if (node.nodeName === name) {
-        index--;
-      }
-      if (index === 0) {
-        break;
-      }
-    }
-  }
-  var car = parseInt(loc[loc.length - 1]);
-  // Check if we want the cursor before or after the element
-  if (midDist > 0 && !opt.blank) {
-    car++;
-  }
-  var ans = {
-    'current': node,
-    'caret': car,
-    'pos': 'none'
-  };
-  if (currentNode && opt) {
-    var optPos = parseInt(opt.path.substring(opt.path.lastIndexOf('e') + 1,
-      opt.path.lastIndexOf('_')));
-    if (optPos < currentPos) {
-      ans['pos'] = 'left';
-    } else if (optPos > currentPos) {
-      ans['pos'] = 'right';
-    } else if (car < currentCaret) {
-      ans['pos'] = 'left';
-    } else if (car > currentCaret) {
-      ans['pos'] = 'right';
-    }
-  }
-  return ans;
-};
-
-MathYlem.mouseUp = function (e) {
-  MathYlem.kb.isMouseDown = false;
-  var g = MathYlem.activeMathYlem;
-  if (g) {
-    g.render(true);
-  }
-};
-
-MathYlem.mouseDown = function (e) {
-  var n = e.target;
-  var g = MathYlem.activeMathYlem;
-  while (n != null) {
-    if (g && n === g.editor) {
-      MathYlem.kb.isMouseDown = true;
-      if (e.shiftKey) {
-        g.selectTo(e.clientX, e.clientY);
-      } else {
-        var loc = e.touches ? MathYlem.getLocation(e.touches[0].clientX,
-          e.touches[0].clientY) : MathYlem.getLocation(e.clientX, e.clientY);
-        if (!loc) {
+      var onFocus = function onFocus() {
+        if (_this2.active) {
           return;
         }
-        var b = g.backend;
-        b.current = loc.current;
-        b.caret = loc.caret;
-        b.clearSelection();
-      }
-      g.render(true);
-    } else if (n.mathylem) {
-      if (g) {
-        if (n.mathylem === g) {
-          g._focus = true;
-          setTimeout(function () {
-            g._focus = false;
-          }, 500);
+        _this2._focus = true;
+        setTimeout(function () {
+          _this2._focus = false;
+        }, 500);
+        _this2.activate(true);
+      };
+      var onBlur = function onBlur(e) {
+        if (_this2._focus) {
+          _this2._focus = false;
+          e.target.focus();
         } else {
-          g.deactivate(true);
+          if (MathYlem.activeMathYlem === _this2) {
+            MathYlem.activeMathYlem = null;
+          }
+          _this2.deactivate(false);
+        }
+      };
+      if (touchCapable) {
+        this.mobileInput = this.createMobileInput(onBlur);
+        editor.addEventListener('click', onFocus);
+      } else {
+        editor.tabIndex = 0;
+        editor.addEventListener('focus', onFocus);
+        editor.addEventListener('blur', onBlur);
+      }
+
+      this.container.appendChild(editor);
+      return editor;
+    }
+  }, {
+    key: 'createMobileInput',
+    value: function createMobileInput(onBlur) {
+      var _this3 = this;
+
+      var mobileInput = document.createElement('textarea');
+      mobileInput.className = 'my-mobileinput mousetrap';
+      mobileInput.setAttribute('autocapitalize', 'none');
+      mobileInput.setAttribute('autocomplete', 'off');
+      mobileInput.setAttribute('autocorrect', 'off');
+      mobileInput.setAttribute('spellcheck', 'false');
+      mobileInput.value = '#';
+      mobileInput.style.top = this.container.offsetTop + 'px';
+      mobileInput.style.left = this.container.offsetLeft + 'px';
+
+      this.processed = 1;
+      mobileInput.addEventListener('input', function () {
+        // keyboard events may not be fired or have wrong keyCode
+        // https://bugs.chromium.org/p/chromium/issues/detail?id=118639
+        // https://bugs.chromium.org/p/chromium/issues/detail?id=184812
+        var length = _this3.mobileInput.value.length;
+        for (; _this3.processed > length; _this3.processed--) {
+          _mousetrap2.default.trigger('backspace');
+        }
+        if (length === 0) {
+          _this3.processed = 1;
+          _this3.mobileInput.value = '#';
+        }
+        for (; _this3.processed < length; _this3.processed++) {
+          var c = _this3.mobileInput.value[_this3.processed];
+          if (c !== c.toLowerCase()) {
+            _mousetrap2.default.trigger('shift+' + c.toLowerCase());
+          } else if (c === ' ') {
+            _mousetrap2.default.trigger('space');
+          } else if (c === '\n') {
+            _mousetrap2.default.trigger('enter');
+          } else {
+            _mousetrap2.default.trigger(c);
+          }
+        }
+        // setSelectionRange may not work in the input event
+        // https://bugs.chromium.org/p/chromium/issues/detail?id=32865
+        setTimeout(function () {
+          return _this3.mobileInput.setSelectionRange(_this3.mobileInput.value.length, _this3.mobileInput.value.length);
+        }, 0);
+      });
+      mobileInput.addEventListener('focus', function () {
+        if (!_this3.active) {
+          _this3.activate(false);
+        }
+      });
+      mobileInput.addEventListener('blur', onBlur);
+
+      this.container.appendChild(mobileInput);
+      return mobileInput;
+    }
+  }, {
+    key: 'createToolbar',
+    value: function createToolbar() {
+      var toolbar = document.createElement('div');
+      toolbar.className = 'my-toolbar';
+
+      var items = this.config.toolbar;
+      for (var i = 0; i < items.length; i++) {
+        var item = items[i];
+        var itemEl = void 0;
+        if (item.icon === 'separator') {
+          itemEl = document.createElement('i');
+          itemEl.innerHTML = '|';
+          itemEl.className = 'separator';
+        } else {
+          itemEl = document.createElement('a');
+          if (item.hideWhenDisabled) {
+            itemEl.className = 'hide-when-disabled';
+          }
+          itemEl.innerHTML = '<i class="icon-' + item.icon + '"></i>';
+          itemEl.setAttribute('data-target', this.container.id);
+          itemEl.setAttribute('data-action', (0, _stringify2.default)(item.action));
+          itemEl.addEventListener('click', MathYlem.onButtonClick);
+        }
+        toolbar.appendChild(itemEl);
+      }
+
+      this.container.insertBefore(toolbar, this.editor);
+      return toolbar;
+    }
+  }, {
+    key: 'computeLocations',
+    value: function computeLocations() {
+      var result = [];
+      var elems = this.editor.getElementsByClassName('my-elem');
+      for (var i = 0; i < elems.length; i++) {
+        var elem = elems[i];
+        if (elem.nodeName !== 'mstyle') {
+          var rect = elem.getBoundingClientRect();
+          var classes = elem.className.split(/\s+/);
+          for (var j = 0; j < classes.length; j++) {
+            var className = classes[j];
+            if (className.substr(0, 3) === 'loc') {
+              var lastIndex = className.lastIndexOf('-');
+              result.push({
+                path: className.substring(0, lastIndex),
+                pos: parseInt(className.substring(lastIndex + 1)),
+                top: rect.top,
+                bottom: rect.bottom,
+                left: rect.left,
+                right: rect.right,
+                blank: classes.indexOf('my-blank') >= 0
+              });
+              break;
+            }
+          }
         }
       }
-      return;
+      this.boxes = result;
     }
-    n = n.parentNode;
-  }
-  MathYlem.activeMathYlem = null;
-  for (var i in MathYlem.instances) {
-    MathYlem.instances[i].deactivate(true);
-  }
-};
+  }, {
+    key: 'selectTo',
+    value: function selectTo(e) {
+      var from = this.selStatus ? this.selCursor : this.mainCursor;
+      var to = MathYlem.getLocation(e, from);
+      if (to.equals(this.mainCursor)) {
+        return false;
+      }
+      this.select(from, to);
+      return true;
+    }
+  }, {
+    key: 'updateToolbar',
+    value: function updateToolbar() {
+      var toolbarConfig = this.config.toolbar;
+      if (toolbarConfig) {
+        var btn = this.toolbar.firstElementChild;
+        var result = [];
+        for (var i = 0; i < toolbarConfig.length; i++) {
+          var enabled = true;
+          var check = toolbarConfig[i].enabled;
+          if (typeof check === 'function') {
+            enabled = check.apply(this);
+          } else if (typeof check === 'number') {
+            enabled = result[check];
+          }
+          result.push(enabled);
 
-MathYlem.mouseMove = function (e) {
-  var g = MathYlem.activeMathYlem;
-  if (!g) {
-    return;
-  }
-  if (!MathYlem.kb.isMouseDown) {
-    var bb = g.editor;
-    var rect = bb.getBoundingClientRect();
-    if (e.clientX < rect.left || e.clientX > rect.right ||
-        e.clientY > rect.bottom || e.clientY < rect.top) {
-      if (g.tempCursor.node == null) {
+          if (!enabled && !/(?:\s+|^)my-disabled(?:\s+|$)/.test(btn.className)) {
+            btn.className += ' my-disabled';
+          } else if (enabled) {
+            btn.className = btn.className.replace(/(\s+|^)my-disabled(\s+|$)/, ' ');
+          }
+          btn = btn.nextElementSibling;
+        }
+      }
+    }
+  }, {
+    key: 'render',
+    value: function render(temp) {
+      if (!temp) {
+        this.updateToolbar();
+      }
+
+      if (!this.active && !this.latex) {
+        _katex2.default.render(this.config.emptyContent, this.editor);
         return;
       }
-      g.tempCursor = {
-        'node': null,
-        'caret': 0
-      };
-    } else {
-      var loc = MathYlem.getLocation(e.clientX, e.clientY);
-      if (!loc || (loc.current === g.tempCursor.node &&
-          loc.caret === g.tempCursor.caret)) {
-        return;
+      var tex = this.getContent('latex', true);
+      try {
+        _katex2.default.render(tex, this.editor);
+      } catch (e) {
+        console.warn(tex); // eslint-disable-line no-console
+        console.warn(e); // eslint-disable-line no-console
+        this.undo();
+        this.render();
       }
-      if (loc.current === g.backend.current && loc.caret === g.backend.caret) {
-        if (g.tempCursor.node == null) {
+      this.computeLocations();
+    }
+  }, {
+    key: 'activate',
+    value: function activate(focus) {
+      MathYlem.activeMathYlem = this;
+      this.active = true;
+      this.editor.className += ' my-active';
+      if (this.mobileInput) {
+        this.mobileInput.style.top = this.editor.offsetTop + 'px';
+        this.mobileInput.style.left = this.editor.offsetLeft + 'px';
+        if (focus) {
+          this.mobileInput.focus();
+        }
+        this.mobileInput.setSelectionRange(this.mobileInput.value.length, this.mobileInput.value.length);
+      } else if (focus) {
+        this.editor.focus();
+      }
+      this.render();
+      this.emit('focus');
+    }
+  }, {
+    key: 'deactivate',
+    value: function deactivate(blur) {
+      this.active = false;
+      this.editor.className = this.editor.className.replace(/(\s+|^)my-active(\s+|$)/, ' ');
+      if (blur && this.mobileInput) {
+        this.mobileInput.blur();
+      }
+      this.render();
+      this.emit('blur');
+    }
+  }], [{
+    key: 'getLocation',
+    value: function getLocation(e, selCursor) {
+      var x = e.clientX;
+      var y = e.clientY;
+
+      var ylem = MathYlem.activeMathYlem;
+      var minDist = Number.MAX_VALUE;
+      var closest = null;
+      var boxes = ylem.boxes;
+      if (selCursor) {
+        var path = _doc2.default.getPath(selCursor.node);
+        path = path.substring(0, path.lastIndexOf('_'));
+        boxes = boxes.filter(function (box) {
+          return box.path.substring(0, box.path.lastIndexOf('_')) === path;
+        });
+      }
+      for (var i = 0; i < boxes.length; i++) {
+        var box = boxes[i];
+        var xdist = Math.max(box.left - x, x - box.right, 0);
+        var ydist = Math.max(box.top - y, y - box.bottom, 0);
+        var dist = Math.sqrt(xdist * xdist + ydist * ydist);
+        if (dist < minDist) {
+          minDist = dist;
+          closest = box;
+        }
+      }
+
+      var loc = closest.path.substring('loc_'.length).split(/_/);
+      var optNode = ylem.doc.root;
+      for (var _i = 0; _i < loc.length; _i++) {
+        optNode = optNode.childNodes[parseInt(loc[_i])];
+      }
+      var optCaret = x < (closest.left + closest.right) / 2 || closest.blank ? closest.pos : closest.pos + 1;
+
+      return new _cursor2.default(optNode, optCaret);
+    }
+  }, {
+    key: 'mouseUp',
+    value: function mouseUp() {
+      MathYlem.isMouseDown = false;
+      var y = MathYlem.activeMathYlem;
+      if (y) {
+        y.render();
+      }
+    }
+  }, {
+    key: 'mouseDown',
+    value: function mouseDown(e) {
+      var n = e.target;
+      var y = MathYlem.activeMathYlem;
+      while (n != null) {
+        if (y && n === y.editor) {
+          MathYlem.isMouseDown = true;
+          if (e.shiftKey) {
+            y.selectTo(e);
+          } else {
+            y.mainCursor = MathYlem.getLocation(e.touches ? e.touches[0] : e);
+            y.clearSelection();
+          }
+          y.render();
+        } else if (n.mathylem) {
+          if (y) {
+            if (n.mathylem === y) {
+              y._focus = true;
+              setTimeout(function () {
+                y._focus = false;
+              }, 500);
+            } else {
+              y.deactivate(true);
+            }
+          }
           return;
         }
-        g.tempCursor = {
-          'node': null,
-          'caret': 0
-        };
-      } else {
-        g.tempCursor = {
-          'node': loc.current,
-          'caret': loc.caret
-        };
+        n = n.parentNode;
+      }
+      MathYlem.activeMathYlem = null;
+      for (var i in MathYlem.instances) {
+        MathYlem.instances[i].deactivate(true);
       }
     }
-  } else if (!g.selectTo(e.clientX, e.clientY)) {
-    return;
-  }
-  g.render(g.isChanged());
-};
-
-MathYlem.touchMove = function (e) {
-  var g = MathYlem.activeMathYlem;
-  if (!g || !g.selectTo(e.touches[0].clientX, e.touches[0].clientY)) {
-    return;
-  }
-  g.render(g.isChanged());
-};
-
-MathYlem.prototype.selectTo = function (x, y) {
-  var b = this.backend;
-  var selCaret;
-  var selCursor;
-  if (this.backend.selStatus === Backend.SEL_NONE) {
-    selCursor = this.backend.current;
-    selCaret = this.backend.caret;
-  } else if (this.backend.selStatus === Backend.SEL_CURSOR_AT_START) {
-    selCursor = this.backend.selEnd.node;
-    selCaret = this.backend.selEnd.caret;
-  } else if (this.backend.selStatus === Backend.SEL_CURSOR_AT_END) {
-    selCursor = this.backend.selStart.node;
-    selCaret = this.backend.selStart.caret;
-  }
-  var loc = MathYlem.getLocation(x, y, selCursor, selCaret);
-  if (!loc || (loc.current === b.current && loc.caret === b.caret)) {
-    return false;
-  }
-  this.backend.selectTo(loc, selCursor, selCaret, true);
-  return true;
-};
-
-if ('ontouchstart' in window) {
-  window.addEventListener('touchstart', MathYlem.mouseDown, false);
-  window.addEventListener('touchmove', MathYlem.touchMove, false);
-} else {
-  window.addEventListener('mousedown', MathYlem.mouseDown, false);
-  window.addEventListener('mouseup', MathYlem.mouseUp, false);
-  window.addEventListener('mousemove', MathYlem.mouseMove, false);
-}
-
-MathYlem.prototype.renderNode = function (t) {
-  // All the interesting work is done by transform.
-  // This function just adds in the cursor and selection-start cursor
-  var output = '';
-  if (t === 'render') {
-    var root = this.backend.doc.root();
-    this.backend.addPaths(root, 'm');
-    this.backend.tempCursor = this.tempCursor;
-    this.backend.addCursorClasses(root);
-    this.backend.current.setAttribute('current', '');
-    if (this.tempCursor.node) {
-      this.tempCursor.node.setAttribute('temp', '');
+  }, {
+    key: 'onButtonClick',
+    value: function onButtonClick() {
+      if (/(?:\s+|^)my-disabled(?:\s+|$)/.test(this.className)) {
+        return;
+      }
+      MathYlem.instances[this.getAttribute('data-target')].executeAction(JSON.parse(this.getAttribute('data-action')));
     }
-    output = this.backend.getContent('latex', true);
-    this.backend.removeCursorClasses(root);
-    output = output.replace(new RegExp('&amp;', 'g'), '&');
-    return output;
-  } else {
-    output = this.backend.getContent(t);
-  }
-  return output;
-};
-
-MathYlem.prototype.render = function (updated) {
-  if (!this.active && this.backend.doc.isBlank()) {
-    katex.render(this.emptyContent, this.editor);
-    return;
-  }
-  var tex = this.renderNode('render');
-  try {
-    katex.render(tex, this.editor);
-  } catch (e) {
-    console.log(e); // eslint-disable-line no-console
-    this.backend.undo();
-    this.render();
-  }
-  if (updated) {
-    this.computeLocations();
-  }
-};
-
-MathYlem.prototype.activate = function (focus) {
-  MathYlem.activeMathYlem = this;
-  this.active = true;
-  this.editor.className += ' my-active';
-  if (focus) {
-    if (this.fakeInput) {
-      this.fakeInput.style.top = this.editor.offsetTop + 'px';
-      this.fakeInput.style.left = this.editor.offsetLeft + 'px';
-      this.fakeInput.focus();
-      this.fakeInput.setSelectionRange(this.fakeInput.value.length,
-        this.fakeInput.value.length);
-    } else {
-      this.editor.focus();
+  }, {
+    key: 'mouseMove',
+    value: function mouseMove(e) {
+      var y = MathYlem.activeMathYlem;
+      if (!y) {
+        return;
+      }
+      if (!MathYlem.isMouseDown) {
+        var resetTempCursor = false;
+        var rect = y.editor.getBoundingClientRect();
+        if (e.clientX >= rect.left && e.clientX <= rect.right && e.clientY <= rect.bottom && e.clientY >= rect.top) {
+          var loc = MathYlem.getLocation(e);
+          if (loc.equals(y.tempCursor)) {
+            return;
+          } else if (!loc.equals(y.mainCursor)) {
+            y.tempCursor = loc;
+          } else {
+            resetTempCursor = true;
+          }
+        } else {
+          resetTempCursor = true;
+        }
+        if (resetTempCursor) {
+          if (y.tempCursor.node == null) {
+            return;
+          }
+          y.tempCursor.set(null);
+        }
+      } else if (!y.selectTo(e)) {
+        return;
+      }
+      y.render(true);
     }
+  }, {
+    key: 'touchMove',
+    value: function touchMove(e) {
+      var y = MathYlem.activeMathYlem;
+      if (!y || !y.selectTo(e.touches[0])) {
+        return;
+      }
+      y.render(true);
+    }
+  }]);
+  return MathYlem;
+}(_editor2.default);
+
+MathYlem.DEFAULT_CONFIG = (0, _assign2.default)({}, _editor2.default.DEFAULT_CONFIG, {
+  emptyContent: '\\red{[?]}',
+  toolbar: [{
+    action: 'undo',
+    icon: 'undo',
+    enabled: function enabled() {
+      return this.undoData.length > 0;
+    }
+  }, {
+    action: 'redo',
+    icon: 'redo',
+    enabled: function enabled() {
+      return this.redoData.length > 0;
+    }
+  }, {
+    icon: 'separator'
+  }, {
+    action: ['clipboardSelection', true],
+    icon: 'cut',
+    enabled: function enabled() {
+      return !!this.selStatus;
+    }
+  }, {
+    action: ['clipboardSelection', false],
+    icon: 'copy',
+    enabled: 3
+  }, {
+    action: 'paste',
+    icon: 'paste',
+    enabled: function enabled() {
+      return _editor2.default.Clipboard.length > 0;
+    }
+  }, {
+    icon: 'separator'
+  }, {
+    action: ['extendList', 'up', false],
+    icon: 'insert-up',
+    enabled: function enabled() {
+      return !!_doc2.default.getArrayIndex(this.mainCursor.node, true);
+    },
+
+    hideWhenDisabled: true
+  }, {
+    action: ['extendList', 'down', false],
+    icon: 'insert-down',
+    enabled: 7,
+    hideWhenDisabled: true
+  }, {
+    action: ['extendList', 'left', false],
+    icon: 'insert-left',
+    enabled: function enabled() {
+      return !!_doc2.default.getArrayIndex(this.mainCursor.node);
+    },
+
+    hideWhenDisabled: true
+  }, {
+    action: ['extendList', 'right', false],
+    icon: 'insert-right',
+    enabled: 9,
+    hideWhenDisabled: true
+  }, {
+    action: ['removeList', true],
+    icon: 'remove-row',
+    enabled: function enabled() {
+      var index = _doc2.default.getArrayIndex(this.mainCursor.node, true);
+      return index && index[1][0].parentNode.childElementCount > 1;
+    },
+
+    hideWhenDisabled: true
+  }, {
+    action: ['removeList', false],
+    icon: 'remove-column',
+    enabled: function enabled() {
+      var index = _doc2.default.getArrayIndex(this.mainCursor.node);
+      return index && index[0][0].parentNode.childElementCount > 1;
+    },
+
+    hideWhenDisabled: true
+  }]
+});
+MathYlem.instances = {};
+MathYlem.activeMathYlem = null;
+MathYlem.isMouseDown = false;
+
+MathYlem.recomputeLocations = function (func) {
+  var timeout = void 0;
+  return function () {
+    clearTimeout(timeout);
+    timeout = setTimeout(func, 100);
+  };
+}(function () {
+  var y = MathYlem.activeMathYlem;
+  if (y) {
+    y.computeLocations();
   }
-  this.render(true);
-  this.backend.emit('focus', { 'focused': true });
-};
+});
 
-MathYlem.prototype.deactivate = function (blur) {
-  this.active = false;
-  this.editor.className = this.editor.className.replace(new RegExp(
-    '(\\s+|^)my-active(\\s+|$)'), ' ');
-  if (blur && this.fakeInput) {
-    this.fakeInput.blur();
-  }
-  this.render();
-  this.backend.emit('focus', { 'focused': false });
-};
+exports.default = MathYlem;
 
-// Keyboard stuff
 
-MathYlem.kb = {};
+MathYlem.Editor = _editor2.default;
+MathYlem.Doc = _doc2.default;
+MathYlem.Symbols = _symbols.Symbols;
+MathYlem.katex = _katex2.default;
 
-MathYlem.kb.isMouseDown = false;
-
-/* keyboard behaviour definitions */
-
-// keys aside from 0-9,a-z,A-Z
-MathYlem.kb.chars = {
+var shortcuts = {
   '=': '=',
   '+': '+',
   '-': '-',
-  '*': '*',
   '.': '.',
-  ',': ',',
-  '<': '<',
-  '>': '>',
   'shift+/': '/',
-  'shift+=': '+'
-};
-MathYlem.kb.symbols = {
+  'shift+=': '+',
+
+  '*': '*',
   '/': 'frac',
   '%': 'mod',
   '^': 'pow',
-  '_': 'sub',
+  _: 'sub',
   '|': 'abs',
   '!': 'fact',
+  '<': '<',
+  '>': '>',
   '\\': 'symbol',
   'shift+up': 'pow',
-  'shift+down': 'sub'
-};
-MathYlem.kb.controls = {
-  'up': 'up',
-  'down': 'down',
-  'right': 'right',
-  'left': 'left',
-  'alt+k': 'up',
-  'alt+j': 'down',
-  'alt+l': 'right',
-  'alt+h': 'left',
-  'space': 'spacebar',
-  'home': 'home',
-  'end': 'end',
-  'backspace': 'backspace',
-  'del': 'deleteKey',
+  'shift+down': 'sub',
+
+  '(': {
+    symbol: ['replaceF', 'func', 0],
+    '*': 'paren'
+  },
+
+  up: ['moveCursor', 'up'],
+  down: ['moveCursor', 'down'],
+  right: ['moveCursor', 1],
+  left: ['moveCursor', -1],
+  'alt+k': ['moveCursor', 'up'],
+  'alt+j': ['moveCursor', 'down'],
+  'alt+l': ['moveCursor', 1],
+  'alt+h': ['moveCursor', -1],
+  ')': ['moveCursor', 1, true],
+  home: 'home',
+  end: 'end',
+  'shift+left': ['moveSelection', -1],
+  'shift+right': ['moveSelection', 1],
   'mod+a': 'selectAll',
-  'mod+c': 'copySelection',
-  'mod+x': 'cutSelection',
+  backspace: 'deleteBackward',
+  del: 'deleteForward',
+  'mod+c': ['clipboardSelection', false],
+  'mod+x': ['clipboardSelection', true],
   'mod+v': 'paste',
   'mod+z': 'undo',
   'mod+y': 'redo',
-  'enter': 'done',
-  'mod+shift+right': 'copyExtendListRight',
-  'mod+shift+left': 'copyExtendListLeft',
-  'mod+right': 'extendListRight',
-  'mod+left': 'extendListLeft',
-  'mod+up': 'extendListUp',
-  'mod+down': 'extendListDown',
-  'mod+shift+up': 'copyExtendListUp',
-  'mod+shift+down': 'copyExtendListDown',
-  'mod+backspace': 'removeListItem',
-  'mod+shift+backspace': 'removeListRow',
-  'shift+left': 'selectLeft',
-  'shift+right': 'selectRight',
-  '(': 'leftParen',
-  ')': 'rightParen',
-  'tab': 'tab'
+  space: {
+    text: ' ',
+    symbol: 'autocompleteSymbol',
+    '*': ['checkSymbol', true]
+  },
+  enter: {
+    symbol: 'completeSymbol',
+    '*': ['emit', 'done']
+  },
+  'mod+left': ['extendList', 'left', false],
+  'mod+right': ['extendList', 'right', false],
+  'mod+shift+left': ['extendList', 'left', true],
+  'mod+shift+right': ['extendList', 'right', true],
+  ',': ['extendList', 'right', false],
+  'mod+up': ['extendList', 'up', false],
+  'mod+down': ['extendList', 'down', false],
+  'mod+shift+up': ['extendList', 'up', true],
+  'mod+shift+down': ['extendList', 'down', true],
+  ';': ['extendList', 'down', false],
+  'mod+backspace': ['removeList', false],
+  'mod+shift+backspace': ['removeList', true]
 };
-
-// letters
-for (var i = 65; i <= 90; i++) {
-  MathYlem.kb.chars[String.fromCharCode(i).toLowerCase()] =
-    String.fromCharCode(i).toLowerCase();
-  MathYlem.kb.chars['shift+' + String.fromCharCode(i).toLowerCase()] =
-    String.fromCharCode(i).toUpperCase();
+for (var i = 48; i <= 57; i++) {
+  shortcuts[String.fromCharCode(i)] = String.fromCharCode(i);
+}
+for (var _i2 = 97; _i2 <= 122; _i2++) {
+  var letter = String.fromCharCode(_i2);
+  shortcuts[letter] = letter;
+  shortcuts['shift+' + letter] = String.fromCharCode(_i2 - 32);
 }
 
-// numbers
-for (var i = 48; i <= 57; i++) { // eslint-disable-line no-redeclare
-  MathYlem.kb.chars[String.fromCharCode(i)] = String.fromCharCode(i);
-}
+_mousetrap2.default.addKeycodes({ 173: '-' }); // Firefox
 
-// Firefox's special minus (needed for _ = sub binding)
-Mousetrap.addKeycodes({ 173: '-' });
-for (var i in MathYlem.kb.chars) { // eslint-disable-line no-redeclare
-  Mousetrap.bind(i, (function (i) {
-    return function () {
-      if (!MathYlem.activeMathYlem) {
-        return true;
-      }
-      MathYlem.activeMathYlem.tempCursor.node = null;
-      MathYlem.activeMathYlem.backend.insertString(MathYlem.kb.chars[i]);
-      MathYlem.activeMathYlem.render(true);
-      return false;
-    };
-  }(i)));
-}
-for (var i in MathYlem.kb.symbols) { // eslint-disable-line no-redeclare
-  Mousetrap.bind(i, (function (i) {
-    return function () {
-      if (!MathYlem.activeMathYlem) {
-        return true;
-      }
-      MathYlem.activeMathYlem.tempCursor.node = null;
-      MathYlem.activeMathYlem.backend.insertSymbol(MathYlem.kb.symbols[i]);
-      MathYlem.activeMathYlem.render(true);
-      return false;
-    };
-  }(i)));
-}
-for (var i in MathYlem.kb.controls) { // eslint-disable-line no-redeclare
-  Mousetrap.bind(i, (function (i) {
-    return function () {
-      if (!MathYlem.activeMathYlem) {
-        return true;
-      }
-      MathYlem.activeMathYlem.backend[MathYlem.kb.controls[i]]();
-      MathYlem.activeMathYlem.tempCursor.node = null;
-      MathYlem.activeMathYlem.render(['up', 'down', 'right', 'left', 'home',
-        'end', 'selectLeft', 'selectRight'].indexOf(i) < 0);
-      return false;
-    };
-  }(i)));
-}
-
-module.exports = MathYlem;
-
-},{"./backend.js":2,"./doc.js":3,"./symbols.js":5,"katex":85,"mousetrap":122,"throttle-debounce/debounce":124}],5:[function(require,module,exports){
-var Symbols = { 'symbols': {} };
-var defaultSymbols = require('../data/symbols.json');
-
-Symbols.makeRawSymbol = function (name, latex) {
-  return {
-    'output': { 'latex': latex, 'text': name },
-    'char': true
-  };
-};
-
-Symbols.makeOperatorSymbol = function (name, latex) {
-  return {
-    'output': { 'latex': latex, 'text': name },
-    'char': true,
-    'operator': true
-  };
-};
-
-Symbols.makeFunctionSymbol = function (name, nonLaTeX) {
-  return {
-    'output': {
-      'latex': '\\' + (!nonLaTeX ? name : 'mathrm{' + name + '}') +
-        '\\left({$1}\\right)',
-      'text': name + '({$1})'
-    },
-    'attrs': [{ 'delete': 1 }]
-  };
-};
-
-Symbols.addSymbols = function (symbols) {
-  if (typeof symbols === 'string' || symbols instanceof String) {
-    symbols = JSON.parse(symbols);
-  }
-
-  for (var name in symbols) {
-    var symbol = symbols[name];
-    switch (name) {
-      case '_operator':
-        for (var t in symbol) {
-          Symbols.symbols[t] = Symbols.makeOperatorSymbol(t, symbol[t]);
-        }
-        break;
-      case '_greek':
-        for (var i = 0; i < symbol.length; i++) {
-          Symbols.symbols[symbol[i]] = Symbols.makeRawSymbol(symbol[i],
-            '\\' + symbol[i]);
-        }
-        break;
-      case '_func':
-      case '_func_nonlatex':
-        for (var i = 0; i < symbol.length; i++) { // eslint-disable-line no-redeclare
-          Symbols.symbols[symbol[i]] = Symbols.makeFunctionSymbol(symbol[i],
-            name === '_func_nonlatex');
-        }
-        break;
-      default:
-        Symbols.symbols[name] = symbol;
-        break;
+var _loop = function _loop(_i3) {
+  _mousetrap2.default.bind(_i3, function () {
+    var y = MathYlem.activeMathYlem;
+    if (!y) {
+      return true;
     }
+    y.tempCursor.set(null);
+    y.executeAction(shortcuts[_i3]);
+    return false;
+  });
+};
+
+for (var _i3 in shortcuts) {
+  _loop(_i3);
+}
+
+if (touchCapable) {
+  window.addEventListener('touchstart', MathYlem.mouseDown);
+  window.addEventListener('touchmove', MathYlem.touchMove);
+} else {
+  window.addEventListener('mousedown', MathYlem.mouseDown);
+  window.addEventListener('mouseup', MathYlem.mouseUp);
+  window.addEventListener('mousemove', MathYlem.mouseMove);
+}
+window.addEventListener('scroll', MathYlem.recomputeLocations);
+window.addEventListener('resize', MathYlem.recomputeLocations);
+
+module.exports = exports.default;
+
+},{"./cursor":1,"./doc":2,"./editor":3,"./symbols":5,"babel-runtime/core-js/json/stringify":10,"babel-runtime/core-js/object/assign":13,"babel-runtime/core-js/object/get-prototype-of":17,"babel-runtime/helpers/classCallCheck":22,"babel-runtime/helpers/createClass":23,"babel-runtime/helpers/inherits":25,"babel-runtime/helpers/possibleConstructorReturn":26,"katex":130,"mousetrap":174}],5:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.Symbols = undefined;
+
+var _toConsumableArray2 = require('babel-runtime/helpers/toConsumableArray');
+
+var _toConsumableArray3 = _interopRequireDefault(_toConsumableArray2);
+
+exports.addSymbols = addSymbols;
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+var Symbols = exports.Symbols = {};
+
+function addSymbols(data) {
+  if (typeof data === 'string' || data instanceof String) {
+    data = JSON.parse(data);
+  }
+
+  var _loop = function _loop(name) {
+    var symbol = data[name];
+    if (symbol.builder) {
+      symbol.arguments.forEach(function (item) {
+        if (Array.isArray(item)) {
+          Symbols[item[0]] = symbol.builder.apply(symbol, (0, _toConsumableArray3.default)(item));
+        } else {
+          Symbols[item] = symbol.builder(item);
+        }
+      });
+    } else {
+      Symbols[name] = symbol;
+    }
+  };
+
+  for (var name in data) {
+    _loop(name);
+  }
+}
+
+var defaultSymbols = {
+  text: {
+    output: {
+      latex: '\\text{{$1}}',
+      text: '\'{$1}\''
+    },
+    attrs: [{
+      text: true
+    }]
+  },
+  symbol: {
+    output: {
+      latex: '\\backslash\\texttt{{$1}}',
+      text: '{$1}'
+    },
+    attrs: [{
+      text: true
+    }]
+  },
+  func: {
+    output: {
+      latex: '\\backslash\\mathrm{{$1}}\\left( {$2{ , }} \\right)',
+      text: '$1({$2{,}})'
+    },
+    attrs: [{
+      text: true
+    }]
+  },
+  abs: {
+    output: {
+      latex: '\\left|{$1}\\right|',
+      text: 'abs({$1})'
+    },
+    current: 1,
+    attrs: [{
+      delete: 1
+    }]
+  },
+  sqrt: {
+    output: {
+      latex: '\\sqrt{{$1}}',
+      text: 'sqrt({$1})'
+    },
+    attrs: [{
+      delete: 1
+    }]
+  },
+  exp: {
+    output: {
+      latex: 'e^{{$1}}',
+      text: 'exp({$1})'
+    },
+    attrs: [{
+      delete: 1,
+      small: true
+    }]
+  },
+  fact: {
+    output: {
+      latex: '{{$1}}!',
+      text: 'factorial({$1})'
+    },
+    current: 1,
+    current_type: 'token',
+    attrs: [{
+      delete: 1,
+      parentheses: true
+    }]
+  },
+  binom: {
+    output: {
+      latex: '\\displaystyle\\binom{{$1}}{{$2}}',
+      small_latex: '\\binom{{$1}}{{$2}}',
+      text: 'binomial({$1},{$2})'
+    },
+    attrs: [{
+      down: 2
+    }, {
+      up: 1
+    }]
+  },
+  paren: {
+    output: {
+      latex: '\\left({$1}\\right)',
+      text: '({$1})'
+    },
+    current: 1,
+    attrs: [{
+      delete: 1
+    }]
+  },
+  floor: {
+    output: {
+      latex: '\\lfloor{$1}\\rfloor',
+      text: 'floor({$1})'
+    },
+    attrs: [{
+      delete: 1
+    }]
+  },
+  pow: {
+    output: {
+      latex: '{{$1}}^{{$2}}',
+      text: '({$1})**({$2})'
+    },
+    current: 2,
+    current_type: 'token',
+    attrs: [{
+      up: 2,
+      parentheses: true,
+      delete: 1
+    }, {
+      down: 1,
+      delete: 1,
+      small: true
+    }]
+  },
+  sub: {
+    output: {
+      latex: '{{$1}}_{{$2}}',
+      text: '{$1}_{$2}'
+    },
+    current: 1,
+    current_type: 'token',
+    attrs: [{
+      down: 2,
+      parentheses: true,
+      delete: 1
+    }, {
+      up: 1,
+      delete: 1,
+      small: true
+    }]
+  },
+  frac: {
+    output: {
+      latex: '\\dfrac{{$1}}{{$2}}',
+      small_latex: '\\frac{{$1}}{{$2}}',
+      text: '({$1})/({$2})'
+    },
+    current: 1,
+    current_type: 'token',
+    attrs: [{
+      down: 2
+    }, {
+      up: 1,
+      delete: 1
+    }]
+  },
+  mod: {
+    output: {
+      latex: '{$1}\\bmod{$2}',
+      text: '({$1})%({$2})'
+    },
+    current: 1,
+    current_type: 'token',
+    attrs: [{
+      down: 2,
+      delete: 1,
+      parentheses: true
+    }, {
+      up: 1,
+      delete: 1,
+      parentheses: true
+    }]
+  },
+  infty: {
+    output: {
+      latex: '\\infty',
+      text: 'oo'
+    },
+    char: true
+  },
+  zoo: {
+    output: {
+      latex: '\\tilde{\\infty}',
+      text: 'zoo'
+    },
+    char: true
+  },
+  lim: {
+    output: {
+      latex: '\\displaystyle\\lim_{{$1}\\to{$2}}{$3}',
+      small_latex: '\\lim_{{$1}\\to{$2}}{$3}',
+      text: 'Limit({$3},{$1},{$2})'
+    },
+    attrs: [{
+      up: 3,
+      small: true
+    }, {
+      up: 3,
+      small: true
+    }, {
+      down: 2,
+      delete: 3,
+      parentheses: true
+    }]
+  },
+  antid: {
+    output: {
+      latex: '\\displaystyle\\int{{$1}}d{$2}',
+      small_latex: '\\int{{$1}}d{$2}',
+      text: 'Integral({$1},{$2})'
+    },
+    attrs: [{
+      delete: 1
+    }, {
+      delete: 1,
+      parentheses: true
+    }]
+  },
+  int: {
+    output: {
+      latex: '\\displaystyle\\int_{{$1}}^{{$2}}{$3}d{$4}',
+      small_latex: '\\int_{{$1}}^{{$2}}{$3}d{$4}',
+      text: 'Integral({$3},({$4},{$1},{$2}))'
+    },
+    attrs: [{
+      up: 2,
+      small: true
+    }, {
+      down: 1,
+      small: true
+    }, {
+      down: 1,
+      up: 2,
+      delete: 3
+    }, {
+      down: 1,
+      up: 2,
+      parentheses: true,
+      delete: 3
+    }]
+  },
+  deriv: {
+    output: {
+      latex: '\\dfrac{d}{d{$1}}{$2}',
+      small_latex: '\\frac{d}{d{$1}}{$2}',
+      text: 'Derivative({$2},{$1})'
+    },
+    attrs: [{
+      up: 2,
+      parentheses: true
+    }, {
+      down: 1,
+      delete: 2,
+      parentheses: true
+    }]
+  },
+  sum: {
+    output: {
+      latex: '\\displaystyle\\sum_{{$1}={$2}}^{{$3}}{$4}',
+      small_latex: '\\sum_{{$1}={$2}}^{{$3}}{$4}',
+      text: 'Sum({$4},({$1},{$2},{$3}))'
+    },
+    attrs: [{
+      up: 3,
+      small: true
+    }, {
+      up: 3,
+      small: true
+    }, {
+      down: 2,
+      small: true
+    }, {
+      down: 2,
+      up: 3,
+      delete: 4,
+      parentheses: true
+    }]
+  },
+  prod: {
+    output: {
+      latex: '\\displaystyle\\prod_{{$1}={$2}}^{{$3}}{$4}',
+      small_latex: '\\prod_{{$1}={$2}}^{{$3}}{$4}',
+      text: 'Product({$4},({$1},{$2},{$3}))'
+    },
+    attrs: [{
+      up: 3,
+      small: true
+    }, {
+      up: 3,
+      small: true
+    }, {
+      down: 2,
+      small: true
+    }, {
+      down: 2,
+      up: 3,
+      delete: 4,
+      parentheses: true
+    }]
+  },
+  root: {
+    output: {
+      latex: '\\sqrt[{$1}]{{$2}}',
+      text: 'root({$2},{$1})'
+    },
+    attrs: [{
+      down: 2,
+      small: true,
+      delete: 2
+    }, {
+      up: 1,
+      delete: 2
+    }]
+  },
+  list: {
+    output: {
+      latex: '\\left[ {$1{ , }} \\right]',
+      text: '[{$1{,}}]'
+    }
+  },
+  set: {
+    output: {
+      latex: '\\left\\{ {$1{ ,\\; }} \\right\\}',
+      text: '{{$1{,}}}'
+    }
+  },
+  tuple: {
+    output: {
+      latex: '\\left\\langle {$1{ , }} \\right\\rangle',
+      text: '({$1{,}})'
+    }
+  },
+  mat: {
+    output: {
+      latex: '\\left(\\begin{matrix} {$1{ & }{\\\\}} \\end{matrix}\\right)',
+      text: 'Matrix([[{$1{,}{],[}}]])'
+    }
+  },
+  _func_nonlatex: {
+    builder: function builder(name) {
+      return {
+        output: {
+          latex: '\\mathrm{' + name + '}\\left({$1}\\right)',
+          text: name + '({$1})'
+        },
+        attrs: [{
+          delete: 1
+        }]
+      };
+    },
+
+    arguments: ['sech', 'csch', 'asin', 'acos', 'atan', 'acot', 'asec', 'acsc', 'asinh', 'acosh', 'atanh', 'acoth', 'asech', 'acsch']
+  },
+  _func: {
+    builder: function builder(name) {
+      return {
+        output: {
+          latex: '\\' + name + '\\left({$1}\\right)',
+          text: name + '({$1})'
+        },
+        attrs: [{
+          delete: 1
+        }]
+      };
+    },
+
+    arguments: ['sin', 'cos', 'tan', 'sec', 'csc', 'cot', 'log', 'ln', 'sinh', 'cosh', 'tanh', 'coth', 'Re', 'Im', 'arg']
+  },
+  _operator: {
+    builder: function builder(name) {
+      return {
+        output: {
+          latex: arguments.length <= 1 ? undefined : arguments[1],
+          text: name
+        },
+        char: true,
+        op: true
+      };
+    },
+
+    arguments: [['*', '\\cdot'], ['<=', '\\leq'], ['<', '<'], ['>=', '\\geq'], ['>', '>']]
+  },
+  _greek: {
+    builder: function builder(name) {
+      return {
+        output: {
+          latex: '\\' + name,
+          text: name
+        },
+        char: true
+      };
+    },
+
+    arguments: ['alpha', 'beta', 'gamma', 'delta', 'epsilon', 'zeta', 'theta', 'iota', 'kappa', 'lambda', 'mu', 'nu', 'xi', 'omicron', 'pi', 'rho', 'sigma', 'tau', 'upsilon', 'phi', 'chi', 'psi', 'omega', 'Gamma', 'Delta', 'Theta', 'Lambda', 'Xi', 'Pi', 'Sigma', 'Upsilon', 'Phi', 'Psi', 'Omega', 'eta']
   }
 };
+addSymbols(defaultSymbols);
 
-Symbols.addSymbols(defaultSymbols);
-module.exports = Symbols;
+},{"babel-runtime/helpers/toConsumableArray":28}],6:[function(require,module,exports){
+"use strict";
 
-},{"../data/symbols.json":1}],6:[function(require,module,exports){
-module.exports = {
-  DOMParser: window.DOMParser,
-  XMLSerializer: window.XMLSerializer
-};
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+/* eslint-env browser */
+exports.DOMParser = DOMParser;
+exports.XMLSerializer = XMLSerializer;
 
 },{}],7:[function(require,module,exports){
 module.exports = { "default": require("core-js/library/fn/array/from"), __esModule: true };
-},{"core-js/library/fn/array/from":17}],8:[function(require,module,exports){
+},{"core-js/library/fn/array/from":30}],8:[function(require,module,exports){
 module.exports = { "default": require("core-js/library/fn/get-iterator"), __esModule: true };
-},{"core-js/library/fn/get-iterator":18}],9:[function(require,module,exports){
+},{"core-js/library/fn/get-iterator":31}],9:[function(require,module,exports){
 module.exports = { "default": require("core-js/library/fn/is-iterable"), __esModule: true };
-},{"core-js/library/fn/is-iterable":19}],10:[function(require,module,exports){
+},{"core-js/library/fn/is-iterable":32}],10:[function(require,module,exports){
 module.exports = { "default": require("core-js/library/fn/json/stringify"), __esModule: true };
-},{"core-js/library/fn/json/stringify":20}],11:[function(require,module,exports){
+},{"core-js/library/fn/json/stringify":33}],11:[function(require,module,exports){
+module.exports = { "default": require("core-js/library/fn/math/sign"), __esModule: true };
+},{"core-js/library/fn/math/sign":34}],12:[function(require,module,exports){
+module.exports = { "default": require("core-js/library/fn/number/is-nan"), __esModule: true };
+},{"core-js/library/fn/number/is-nan":35}],13:[function(require,module,exports){
+module.exports = { "default": require("core-js/library/fn/object/assign"), __esModule: true };
+},{"core-js/library/fn/object/assign":36}],14:[function(require,module,exports){
+module.exports = { "default": require("core-js/library/fn/object/create"), __esModule: true };
+},{"core-js/library/fn/object/create":37}],15:[function(require,module,exports){
 module.exports = { "default": require("core-js/library/fn/object/define-property"), __esModule: true };
-},{"core-js/library/fn/object/define-property":21}],12:[function(require,module,exports){
+},{"core-js/library/fn/object/define-property":38}],16:[function(require,module,exports){
 module.exports = { "default": require("core-js/library/fn/object/freeze"), __esModule: true };
-},{"core-js/library/fn/object/freeze":22}],13:[function(require,module,exports){
+},{"core-js/library/fn/object/freeze":39}],17:[function(require,module,exports){
+module.exports = { "default": require("core-js/library/fn/object/get-prototype-of"), __esModule: true };
+},{"core-js/library/fn/object/get-prototype-of":40}],18:[function(require,module,exports){
+module.exports = { "default": require("core-js/library/fn/object/keys"), __esModule: true };
+},{"core-js/library/fn/object/keys":41}],19:[function(require,module,exports){
+module.exports = { "default": require("core-js/library/fn/object/set-prototype-of"), __esModule: true };
+},{"core-js/library/fn/object/set-prototype-of":42}],20:[function(require,module,exports){
+module.exports = { "default": require("core-js/library/fn/symbol"), __esModule: true };
+},{"core-js/library/fn/symbol":43}],21:[function(require,module,exports){
+module.exports = { "default": require("core-js/library/fn/symbol/iterator"), __esModule: true };
+},{"core-js/library/fn/symbol/iterator":44}],22:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -2765,7 +2372,7 @@ exports.default = function (instance, Constructor) {
     throw new TypeError("Cannot call a class as a function");
   }
 };
-},{}],14:[function(require,module,exports){
+},{}],23:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -2793,7 +2400,84 @@ exports.default = function () {
     return Constructor;
   };
 }();
-},{"../core-js/object/define-property":11}],15:[function(require,module,exports){
+},{"../core-js/object/define-property":15}],24:[function(require,module,exports){
+"use strict";
+
+exports.__esModule = true;
+
+var _defineProperty = require("../core-js/object/define-property");
+
+var _defineProperty2 = _interopRequireDefault(_defineProperty);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+exports.default = function (obj, key, value) {
+  if (key in obj) {
+    (0, _defineProperty2.default)(obj, key, {
+      value: value,
+      enumerable: true,
+      configurable: true,
+      writable: true
+    });
+  } else {
+    obj[key] = value;
+  }
+
+  return obj;
+};
+},{"../core-js/object/define-property":15}],25:[function(require,module,exports){
+"use strict";
+
+exports.__esModule = true;
+
+var _setPrototypeOf = require("../core-js/object/set-prototype-of");
+
+var _setPrototypeOf2 = _interopRequireDefault(_setPrototypeOf);
+
+var _create = require("../core-js/object/create");
+
+var _create2 = _interopRequireDefault(_create);
+
+var _typeof2 = require("../helpers/typeof");
+
+var _typeof3 = _interopRequireDefault(_typeof2);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+exports.default = function (subClass, superClass) {
+  if (typeof superClass !== "function" && superClass !== null) {
+    throw new TypeError("Super expression must either be null or a function, not " + (typeof superClass === "undefined" ? "undefined" : (0, _typeof3.default)(superClass)));
+  }
+
+  subClass.prototype = (0, _create2.default)(superClass && superClass.prototype, {
+    constructor: {
+      value: subClass,
+      enumerable: false,
+      writable: true,
+      configurable: true
+    }
+  });
+  if (superClass) _setPrototypeOf2.default ? (0, _setPrototypeOf2.default)(subClass, superClass) : subClass.__proto__ = superClass;
+};
+},{"../core-js/object/create":14,"../core-js/object/set-prototype-of":19,"../helpers/typeof":29}],26:[function(require,module,exports){
+"use strict";
+
+exports.__esModule = true;
+
+var _typeof2 = require("../helpers/typeof");
+
+var _typeof3 = _interopRequireDefault(_typeof2);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+exports.default = function (self, call) {
+  if (!self) {
+    throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
+  }
+
+  return call && ((typeof call === "undefined" ? "undefined" : (0, _typeof3.default)(call)) === "object" || typeof call === "function") ? call : self;
+};
+},{"../helpers/typeof":29}],27:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -2845,7 +2529,7 @@ exports.default = function () {
     }
   };
 }();
-},{"../core-js/get-iterator":8,"../core-js/is-iterable":9}],16:[function(require,module,exports){
+},{"../core-js/get-iterator":8,"../core-js/is-iterable":9}],28:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -2867,56 +2551,121 @@ exports.default = function (arr) {
     return (0, _from2.default)(arr);
   }
 };
-},{"../core-js/array/from":7}],17:[function(require,module,exports){
+},{"../core-js/array/from":7}],29:[function(require,module,exports){
+"use strict";
+
+exports.__esModule = true;
+
+var _iterator = require("../core-js/symbol/iterator");
+
+var _iterator2 = _interopRequireDefault(_iterator);
+
+var _symbol = require("../core-js/symbol");
+
+var _symbol2 = _interopRequireDefault(_symbol);
+
+var _typeof = typeof _symbol2.default === "function" && typeof _iterator2.default === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof _symbol2.default === "function" && obj.constructor === _symbol2.default && obj !== _symbol2.default.prototype ? "symbol" : typeof obj; };
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+exports.default = typeof _symbol2.default === "function" && _typeof(_iterator2.default) === "symbol" ? function (obj) {
+  return typeof obj === "undefined" ? "undefined" : _typeof(obj);
+} : function (obj) {
+  return obj && typeof _symbol2.default === "function" && obj.constructor === _symbol2.default && obj !== _symbol2.default.prototype ? "symbol" : typeof obj === "undefined" ? "undefined" : _typeof(obj);
+};
+},{"../core-js/symbol":20,"../core-js/symbol/iterator":21}],30:[function(require,module,exports){
 require('../../modules/es6.string.iterator');
 require('../../modules/es6.array.from');
 module.exports = require('../../modules/_core').Array.from;
 
-},{"../../modules/_core":29,"../../modules/es6.array.from":78,"../../modules/es6.string.iterator":82}],18:[function(require,module,exports){
+},{"../../modules/_core":51,"../../modules/es6.array.from":112,"../../modules/es6.string.iterator":124}],31:[function(require,module,exports){
 require('../modules/web.dom.iterable');
 require('../modules/es6.string.iterator');
 module.exports = require('../modules/core.get-iterator');
 
-},{"../modules/core.get-iterator":76,"../modules/es6.string.iterator":82,"../modules/web.dom.iterable":83}],19:[function(require,module,exports){
+},{"../modules/core.get-iterator":110,"../modules/es6.string.iterator":124,"../modules/web.dom.iterable":128}],32:[function(require,module,exports){
 require('../modules/web.dom.iterable');
 require('../modules/es6.string.iterator');
 module.exports = require('../modules/core.is-iterable');
 
-},{"../modules/core.is-iterable":77,"../modules/es6.string.iterator":82,"../modules/web.dom.iterable":83}],20:[function(require,module,exports){
+},{"../modules/core.is-iterable":111,"../modules/es6.string.iterator":124,"../modules/web.dom.iterable":128}],33:[function(require,module,exports){
 var core = require('../../modules/_core');
 var $JSON = core.JSON || (core.JSON = { stringify: JSON.stringify });
 module.exports = function stringify(it) { // eslint-disable-line no-unused-vars
   return $JSON.stringify.apply($JSON, arguments);
 };
 
-},{"../../modules/_core":29}],21:[function(require,module,exports){
+},{"../../modules/_core":51}],34:[function(require,module,exports){
+require('../../modules/es6.math.sign');
+module.exports = require('../../modules/_core').Math.sign;
+
+},{"../../modules/_core":51,"../../modules/es6.math.sign":114}],35:[function(require,module,exports){
+require('../../modules/es6.number.is-nan');
+module.exports = require('../../modules/_core').Number.isNaN;
+
+},{"../../modules/_core":51,"../../modules/es6.number.is-nan":115}],36:[function(require,module,exports){
+require('../../modules/es6.object.assign');
+module.exports = require('../../modules/_core').Object.assign;
+
+},{"../../modules/_core":51,"../../modules/es6.object.assign":116}],37:[function(require,module,exports){
+require('../../modules/es6.object.create');
+var $Object = require('../../modules/_core').Object;
+module.exports = function create(P, D) {
+  return $Object.create(P, D);
+};
+
+},{"../../modules/_core":51,"../../modules/es6.object.create":117}],38:[function(require,module,exports){
 require('../../modules/es6.object.define-property');
 var $Object = require('../../modules/_core').Object;
 module.exports = function defineProperty(it, key, desc) {
   return $Object.defineProperty(it, key, desc);
 };
 
-},{"../../modules/_core":29,"../../modules/es6.object.define-property":80}],22:[function(require,module,exports){
+},{"../../modules/_core":51,"../../modules/es6.object.define-property":118}],39:[function(require,module,exports){
 require('../../modules/es6.object.freeze');
 module.exports = require('../../modules/_core').Object.freeze;
 
-},{"../../modules/_core":29,"../../modules/es6.object.freeze":81}],23:[function(require,module,exports){
+},{"../../modules/_core":51,"../../modules/es6.object.freeze":119}],40:[function(require,module,exports){
+require('../../modules/es6.object.get-prototype-of');
+module.exports = require('../../modules/_core').Object.getPrototypeOf;
+
+},{"../../modules/_core":51,"../../modules/es6.object.get-prototype-of":120}],41:[function(require,module,exports){
+require('../../modules/es6.object.keys');
+module.exports = require('../../modules/_core').Object.keys;
+
+},{"../../modules/_core":51,"../../modules/es6.object.keys":121}],42:[function(require,module,exports){
+require('../../modules/es6.object.set-prototype-of');
+module.exports = require('../../modules/_core').Object.setPrototypeOf;
+
+},{"../../modules/_core":51,"../../modules/es6.object.set-prototype-of":122}],43:[function(require,module,exports){
+require('../../modules/es6.symbol');
+require('../../modules/es6.object.to-string');
+require('../../modules/es7.symbol.async-iterator');
+require('../../modules/es7.symbol.observable');
+module.exports = require('../../modules/_core').Symbol;
+
+},{"../../modules/_core":51,"../../modules/es6.object.to-string":123,"../../modules/es6.symbol":125,"../../modules/es7.symbol.async-iterator":126,"../../modules/es7.symbol.observable":127}],44:[function(require,module,exports){
+require('../../modules/es6.string.iterator');
+require('../../modules/web.dom.iterable');
+module.exports = require('../../modules/_wks-ext').f('iterator');
+
+},{"../../modules/_wks-ext":107,"../../modules/es6.string.iterator":124,"../../modules/web.dom.iterable":128}],45:[function(require,module,exports){
 module.exports = function (it) {
   if (typeof it != 'function') throw TypeError(it + ' is not a function!');
   return it;
 };
 
-},{}],24:[function(require,module,exports){
+},{}],46:[function(require,module,exports){
 module.exports = function () { /* empty */ };
 
-},{}],25:[function(require,module,exports){
+},{}],47:[function(require,module,exports){
 var isObject = require('./_is-object');
 module.exports = function (it) {
   if (!isObject(it)) throw TypeError(it + ' is not an object!');
   return it;
 };
 
-},{"./_is-object":45}],26:[function(require,module,exports){
+},{"./_is-object":69}],48:[function(require,module,exports){
 // false -> Array#indexOf
 // true  -> Array#includes
 var toIObject = require('./_to-iobject');
@@ -2941,7 +2690,7 @@ module.exports = function (IS_INCLUDES) {
   };
 };
 
-},{"./_to-absolute-index":67,"./_to-iobject":69,"./_to-length":70}],27:[function(require,module,exports){
+},{"./_to-absolute-index":99,"./_to-iobject":101,"./_to-length":102}],49:[function(require,module,exports){
 // getting tag from 19.1.3.6 Object.prototype.toString()
 var cof = require('./_cof');
 var TAG = require('./_wks')('toStringTag');
@@ -2966,18 +2715,18 @@ module.exports = function (it) {
     : (B = cof(O)) == 'Object' && typeof O.callee == 'function' ? 'Arguments' : B;
 };
 
-},{"./_cof":28,"./_wks":74}],28:[function(require,module,exports){
+},{"./_cof":50,"./_wks":108}],50:[function(require,module,exports){
 var toString = {}.toString;
 
 module.exports = function (it) {
   return toString.call(it).slice(8, -1);
 };
 
-},{}],29:[function(require,module,exports){
+},{}],51:[function(require,module,exports){
 var core = module.exports = { version: '2.5.1' };
 if (typeof __e == 'number') __e = core; // eslint-disable-line no-undef
 
-},{}],30:[function(require,module,exports){
+},{}],52:[function(require,module,exports){
 'use strict';
 var $defineProperty = require('./_object-dp');
 var createDesc = require('./_property-desc');
@@ -2987,7 +2736,7 @@ module.exports = function (object, index, value) {
   else object[index] = value;
 };
 
-},{"./_object-dp":55,"./_property-desc":61}],31:[function(require,module,exports){
+},{"./_object-dp":81,"./_property-desc":92}],53:[function(require,module,exports){
 // optional / simple context binding
 var aFunction = require('./_a-function');
 module.exports = function (fn, that, length) {
@@ -3009,20 +2758,20 @@ module.exports = function (fn, that, length) {
   };
 };
 
-},{"./_a-function":23}],32:[function(require,module,exports){
+},{"./_a-function":45}],54:[function(require,module,exports){
 // 7.2.1 RequireObjectCoercible(argument)
 module.exports = function (it) {
   if (it == undefined) throw TypeError("Can't call method on  " + it);
   return it;
 };
 
-},{}],33:[function(require,module,exports){
+},{}],55:[function(require,module,exports){
 // Thank's IE8 for his funny defineProperty
 module.exports = !require('./_fails')(function () {
   return Object.defineProperty({}, 'a', { get: function () { return 7; } }).a != 7;
 });
 
-},{"./_fails":37}],34:[function(require,module,exports){
+},{"./_fails":60}],56:[function(require,module,exports){
 var isObject = require('./_is-object');
 var document = require('./_global').document;
 // typeof document.createElement is 'object' in old IE
@@ -3031,13 +2780,30 @@ module.exports = function (it) {
   return is ? document.createElement(it) : {};
 };
 
-},{"./_global":38,"./_is-object":45}],35:[function(require,module,exports){
+},{"./_global":61,"./_is-object":69}],57:[function(require,module,exports){
 // IE 8- don't enum bug keys
 module.exports = (
   'constructor,hasOwnProperty,isPrototypeOf,propertyIsEnumerable,toLocaleString,toString,valueOf'
 ).split(',');
 
-},{}],36:[function(require,module,exports){
+},{}],58:[function(require,module,exports){
+// all enumerable object keys, includes symbols
+var getKeys = require('./_object-keys');
+var gOPS = require('./_object-gops');
+var pIE = require('./_object-pie');
+module.exports = function (it) {
+  var result = getKeys(it);
+  var getSymbols = gOPS.f;
+  if (getSymbols) {
+    var symbols = getSymbols(it);
+    var isEnum = pIE.f;
+    var i = 0;
+    var key;
+    while (symbols.length > i) if (isEnum.call(it, key = symbols[i++])) result.push(key);
+  } return result;
+};
+
+},{"./_object-gops":86,"./_object-keys":89,"./_object-pie":90}],59:[function(require,module,exports){
 var global = require('./_global');
 var core = require('./_core');
 var ctx = require('./_ctx');
@@ -3100,7 +2866,7 @@ $export.U = 64;  // safe
 $export.R = 128; // real proto method for `library`
 module.exports = $export;
 
-},{"./_core":29,"./_ctx":31,"./_global":38,"./_hide":40}],37:[function(require,module,exports){
+},{"./_core":51,"./_ctx":53,"./_global":61,"./_hide":63}],60:[function(require,module,exports){
 module.exports = function (exec) {
   try {
     return !!exec();
@@ -3109,7 +2875,7 @@ module.exports = function (exec) {
   }
 };
 
-},{}],38:[function(require,module,exports){
+},{}],61:[function(require,module,exports){
 // https://github.com/zloirock/core-js/issues/86#issuecomment-115759028
 var global = module.exports = typeof window != 'undefined' && window.Math == Math
   ? window : typeof self != 'undefined' && self.Math == Math ? self
@@ -3117,13 +2883,13 @@ var global = module.exports = typeof window != 'undefined' && window.Math == Mat
   : Function('return this')();
 if (typeof __g == 'number') __g = global; // eslint-disable-line no-undef
 
-},{}],39:[function(require,module,exports){
+},{}],62:[function(require,module,exports){
 var hasOwnProperty = {}.hasOwnProperty;
 module.exports = function (it, key) {
   return hasOwnProperty.call(it, key);
 };
 
-},{}],40:[function(require,module,exports){
+},{}],63:[function(require,module,exports){
 var dP = require('./_object-dp');
 var createDesc = require('./_property-desc');
 module.exports = require('./_descriptors') ? function (object, key, value) {
@@ -3133,16 +2899,16 @@ module.exports = require('./_descriptors') ? function (object, key, value) {
   return object;
 };
 
-},{"./_descriptors":33,"./_object-dp":55,"./_property-desc":61}],41:[function(require,module,exports){
+},{"./_descriptors":55,"./_object-dp":81,"./_property-desc":92}],64:[function(require,module,exports){
 var document = require('./_global').document;
 module.exports = document && document.documentElement;
 
-},{"./_global":38}],42:[function(require,module,exports){
+},{"./_global":61}],65:[function(require,module,exports){
 module.exports = !require('./_descriptors') && !require('./_fails')(function () {
   return Object.defineProperty(require('./_dom-create')('div'), 'a', { get: function () { return 7; } }).a != 7;
 });
 
-},{"./_descriptors":33,"./_dom-create":34,"./_fails":37}],43:[function(require,module,exports){
+},{"./_descriptors":55,"./_dom-create":56,"./_fails":60}],66:[function(require,module,exports){
 // fallback for non-array-like ES3 and non-enumerable old V8 strings
 var cof = require('./_cof');
 // eslint-disable-next-line no-prototype-builtins
@@ -3150,7 +2916,7 @@ module.exports = Object('z').propertyIsEnumerable(0) ? Object : function (it) {
   return cof(it) == 'String' ? it.split('') : Object(it);
 };
 
-},{"./_cof":28}],44:[function(require,module,exports){
+},{"./_cof":50}],67:[function(require,module,exports){
 // check on default Array iterator
 var Iterators = require('./_iterators');
 var ITERATOR = require('./_wks')('iterator');
@@ -3160,12 +2926,19 @@ module.exports = function (it) {
   return it !== undefined && (Iterators.Array === it || ArrayProto[ITERATOR] === it);
 };
 
-},{"./_iterators":51,"./_wks":74}],45:[function(require,module,exports){
+},{"./_iterators":75,"./_wks":108}],68:[function(require,module,exports){
+// 7.2.2 IsArray(argument)
+var cof = require('./_cof');
+module.exports = Array.isArray || function isArray(arg) {
+  return cof(arg) == 'Array';
+};
+
+},{"./_cof":50}],69:[function(require,module,exports){
 module.exports = function (it) {
   return typeof it === 'object' ? it !== null : typeof it === 'function';
 };
 
-},{}],46:[function(require,module,exports){
+},{}],70:[function(require,module,exports){
 // call something on iterator step with safe closing on error
 var anObject = require('./_an-object');
 module.exports = function (iterator, fn, value, entries) {
@@ -3179,7 +2952,7 @@ module.exports = function (iterator, fn, value, entries) {
   }
 };
 
-},{"./_an-object":25}],47:[function(require,module,exports){
+},{"./_an-object":47}],71:[function(require,module,exports){
 'use strict';
 var create = require('./_object-create');
 var descriptor = require('./_property-desc');
@@ -3194,7 +2967,7 @@ module.exports = function (Constructor, NAME, next) {
   setToStringTag(Constructor, NAME + ' Iterator');
 };
 
-},{"./_hide":40,"./_object-create":54,"./_property-desc":61,"./_set-to-string-tag":63,"./_wks":74}],48:[function(require,module,exports){
+},{"./_hide":63,"./_object-create":80,"./_property-desc":92,"./_set-to-string-tag":95,"./_wks":108}],72:[function(require,module,exports){
 'use strict';
 var LIBRARY = require('./_library');
 var $export = require('./_export');
@@ -3266,7 +3039,7 @@ module.exports = function (Base, NAME, Constructor, next, DEFAULT, IS_SET, FORCE
   return methods;
 };
 
-},{"./_export":36,"./_has":39,"./_hide":40,"./_iter-create":47,"./_iterators":51,"./_library":52,"./_object-gpo":57,"./_redefine":62,"./_set-to-string-tag":63,"./_wks":74}],49:[function(require,module,exports){
+},{"./_export":59,"./_has":62,"./_hide":63,"./_iter-create":71,"./_iterators":75,"./_library":76,"./_object-gpo":87,"./_redefine":93,"./_set-to-string-tag":95,"./_wks":108}],73:[function(require,module,exports){
 var ITERATOR = require('./_wks')('iterator');
 var SAFE_CLOSING = false;
 
@@ -3290,18 +3063,25 @@ module.exports = function (exec, skipClosing) {
   return safe;
 };
 
-},{"./_wks":74}],50:[function(require,module,exports){
+},{"./_wks":108}],74:[function(require,module,exports){
 module.exports = function (done, value) {
   return { value: value, done: !!done };
 };
 
-},{}],51:[function(require,module,exports){
+},{}],75:[function(require,module,exports){
 module.exports = {};
 
-},{}],52:[function(require,module,exports){
+},{}],76:[function(require,module,exports){
 module.exports = true;
 
-},{}],53:[function(require,module,exports){
+},{}],77:[function(require,module,exports){
+// 20.2.2.28 Math.sign(x)
+module.exports = Math.sign || function sign(x) {
+  // eslint-disable-next-line no-self-compare
+  return (x = +x) == 0 || x != x ? x : x < 0 ? -1 : 1;
+};
+
+},{}],78:[function(require,module,exports){
 var META = require('./_uid')('meta');
 var isObject = require('./_is-object');
 var has = require('./_has');
@@ -3356,7 +3136,43 @@ var meta = module.exports = {
   onFreeze: onFreeze
 };
 
-},{"./_fails":37,"./_has":39,"./_is-object":45,"./_object-dp":55,"./_uid":73}],54:[function(require,module,exports){
+},{"./_fails":60,"./_has":62,"./_is-object":69,"./_object-dp":81,"./_uid":105}],79:[function(require,module,exports){
+'use strict';
+// 19.1.2.1 Object.assign(target, source, ...)
+var getKeys = require('./_object-keys');
+var gOPS = require('./_object-gops');
+var pIE = require('./_object-pie');
+var toObject = require('./_to-object');
+var IObject = require('./_iobject');
+var $assign = Object.assign;
+
+// should work with symbols and should have deterministic property order (V8 bug)
+module.exports = !$assign || require('./_fails')(function () {
+  var A = {};
+  var B = {};
+  // eslint-disable-next-line no-undef
+  var S = Symbol();
+  var K = 'abcdefghijklmnopqrst';
+  A[S] = 7;
+  K.split('').forEach(function (k) { B[k] = k; });
+  return $assign({}, A)[S] != 7 || Object.keys($assign({}, B)).join('') != K;
+}) ? function assign(target, source) { // eslint-disable-line no-unused-vars
+  var T = toObject(target);
+  var aLen = arguments.length;
+  var index = 1;
+  var getSymbols = gOPS.f;
+  var isEnum = pIE.f;
+  while (aLen > index) {
+    var S = IObject(arguments[index++]);
+    var keys = getSymbols ? getKeys(S).concat(getSymbols(S)) : getKeys(S);
+    var length = keys.length;
+    var j = 0;
+    var key;
+    while (length > j) if (isEnum.call(S, key = keys[j++])) T[key] = S[key];
+  } return T;
+} : $assign;
+
+},{"./_fails":60,"./_iobject":66,"./_object-gops":86,"./_object-keys":89,"./_object-pie":90,"./_to-object":103}],80:[function(require,module,exports){
 // 19.1.2.2 / 15.2.3.5 Object.create(O [, Properties])
 var anObject = require('./_an-object');
 var dPs = require('./_object-dps');
@@ -3399,7 +3215,7 @@ module.exports = Object.create || function create(O, Properties) {
   return Properties === undefined ? result : dPs(result, Properties);
 };
 
-},{"./_an-object":25,"./_dom-create":34,"./_enum-bug-keys":35,"./_html":41,"./_object-dps":56,"./_shared-key":64}],55:[function(require,module,exports){
+},{"./_an-object":47,"./_dom-create":56,"./_enum-bug-keys":57,"./_html":64,"./_object-dps":82,"./_shared-key":96}],81:[function(require,module,exports){
 var anObject = require('./_an-object');
 var IE8_DOM_DEFINE = require('./_ie8-dom-define');
 var toPrimitive = require('./_to-primitive');
@@ -3417,7 +3233,7 @@ exports.f = require('./_descriptors') ? Object.defineProperty : function defineP
   return O;
 };
 
-},{"./_an-object":25,"./_descriptors":33,"./_ie8-dom-define":42,"./_to-primitive":72}],56:[function(require,module,exports){
+},{"./_an-object":47,"./_descriptors":55,"./_ie8-dom-define":65,"./_to-primitive":104}],82:[function(require,module,exports){
 var dP = require('./_object-dp');
 var anObject = require('./_an-object');
 var getKeys = require('./_object-keys');
@@ -3432,7 +3248,58 @@ module.exports = require('./_descriptors') ? Object.defineProperties : function 
   return O;
 };
 
-},{"./_an-object":25,"./_descriptors":33,"./_object-dp":55,"./_object-keys":59}],57:[function(require,module,exports){
+},{"./_an-object":47,"./_descriptors":55,"./_object-dp":81,"./_object-keys":89}],83:[function(require,module,exports){
+var pIE = require('./_object-pie');
+var createDesc = require('./_property-desc');
+var toIObject = require('./_to-iobject');
+var toPrimitive = require('./_to-primitive');
+var has = require('./_has');
+var IE8_DOM_DEFINE = require('./_ie8-dom-define');
+var gOPD = Object.getOwnPropertyDescriptor;
+
+exports.f = require('./_descriptors') ? gOPD : function getOwnPropertyDescriptor(O, P) {
+  O = toIObject(O);
+  P = toPrimitive(P, true);
+  if (IE8_DOM_DEFINE) try {
+    return gOPD(O, P);
+  } catch (e) { /* empty */ }
+  if (has(O, P)) return createDesc(!pIE.f.call(O, P), O[P]);
+};
+
+},{"./_descriptors":55,"./_has":62,"./_ie8-dom-define":65,"./_object-pie":90,"./_property-desc":92,"./_to-iobject":101,"./_to-primitive":104}],84:[function(require,module,exports){
+// fallback for IE11 buggy Object.getOwnPropertyNames with iframe and window
+var toIObject = require('./_to-iobject');
+var gOPN = require('./_object-gopn').f;
+var toString = {}.toString;
+
+var windowNames = typeof window == 'object' && window && Object.getOwnPropertyNames
+  ? Object.getOwnPropertyNames(window) : [];
+
+var getWindowNames = function (it) {
+  try {
+    return gOPN(it);
+  } catch (e) {
+    return windowNames.slice();
+  }
+};
+
+module.exports.f = function getOwnPropertyNames(it) {
+  return windowNames && toString.call(it) == '[object Window]' ? getWindowNames(it) : gOPN(toIObject(it));
+};
+
+},{"./_object-gopn":85,"./_to-iobject":101}],85:[function(require,module,exports){
+// 19.1.2.7 / 15.2.3.4 Object.getOwnPropertyNames(O)
+var $keys = require('./_object-keys-internal');
+var hiddenKeys = require('./_enum-bug-keys').concat('length', 'prototype');
+
+exports.f = Object.getOwnPropertyNames || function getOwnPropertyNames(O) {
+  return $keys(O, hiddenKeys);
+};
+
+},{"./_enum-bug-keys":57,"./_object-keys-internal":88}],86:[function(require,module,exports){
+exports.f = Object.getOwnPropertySymbols;
+
+},{}],87:[function(require,module,exports){
 // 19.1.2.9 / 15.2.3.2 Object.getPrototypeOf(O)
 var has = require('./_has');
 var toObject = require('./_to-object');
@@ -3447,7 +3314,7 @@ module.exports = Object.getPrototypeOf || function (O) {
   } return O instanceof Object ? ObjectProto : null;
 };
 
-},{"./_has":39,"./_shared-key":64,"./_to-object":71}],58:[function(require,module,exports){
+},{"./_has":62,"./_shared-key":96,"./_to-object":103}],88:[function(require,module,exports){
 var has = require('./_has');
 var toIObject = require('./_to-iobject');
 var arrayIndexOf = require('./_array-includes')(false);
@@ -3466,7 +3333,7 @@ module.exports = function (object, names) {
   return result;
 };
 
-},{"./_array-includes":26,"./_has":39,"./_shared-key":64,"./_to-iobject":69}],59:[function(require,module,exports){
+},{"./_array-includes":48,"./_has":62,"./_shared-key":96,"./_to-iobject":101}],89:[function(require,module,exports){
 // 19.1.2.14 / 15.2.3.14 Object.keys(O)
 var $keys = require('./_object-keys-internal');
 var enumBugKeys = require('./_enum-bug-keys');
@@ -3475,7 +3342,10 @@ module.exports = Object.keys || function keys(O) {
   return $keys(O, enumBugKeys);
 };
 
-},{"./_enum-bug-keys":35,"./_object-keys-internal":58}],60:[function(require,module,exports){
+},{"./_enum-bug-keys":57,"./_object-keys-internal":88}],90:[function(require,module,exports){
+exports.f = {}.propertyIsEnumerable;
+
+},{}],91:[function(require,module,exports){
 // most Object methods by ES6 should accept primitives
 var $export = require('./_export');
 var core = require('./_core');
@@ -3487,7 +3357,7 @@ module.exports = function (KEY, exec) {
   $export($export.S + $export.F * fails(function () { fn(1); }), 'Object', exp);
 };
 
-},{"./_core":29,"./_export":36,"./_fails":37}],61:[function(require,module,exports){
+},{"./_core":51,"./_export":59,"./_fails":60}],92:[function(require,module,exports){
 module.exports = function (bitmap, value) {
   return {
     enumerable: !(bitmap & 1),
@@ -3497,10 +3367,37 @@ module.exports = function (bitmap, value) {
   };
 };
 
-},{}],62:[function(require,module,exports){
+},{}],93:[function(require,module,exports){
 module.exports = require('./_hide');
 
-},{"./_hide":40}],63:[function(require,module,exports){
+},{"./_hide":63}],94:[function(require,module,exports){
+// Works with __proto__ only. Old v8 can't work with null proto objects.
+/* eslint-disable no-proto */
+var isObject = require('./_is-object');
+var anObject = require('./_an-object');
+var check = function (O, proto) {
+  anObject(O);
+  if (!isObject(proto) && proto !== null) throw TypeError(proto + ": can't set as prototype!");
+};
+module.exports = {
+  set: Object.setPrototypeOf || ('__proto__' in {} ? // eslint-disable-line
+    function (test, buggy, set) {
+      try {
+        set = require('./_ctx')(Function.call, require('./_object-gopd').f(Object.prototype, '__proto__').set, 2);
+        set(test, []);
+        buggy = !(test instanceof Array);
+      } catch (e) { buggy = true; }
+      return function setPrototypeOf(O, proto) {
+        check(O, proto);
+        if (buggy) O.__proto__ = proto;
+        else set(O, proto);
+        return O;
+      };
+    }({}, false) : undefined),
+  check: check
+};
+
+},{"./_an-object":47,"./_ctx":53,"./_is-object":69,"./_object-gopd":83}],95:[function(require,module,exports){
 var def = require('./_object-dp').f;
 var has = require('./_has');
 var TAG = require('./_wks')('toStringTag');
@@ -3509,14 +3406,14 @@ module.exports = function (it, tag, stat) {
   if (it && !has(it = stat ? it : it.prototype, TAG)) def(it, TAG, { configurable: true, value: tag });
 };
 
-},{"./_has":39,"./_object-dp":55,"./_wks":74}],64:[function(require,module,exports){
+},{"./_has":62,"./_object-dp":81,"./_wks":108}],96:[function(require,module,exports){
 var shared = require('./_shared')('keys');
 var uid = require('./_uid');
 module.exports = function (key) {
   return shared[key] || (shared[key] = uid(key));
 };
 
-},{"./_shared":65,"./_uid":73}],65:[function(require,module,exports){
+},{"./_shared":97,"./_uid":105}],97:[function(require,module,exports){
 var global = require('./_global');
 var SHARED = '__core-js_shared__';
 var store = global[SHARED] || (global[SHARED] = {});
@@ -3524,7 +3421,7 @@ module.exports = function (key) {
   return store[key] || (store[key] = {});
 };
 
-},{"./_global":38}],66:[function(require,module,exports){
+},{"./_global":61}],98:[function(require,module,exports){
 var toInteger = require('./_to-integer');
 var defined = require('./_defined');
 // true  -> String#at
@@ -3543,7 +3440,7 @@ module.exports = function (TO_STRING) {
   };
 };
 
-},{"./_defined":32,"./_to-integer":68}],67:[function(require,module,exports){
+},{"./_defined":54,"./_to-integer":100}],99:[function(require,module,exports){
 var toInteger = require('./_to-integer');
 var max = Math.max;
 var min = Math.min;
@@ -3552,7 +3449,7 @@ module.exports = function (index, length) {
   return index < 0 ? max(index + length, 0) : min(index, length);
 };
 
-},{"./_to-integer":68}],68:[function(require,module,exports){
+},{"./_to-integer":100}],100:[function(require,module,exports){
 // 7.1.4 ToInteger
 var ceil = Math.ceil;
 var floor = Math.floor;
@@ -3560,7 +3457,7 @@ module.exports = function (it) {
   return isNaN(it = +it) ? 0 : (it > 0 ? floor : ceil)(it);
 };
 
-},{}],69:[function(require,module,exports){
+},{}],101:[function(require,module,exports){
 // to indexed object, toObject with fallback for non-array-like ES3 strings
 var IObject = require('./_iobject');
 var defined = require('./_defined');
@@ -3568,7 +3465,7 @@ module.exports = function (it) {
   return IObject(defined(it));
 };
 
-},{"./_defined":32,"./_iobject":43}],70:[function(require,module,exports){
+},{"./_defined":54,"./_iobject":66}],102:[function(require,module,exports){
 // 7.1.15 ToLength
 var toInteger = require('./_to-integer');
 var min = Math.min;
@@ -3576,14 +3473,14 @@ module.exports = function (it) {
   return it > 0 ? min(toInteger(it), 0x1fffffffffffff) : 0; // pow(2, 53) - 1 == 9007199254740991
 };
 
-},{"./_to-integer":68}],71:[function(require,module,exports){
+},{"./_to-integer":100}],103:[function(require,module,exports){
 // 7.1.13 ToObject(argument)
 var defined = require('./_defined');
 module.exports = function (it) {
   return Object(defined(it));
 };
 
-},{"./_defined":32}],72:[function(require,module,exports){
+},{"./_defined":54}],104:[function(require,module,exports){
 // 7.1.1 ToPrimitive(input [, PreferredType])
 var isObject = require('./_is-object');
 // instead of the ES6 spec version, we didn't implement @@toPrimitive case
@@ -3597,14 +3494,28 @@ module.exports = function (it, S) {
   throw TypeError("Can't convert object to primitive value");
 };
 
-},{"./_is-object":45}],73:[function(require,module,exports){
+},{"./_is-object":69}],105:[function(require,module,exports){
 var id = 0;
 var px = Math.random();
 module.exports = function (key) {
   return 'Symbol('.concat(key === undefined ? '' : key, ')_', (++id + px).toString(36));
 };
 
-},{}],74:[function(require,module,exports){
+},{}],106:[function(require,module,exports){
+var global = require('./_global');
+var core = require('./_core');
+var LIBRARY = require('./_library');
+var wksExt = require('./_wks-ext');
+var defineProperty = require('./_object-dp').f;
+module.exports = function (name) {
+  var $Symbol = core.Symbol || (core.Symbol = LIBRARY ? {} : global.Symbol || {});
+  if (name.charAt(0) != '_' && !(name in $Symbol)) defineProperty($Symbol, name, { value: wksExt.f(name) });
+};
+
+},{"./_core":51,"./_global":61,"./_library":76,"./_object-dp":81,"./_wks-ext":107}],107:[function(require,module,exports){
+exports.f = require('./_wks');
+
+},{"./_wks":108}],108:[function(require,module,exports){
 var store = require('./_shared')('wks');
 var uid = require('./_uid');
 var Symbol = require('./_global').Symbol;
@@ -3617,7 +3528,7 @@ var $exports = module.exports = function (name) {
 
 $exports.store = store;
 
-},{"./_global":38,"./_shared":65,"./_uid":73}],75:[function(require,module,exports){
+},{"./_global":61,"./_shared":97,"./_uid":105}],109:[function(require,module,exports){
 var classof = require('./_classof');
 var ITERATOR = require('./_wks')('iterator');
 var Iterators = require('./_iterators');
@@ -3627,7 +3538,7 @@ module.exports = require('./_core').getIteratorMethod = function (it) {
     || Iterators[classof(it)];
 };
 
-},{"./_classof":27,"./_core":29,"./_iterators":51,"./_wks":74}],76:[function(require,module,exports){
+},{"./_classof":49,"./_core":51,"./_iterators":75,"./_wks":108}],110:[function(require,module,exports){
 var anObject = require('./_an-object');
 var get = require('./core.get-iterator-method');
 module.exports = require('./_core').getIterator = function (it) {
@@ -3636,7 +3547,7 @@ module.exports = require('./_core').getIterator = function (it) {
   return anObject(iterFn.call(it));
 };
 
-},{"./_an-object":25,"./_core":29,"./core.get-iterator-method":75}],77:[function(require,module,exports){
+},{"./_an-object":47,"./_core":51,"./core.get-iterator-method":109}],111:[function(require,module,exports){
 var classof = require('./_classof');
 var ITERATOR = require('./_wks')('iterator');
 var Iterators = require('./_iterators');
@@ -3648,7 +3559,7 @@ module.exports = require('./_core').isIterable = function (it) {
     || Iterators.hasOwnProperty(classof(O));
 };
 
-},{"./_classof":27,"./_core":29,"./_iterators":51,"./_wks":74}],78:[function(require,module,exports){
+},{"./_classof":49,"./_core":51,"./_iterators":75,"./_wks":108}],112:[function(require,module,exports){
 'use strict';
 var ctx = require('./_ctx');
 var $export = require('./_export');
@@ -3687,7 +3598,7 @@ $export($export.S + $export.F * !require('./_iter-detect')(function (iter) { Arr
   }
 });
 
-},{"./_create-property":30,"./_ctx":31,"./_export":36,"./_is-array-iter":44,"./_iter-call":46,"./_iter-detect":49,"./_to-length":70,"./_to-object":71,"./core.get-iterator-method":75}],79:[function(require,module,exports){
+},{"./_create-property":52,"./_ctx":53,"./_export":59,"./_is-array-iter":67,"./_iter-call":70,"./_iter-detect":73,"./_to-length":102,"./_to-object":103,"./core.get-iterator-method":109}],113:[function(require,module,exports){
 'use strict';
 var addToUnscopables = require('./_add-to-unscopables');
 var step = require('./_iter-step');
@@ -3723,12 +3634,40 @@ addToUnscopables('keys');
 addToUnscopables('values');
 addToUnscopables('entries');
 
-},{"./_add-to-unscopables":24,"./_iter-define":48,"./_iter-step":50,"./_iterators":51,"./_to-iobject":69}],80:[function(require,module,exports){
+},{"./_add-to-unscopables":46,"./_iter-define":72,"./_iter-step":74,"./_iterators":75,"./_to-iobject":101}],114:[function(require,module,exports){
+// 20.2.2.28 Math.sign(x)
+var $export = require('./_export');
+
+$export($export.S, 'Math', { sign: require('./_math-sign') });
+
+},{"./_export":59,"./_math-sign":77}],115:[function(require,module,exports){
+// 20.1.2.4 Number.isNaN(number)
+var $export = require('./_export');
+
+$export($export.S, 'Number', {
+  isNaN: function isNaN(number) {
+    // eslint-disable-next-line no-self-compare
+    return number != number;
+  }
+});
+
+},{"./_export":59}],116:[function(require,module,exports){
+// 19.1.3.1 Object.assign(target, source)
+var $export = require('./_export');
+
+$export($export.S + $export.F, 'Object', { assign: require('./_object-assign') });
+
+},{"./_export":59,"./_object-assign":79}],117:[function(require,module,exports){
+var $export = require('./_export');
+// 19.1.2.2 / 15.2.3.5 Object.create(O [, Properties])
+$export($export.S, 'Object', { create: require('./_object-create') });
+
+},{"./_export":59,"./_object-create":80}],118:[function(require,module,exports){
 var $export = require('./_export');
 // 19.1.2.4 / 15.2.3.6 Object.defineProperty(O, P, Attributes)
 $export($export.S + $export.F * !require('./_descriptors'), 'Object', { defineProperty: require('./_object-dp').f });
 
-},{"./_descriptors":33,"./_export":36,"./_object-dp":55}],81:[function(require,module,exports){
+},{"./_descriptors":55,"./_export":59,"./_object-dp":81}],119:[function(require,module,exports){
 // 19.1.2.5 Object.freeze(O)
 var isObject = require('./_is-object');
 var meta = require('./_meta').onFreeze;
@@ -3739,7 +3678,36 @@ require('./_object-sap')('freeze', function ($freeze) {
   };
 });
 
-},{"./_is-object":45,"./_meta":53,"./_object-sap":60}],82:[function(require,module,exports){
+},{"./_is-object":69,"./_meta":78,"./_object-sap":91}],120:[function(require,module,exports){
+// 19.1.2.9 Object.getPrototypeOf(O)
+var toObject = require('./_to-object');
+var $getPrototypeOf = require('./_object-gpo');
+
+require('./_object-sap')('getPrototypeOf', function () {
+  return function getPrototypeOf(it) {
+    return $getPrototypeOf(toObject(it));
+  };
+});
+
+},{"./_object-gpo":87,"./_object-sap":91,"./_to-object":103}],121:[function(require,module,exports){
+// 19.1.2.14 Object.keys(O)
+var toObject = require('./_to-object');
+var $keys = require('./_object-keys');
+
+require('./_object-sap')('keys', function () {
+  return function keys(it) {
+    return $keys(toObject(it));
+  };
+});
+
+},{"./_object-keys":89,"./_object-sap":91,"./_to-object":103}],122:[function(require,module,exports){
+// 19.1.3.19 Object.setPrototypeOf(O, proto)
+var $export = require('./_export');
+$export($export.S, 'Object', { setPrototypeOf: require('./_set-proto').set });
+
+},{"./_export":59,"./_set-proto":94}],123:[function(require,module,exports){
+
+},{}],124:[function(require,module,exports){
 'use strict';
 var $at = require('./_string-at')(true);
 
@@ -3758,7 +3726,249 @@ require('./_iter-define')(String, 'String', function (iterated) {
   return { value: point, done: false };
 });
 
-},{"./_iter-define":48,"./_string-at":66}],83:[function(require,module,exports){
+},{"./_iter-define":72,"./_string-at":98}],125:[function(require,module,exports){
+'use strict';
+// ECMAScript 6 symbols shim
+var global = require('./_global');
+var has = require('./_has');
+var DESCRIPTORS = require('./_descriptors');
+var $export = require('./_export');
+var redefine = require('./_redefine');
+var META = require('./_meta').KEY;
+var $fails = require('./_fails');
+var shared = require('./_shared');
+var setToStringTag = require('./_set-to-string-tag');
+var uid = require('./_uid');
+var wks = require('./_wks');
+var wksExt = require('./_wks-ext');
+var wksDefine = require('./_wks-define');
+var enumKeys = require('./_enum-keys');
+var isArray = require('./_is-array');
+var anObject = require('./_an-object');
+var toIObject = require('./_to-iobject');
+var toPrimitive = require('./_to-primitive');
+var createDesc = require('./_property-desc');
+var _create = require('./_object-create');
+var gOPNExt = require('./_object-gopn-ext');
+var $GOPD = require('./_object-gopd');
+var $DP = require('./_object-dp');
+var $keys = require('./_object-keys');
+var gOPD = $GOPD.f;
+var dP = $DP.f;
+var gOPN = gOPNExt.f;
+var $Symbol = global.Symbol;
+var $JSON = global.JSON;
+var _stringify = $JSON && $JSON.stringify;
+var PROTOTYPE = 'prototype';
+var HIDDEN = wks('_hidden');
+var TO_PRIMITIVE = wks('toPrimitive');
+var isEnum = {}.propertyIsEnumerable;
+var SymbolRegistry = shared('symbol-registry');
+var AllSymbols = shared('symbols');
+var OPSymbols = shared('op-symbols');
+var ObjectProto = Object[PROTOTYPE];
+var USE_NATIVE = typeof $Symbol == 'function';
+var QObject = global.QObject;
+// Don't use setters in Qt Script, https://github.com/zloirock/core-js/issues/173
+var setter = !QObject || !QObject[PROTOTYPE] || !QObject[PROTOTYPE].findChild;
+
+// fallback for old Android, https://code.google.com/p/v8/issues/detail?id=687
+var setSymbolDesc = DESCRIPTORS && $fails(function () {
+  return _create(dP({}, 'a', {
+    get: function () { return dP(this, 'a', { value: 7 }).a; }
+  })).a != 7;
+}) ? function (it, key, D) {
+  var protoDesc = gOPD(ObjectProto, key);
+  if (protoDesc) delete ObjectProto[key];
+  dP(it, key, D);
+  if (protoDesc && it !== ObjectProto) dP(ObjectProto, key, protoDesc);
+} : dP;
+
+var wrap = function (tag) {
+  var sym = AllSymbols[tag] = _create($Symbol[PROTOTYPE]);
+  sym._k = tag;
+  return sym;
+};
+
+var isSymbol = USE_NATIVE && typeof $Symbol.iterator == 'symbol' ? function (it) {
+  return typeof it == 'symbol';
+} : function (it) {
+  return it instanceof $Symbol;
+};
+
+var $defineProperty = function defineProperty(it, key, D) {
+  if (it === ObjectProto) $defineProperty(OPSymbols, key, D);
+  anObject(it);
+  key = toPrimitive(key, true);
+  anObject(D);
+  if (has(AllSymbols, key)) {
+    if (!D.enumerable) {
+      if (!has(it, HIDDEN)) dP(it, HIDDEN, createDesc(1, {}));
+      it[HIDDEN][key] = true;
+    } else {
+      if (has(it, HIDDEN) && it[HIDDEN][key]) it[HIDDEN][key] = false;
+      D = _create(D, { enumerable: createDesc(0, false) });
+    } return setSymbolDesc(it, key, D);
+  } return dP(it, key, D);
+};
+var $defineProperties = function defineProperties(it, P) {
+  anObject(it);
+  var keys = enumKeys(P = toIObject(P));
+  var i = 0;
+  var l = keys.length;
+  var key;
+  while (l > i) $defineProperty(it, key = keys[i++], P[key]);
+  return it;
+};
+var $create = function create(it, P) {
+  return P === undefined ? _create(it) : $defineProperties(_create(it), P);
+};
+var $propertyIsEnumerable = function propertyIsEnumerable(key) {
+  var E = isEnum.call(this, key = toPrimitive(key, true));
+  if (this === ObjectProto && has(AllSymbols, key) && !has(OPSymbols, key)) return false;
+  return E || !has(this, key) || !has(AllSymbols, key) || has(this, HIDDEN) && this[HIDDEN][key] ? E : true;
+};
+var $getOwnPropertyDescriptor = function getOwnPropertyDescriptor(it, key) {
+  it = toIObject(it);
+  key = toPrimitive(key, true);
+  if (it === ObjectProto && has(AllSymbols, key) && !has(OPSymbols, key)) return;
+  var D = gOPD(it, key);
+  if (D && has(AllSymbols, key) && !(has(it, HIDDEN) && it[HIDDEN][key])) D.enumerable = true;
+  return D;
+};
+var $getOwnPropertyNames = function getOwnPropertyNames(it) {
+  var names = gOPN(toIObject(it));
+  var result = [];
+  var i = 0;
+  var key;
+  while (names.length > i) {
+    if (!has(AllSymbols, key = names[i++]) && key != HIDDEN && key != META) result.push(key);
+  } return result;
+};
+var $getOwnPropertySymbols = function getOwnPropertySymbols(it) {
+  var IS_OP = it === ObjectProto;
+  var names = gOPN(IS_OP ? OPSymbols : toIObject(it));
+  var result = [];
+  var i = 0;
+  var key;
+  while (names.length > i) {
+    if (has(AllSymbols, key = names[i++]) && (IS_OP ? has(ObjectProto, key) : true)) result.push(AllSymbols[key]);
+  } return result;
+};
+
+// 19.4.1.1 Symbol([description])
+if (!USE_NATIVE) {
+  $Symbol = function Symbol() {
+    if (this instanceof $Symbol) throw TypeError('Symbol is not a constructor!');
+    var tag = uid(arguments.length > 0 ? arguments[0] : undefined);
+    var $set = function (value) {
+      if (this === ObjectProto) $set.call(OPSymbols, value);
+      if (has(this, HIDDEN) && has(this[HIDDEN], tag)) this[HIDDEN][tag] = false;
+      setSymbolDesc(this, tag, createDesc(1, value));
+    };
+    if (DESCRIPTORS && setter) setSymbolDesc(ObjectProto, tag, { configurable: true, set: $set });
+    return wrap(tag);
+  };
+  redefine($Symbol[PROTOTYPE], 'toString', function toString() {
+    return this._k;
+  });
+
+  $GOPD.f = $getOwnPropertyDescriptor;
+  $DP.f = $defineProperty;
+  require('./_object-gopn').f = gOPNExt.f = $getOwnPropertyNames;
+  require('./_object-pie').f = $propertyIsEnumerable;
+  require('./_object-gops').f = $getOwnPropertySymbols;
+
+  if (DESCRIPTORS && !require('./_library')) {
+    redefine(ObjectProto, 'propertyIsEnumerable', $propertyIsEnumerable, true);
+  }
+
+  wksExt.f = function (name) {
+    return wrap(wks(name));
+  };
+}
+
+$export($export.G + $export.W + $export.F * !USE_NATIVE, { Symbol: $Symbol });
+
+for (var es6Symbols = (
+  // 19.4.2.2, 19.4.2.3, 19.4.2.4, 19.4.2.6, 19.4.2.8, 19.4.2.9, 19.4.2.10, 19.4.2.11, 19.4.2.12, 19.4.2.13, 19.4.2.14
+  'hasInstance,isConcatSpreadable,iterator,match,replace,search,species,split,toPrimitive,toStringTag,unscopables'
+).split(','), j = 0; es6Symbols.length > j;)wks(es6Symbols[j++]);
+
+for (var wellKnownSymbols = $keys(wks.store), k = 0; wellKnownSymbols.length > k;) wksDefine(wellKnownSymbols[k++]);
+
+$export($export.S + $export.F * !USE_NATIVE, 'Symbol', {
+  // 19.4.2.1 Symbol.for(key)
+  'for': function (key) {
+    return has(SymbolRegistry, key += '')
+      ? SymbolRegistry[key]
+      : SymbolRegistry[key] = $Symbol(key);
+  },
+  // 19.4.2.5 Symbol.keyFor(sym)
+  keyFor: function keyFor(sym) {
+    if (!isSymbol(sym)) throw TypeError(sym + ' is not a symbol!');
+    for (var key in SymbolRegistry) if (SymbolRegistry[key] === sym) return key;
+  },
+  useSetter: function () { setter = true; },
+  useSimple: function () { setter = false; }
+});
+
+$export($export.S + $export.F * !USE_NATIVE, 'Object', {
+  // 19.1.2.2 Object.create(O [, Properties])
+  create: $create,
+  // 19.1.2.4 Object.defineProperty(O, P, Attributes)
+  defineProperty: $defineProperty,
+  // 19.1.2.3 Object.defineProperties(O, Properties)
+  defineProperties: $defineProperties,
+  // 19.1.2.6 Object.getOwnPropertyDescriptor(O, P)
+  getOwnPropertyDescriptor: $getOwnPropertyDescriptor,
+  // 19.1.2.7 Object.getOwnPropertyNames(O)
+  getOwnPropertyNames: $getOwnPropertyNames,
+  // 19.1.2.8 Object.getOwnPropertySymbols(O)
+  getOwnPropertySymbols: $getOwnPropertySymbols
+});
+
+// 24.3.2 JSON.stringify(value [, replacer [, space]])
+$JSON && $export($export.S + $export.F * (!USE_NATIVE || $fails(function () {
+  var S = $Symbol();
+  // MS Edge converts symbol values to JSON as {}
+  // WebKit converts symbol values to JSON as null
+  // V8 throws on boxed symbols
+  return _stringify([S]) != '[null]' || _stringify({ a: S }) != '{}' || _stringify(Object(S)) != '{}';
+})), 'JSON', {
+  stringify: function stringify(it) {
+    if (it === undefined || isSymbol(it)) return; // IE8 returns string on undefined
+    var args = [it];
+    var i = 1;
+    var replacer, $replacer;
+    while (arguments.length > i) args.push(arguments[i++]);
+    replacer = args[1];
+    if (typeof replacer == 'function') $replacer = replacer;
+    if ($replacer || !isArray(replacer)) replacer = function (key, value) {
+      if ($replacer) value = $replacer.call(this, key, value);
+      if (!isSymbol(value)) return value;
+    };
+    args[1] = replacer;
+    return _stringify.apply($JSON, args);
+  }
+});
+
+// 19.4.3.4 Symbol.prototype[@@toPrimitive](hint)
+$Symbol[PROTOTYPE][TO_PRIMITIVE] || require('./_hide')($Symbol[PROTOTYPE], TO_PRIMITIVE, $Symbol[PROTOTYPE].valueOf);
+// 19.4.3.5 Symbol.prototype[@@toStringTag]
+setToStringTag($Symbol, 'Symbol');
+// 20.2.1.9 Math[@@toStringTag]
+setToStringTag(Math, 'Math', true);
+// 24.3.3 JSON[@@toStringTag]
+setToStringTag(global.JSON, 'JSON', true);
+
+},{"./_an-object":47,"./_descriptors":55,"./_enum-keys":58,"./_export":59,"./_fails":60,"./_global":61,"./_has":62,"./_hide":63,"./_is-array":68,"./_library":76,"./_meta":78,"./_object-create":80,"./_object-dp":81,"./_object-gopd":83,"./_object-gopn":85,"./_object-gopn-ext":84,"./_object-gops":86,"./_object-keys":89,"./_object-pie":90,"./_property-desc":92,"./_redefine":93,"./_set-to-string-tag":95,"./_shared":97,"./_to-iobject":101,"./_to-primitive":104,"./_uid":105,"./_wks":108,"./_wks-define":106,"./_wks-ext":107}],126:[function(require,module,exports){
+require('./_wks-define')('asyncIterator');
+
+},{"./_wks-define":106}],127:[function(require,module,exports){
+require('./_wks-define')('observable');
+
+},{"./_wks-define":106}],128:[function(require,module,exports){
 require('./es6.array.iterator');
 var global = require('./_global');
 var hide = require('./_hide');
@@ -3779,7 +3989,7 @@ for (var i = 0; i < DOMIterables.length; i++) {
   Iterators[NAME] = Iterators.Array;
 }
 
-},{"./_global":38,"./_hide":40,"./_iterators":51,"./_wks":74,"./es6.array.iterator":79}],84:[function(require,module,exports){
+},{"./_global":61,"./_hide":63,"./_iterators":75,"./_wks":108,"./es6.array.iterator":113}],129:[function(require,module,exports){
 'use strict';
 
 var has = Object.prototype.hasOwnProperty
@@ -4092,7 +4302,7 @@ if ('undefined' !== typeof module) {
   module.exports = EventEmitter;
 }
 
-},{}],85:[function(require,module,exports){
+},{}],130:[function(require,module,exports){
 "use strict";
 
 var _ParseError = require("./src/ParseError");
@@ -4183,7 +4393,7 @@ module.exports = {
     ParseError: _ParseError2.default
 };
 
-},{"./src/ParseError":89,"./src/Settings":92,"./src/buildTree":99,"./src/parseTree":114,"./src/utils":120}],86:[function(require,module,exports){
+},{"./src/ParseError":134,"./src/Settings":137,"./src/buildTree":144,"./src/parseTree":166,"./src/utils":172}],131:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -4308,7 +4518,7 @@ var Lexer = function () {
 
 exports.default = Lexer;
 
-},{"./ParseError":89,"./SourceLocation":93,"./Token":95,"babel-runtime/helpers/classCallCheck":13,"babel-runtime/helpers/createClass":14,"match-at":121}],87:[function(require,module,exports){
+},{"./ParseError":134,"./SourceLocation":138,"./Token":140,"babel-runtime/helpers/classCallCheck":22,"babel-runtime/helpers/createClass":23,"match-at":173}],132:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -4599,7 +4809,7 @@ var MacroExpander = function () {
 
 exports.default = MacroExpander;
 
-},{"./Lexer":86,"./ParseError":89,"./Token":95,"./macros":112,"babel-runtime/helpers/classCallCheck":13,"babel-runtime/helpers/createClass":14,"babel-runtime/helpers/toConsumableArray":16,"object-assign":123}],88:[function(require,module,exports){
+},{"./Lexer":131,"./ParseError":134,"./Token":140,"./macros":164,"babel-runtime/helpers/classCallCheck":22,"babel-runtime/helpers/createClass":23,"babel-runtime/helpers/toConsumableArray":28,"object-assign":175}],133:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -4939,7 +5149,7 @@ Options.colorMap = {
 };
 exports.default = Options;
 
-},{"./fontMetrics":106,"babel-runtime/helpers/classCallCheck":13,"babel-runtime/helpers/createClass":14}],89:[function(require,module,exports){
+},{"./fontMetrics":151,"babel-runtime/helpers/classCallCheck":22,"babel-runtime/helpers/createClass":23}],134:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -5030,7 +5240,7 @@ ParseError.prototype.__proto__ = Error.prototype;
 
 exports.default = ParseError;
 
-},{"./ParseNode":90,"./Token":95,"babel-runtime/helpers/classCallCheck":13}],90:[function(require,module,exports){
+},{"./ParseNode":135,"./Token":140,"babel-runtime/helpers/classCallCheck":22}],135:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -5074,7 +5284,7 @@ lastToken) // last token of the input for this node,
 
 exports.default = ParseNode;
 
-},{"./SourceLocation":93,"./Token":95,"babel-runtime/helpers/classCallCheck":13}],91:[function(require,module,exports){
+},{"./SourceLocation":138,"./Token":140,"babel-runtime/helpers/classCallCheck":22}],136:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -5883,8 +6093,8 @@ var Parser = function () {
                 return this.parseSizeGroup(optional);
             }
             if (innerMode === "string") {
-                var val = this.parseStringGroup("string", optional);
-                return newArgument(val.text, false);
+                var _res = this.parseStringGroup("string", optional);
+                return newArgument(_res.text, _res);
             }
 
             // By the time we get here, innerMode is one of "text" or "math".
@@ -6149,7 +6359,7 @@ Parser.oldFontFuncs = {
 };
 exports.default = Parser;
 
-},{"./MacroExpander":87,"./ParseError":89,"./ParseNode":90,"./environments":104,"./functions":108,"./symbols":117,"./unicodeRegexes":118,"./units":119,"./utils":120,"babel-runtime/helpers/classCallCheck":13,"babel-runtime/helpers/createClass":14}],92:[function(require,module,exports){
+},{"./MacroExpander":132,"./ParseError":134,"./ParseNode":135,"./environments":149,"./functions":153,"./symbols":169,"./unicodeRegexes":170,"./units":171,"./utils":172,"babel-runtime/helpers/classCallCheck":22,"babel-runtime/helpers/createClass":23}],137:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -6195,7 +6405,7 @@ var Settings = function Settings(options) {
 
 exports.default = Settings;
 
-},{"./utils":120,"babel-runtime/helpers/classCallCheck":13}],93:[function(require,module,exports){
+},{"./utils":172,"babel-runtime/helpers/classCallCheck":22}],138:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -6261,7 +6471,7 @@ var SourceLocation = function () {
 
 exports.default = SourceLocation;
 
-},{"babel-runtime/core-js/object/freeze":12,"babel-runtime/helpers/classCallCheck":13,"babel-runtime/helpers/createClass":14}],94:[function(require,module,exports){
+},{"babel-runtime/core-js/object/freeze":16,"babel-runtime/helpers/classCallCheck":22,"babel-runtime/helpers/createClass":23}],139:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -6409,7 +6619,7 @@ exports.default = {
     SCRIPTSCRIPT: styles[SS]
 };
 
-},{"babel-runtime/helpers/classCallCheck":13,"babel-runtime/helpers/createClass":14}],95:[function(require,module,exports){
+},{"babel-runtime/helpers/classCallCheck":22,"babel-runtime/helpers/createClass":23}],140:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -6476,7 +6686,7 @@ var Token = exports.Token = function () {
     return Token;
 }();
 
-},{"./SourceLocation":93,"babel-runtime/helpers/classCallCheck":13,"babel-runtime/helpers/createClass":14}],96:[function(require,module,exports){
+},{"./SourceLocation":138,"babel-runtime/helpers/classCallCheck":22,"babel-runtime/helpers/createClass":23}],141:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -7006,13 +7216,13 @@ exports.default = {
     spacingFunctions: spacingFunctions
 };
 
-},{"./domTree":103,"./fontMetrics":106,"./symbols":117,"./utils":120}],97:[function(require,module,exports){
+},{"./domTree":148,"./fontMetrics":151,"./symbols":169,"./utils":172}],142:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.buildGroup = exports.groupTypes = exports.makeNullDelimiter = exports.buildExpression = exports.spliceSpaces = undefined;
+exports.buildGroup = exports.makeLineSpan = exports.groupTypes = exports.makeNullDelimiter = exports.buildExpression = exports.spliceSpaces = undefined;
 
 var _stringify = require("babel-runtime/core-js/json/stringify");
 
@@ -7338,12 +7548,6 @@ groupTypes.text = function (group, options) {
     return makeSpan(["mord", "text"], inner, newOptions);
 };
 
-groupTypes.xmlClass = function (group, options) {
-    var elements = buildExpression(group.value.value, options, false);
-
-    return new _buildCommon2.default.makeFragment(elements, [group.value.cl]);
-};
-
 groupTypes.color = function (group, options) {
     var elements = buildExpression(group.value.value, options.withColor(group.value.color), false);
 
@@ -7466,126 +7670,6 @@ groupTypes.supsub = function (group, options) {
     return makeSpan([mclass], [base, makeSpan(["msupsub"], [supsub])], options);
 };
 
-groupTypes.genfrac = function (group, options) {
-    // Fractions are handled in the TeXbook on pages 444-445, rules 15(a-e).
-    // Figure out what style this fraction should be in based on the
-    // function used
-    var style = options.style;
-    if (group.value.size === "display") {
-        style = _Style2.default.DISPLAY;
-    } else if (group.value.size === "text") {
-        style = _Style2.default.TEXT;
-    }
-
-    var nstyle = style.fracNum();
-    var dstyle = style.fracDen();
-    var newOptions = void 0;
-
-    newOptions = options.havingStyle(nstyle);
-    var numerm = buildGroup(group.value.numer, newOptions, options);
-
-    newOptions = options.havingStyle(dstyle);
-    var denomm = buildGroup(group.value.denom, newOptions, options);
-
-    var rule = void 0;
-    var ruleWidth = void 0;
-    var ruleSpacing = void 0;
-    if (group.value.hasBarLine) {
-        rule = makeLineSpan("frac-line", options);
-        ruleWidth = rule.height;
-        ruleSpacing = rule.height;
-    } else {
-        rule = null;
-        ruleWidth = 0;
-        ruleSpacing = options.fontMetrics().defaultRuleThickness;
-    }
-
-    // Rule 15b
-    var numShift = void 0;
-    var clearance = void 0;
-    var denomShift = void 0;
-    if (style.size === _Style2.default.DISPLAY.size) {
-        numShift = options.fontMetrics().num1;
-        if (ruleWidth > 0) {
-            clearance = 3 * ruleSpacing;
-        } else {
-            clearance = 7 * ruleSpacing;
-        }
-        denomShift = options.fontMetrics().denom1;
-    } else {
-        if (ruleWidth > 0) {
-            numShift = options.fontMetrics().num2;
-            clearance = ruleSpacing;
-        } else {
-            numShift = options.fontMetrics().num3;
-            clearance = 3 * ruleSpacing;
-        }
-        denomShift = options.fontMetrics().denom2;
-    }
-
-    var frac = void 0;
-    if (ruleWidth === 0) {
-        // Rule 15c
-        var candidateClearance = numShift - numerm.depth - (denomm.height - denomShift);
-        if (candidateClearance < clearance) {
-            numShift += 0.5 * (clearance - candidateClearance);
-            denomShift += 0.5 * (clearance - candidateClearance);
-        }
-
-        frac = _buildCommon2.default.makeVList({
-            positionType: "individualShift",
-            children: [{ type: "elem", elem: denomm, shift: denomShift }, { type: "elem", elem: numerm, shift: -numShift }]
-        }, options);
-    } else {
-        // Rule 15d
-        var axisHeight = options.fontMetrics().axisHeight;
-
-        if (numShift - numerm.depth - (axisHeight + 0.5 * ruleWidth) < clearance) {
-            numShift += clearance - (numShift - numerm.depth - (axisHeight + 0.5 * ruleWidth));
-        }
-
-        if (axisHeight - 0.5 * ruleWidth - (denomm.height - denomShift) < clearance) {
-            denomShift += clearance - (axisHeight - 0.5 * ruleWidth - (denomm.height - denomShift));
-        }
-
-        var midShift = -(axisHeight - 0.5 * ruleWidth);
-
-        frac = _buildCommon2.default.makeVList({
-            positionType: "individualShift",
-            children: [{ type: "elem", elem: denomm, shift: denomShift }, { type: "elem", elem: rule, shift: midShift }, { type: "elem", elem: numerm, shift: -numShift }]
-        }, options);
-    }
-
-    // Since we manually change the style sometimes (with \dfrac or \tfrac),
-    // account for the possible size change here.
-    newOptions = options.havingStyle(style);
-    frac.height *= newOptions.sizeMultiplier / options.sizeMultiplier;
-    frac.depth *= newOptions.sizeMultiplier / options.sizeMultiplier;
-
-    // Rule 15e
-    var delimSize = void 0;
-    if (style.size === _Style2.default.DISPLAY.size) {
-        delimSize = options.fontMetrics().delim1;
-    } else {
-        delimSize = options.fontMetrics().delim2;
-    }
-
-    var leftDelim = void 0;
-    var rightDelim = void 0;
-    if (group.value.leftDelim == null) {
-        leftDelim = makeNullDelimiter(options, ["mopen"]);
-    } else {
-        leftDelim = _delimiter2.default.customSizedDelim(group.value.leftDelim, delimSize, true, options.havingStyle(style), group.mode, ["mopen"]);
-    }
-    if (group.value.rightDelim == null) {
-        rightDelim = makeNullDelimiter(options, ["mclose"]);
-    } else {
-        rightDelim = _delimiter2.default.customSizedDelim(group.value.rightDelim, delimSize, true, options.havingStyle(style), group.mode, ["mclose"]);
-    }
-
-    return makeSpan(["mord"].concat(newOptions.sizingClasses(options)), [leftDelim, makeSpan(["mfrac"], [frac]), rightDelim], options);
-};
-
 groupTypes.spacing = function (group, options) {
     if (group.value === "\\ " || group.value === "\\space" || group.value === " " || group.value === "~") {
         // Spaces are generated by adding an actual space. Each of these
@@ -7603,272 +7687,7 @@ groupTypes.spacing = function (group, options) {
     }
 };
 
-groupTypes.lap = function (group, options) {
-    // mathllap, mathrlap, mathclap
-    var inner = void 0;
-    if (group.value.alignment === "clap") {
-        // ref: https://www.math.lsu.edu/~aperlis/publications/mathclap/
-        inner = makeSpan([], [buildGroup(group.value.body, options)]);
-        // wrap, since CSS will center a .clap > .inner > span
-        inner = makeSpan(["inner"], [inner], options);
-    } else {
-        inner = makeSpan(["inner"], [buildGroup(group.value.body, options)]);
-    }
-    var fix = makeSpan(["fix"], []);
-    return makeSpan(["mord", group.value.alignment], [inner, fix], options);
-};
-
-groupTypes.smash = function (group, options) {
-    var node = makeSpan(["mord"], [buildGroup(group.value.body, options)]);
-
-    if (!group.value.smashHeight && !group.value.smashDepth) {
-        return node;
-    }
-
-    if (group.value.smashHeight) {
-        node.height = 0;
-        // In order to influence makeVList, we have to reset the children.
-        if (node.children) {
-            for (var i = 0; i < node.children.length; i++) {
-                node.children[i].height = 0;
-            }
-        }
-    }
-
-    if (group.value.smashDepth) {
-        node.depth = 0;
-        if (node.children) {
-            for (var _i4 = 0; _i4 < node.children.length; _i4++) {
-                node.children[_i4].depth = 0;
-            }
-        }
-    }
-
-    // At this point, we've reset the TeX-like height and depth values.
-    // But the span still has an HTML line height.
-    // makeVList applies "display: table-cell", which prevents the browser
-    // from acting on that line height. So we'll call makeVList now.
-
-    return _buildCommon2.default.makeVList({
-        positionType: "firstBaseline",
-        children: [{ type: "elem", elem: node }]
-    }, options);
-};
-
-groupTypes.op = function (group, options) {
-    // Operators are handled in the TeXbook pg. 443-444, rule 13(a).
-    var supGroup = void 0;
-    var subGroup = void 0;
-    var hasLimits = false;
-    if (group.type === "supsub") {
-        // If we have limits, supsub will pass us its group to handle. Pull
-        // out the superscript and subscript and set the group to the op in
-        // its base.
-        supGroup = group.value.sup;
-        subGroup = group.value.sub;
-        group = group.value.base;
-        hasLimits = true;
-    }
-
-    var style = options.style;
-
-    // Most operators have a large successor symbol, but these don't.
-    var noSuccessor = ["\\smallint"];
-
-    var large = false;
-    if (style.size === _Style2.default.DISPLAY.size && group.value.symbol && !_utils2.default.contains(noSuccessor, group.value.body)) {
-
-        // Most symbol operators get larger in displaystyle (rule 13)
-        large = true;
-    }
-
-    var base = void 0;
-    if (group.value.symbol) {
-        // If this is a symbol, create the symbol.
-        var fontName = large ? "Size2-Regular" : "Size1-Regular";
-        base = _buildCommon2.default.makeSymbol(group.value.body, fontName, "math", options, ["mop", "op-symbol", large ? "large-op" : "small-op"]);
-    } else if (group.value.value) {
-        // If this is a list, compose that list.
-        var inner = buildExpression(group.value.value, options, true);
-        if (inner.length === 1 && inner[0] instanceof _domTree2.default.symbolNode) {
-            base = inner[0];
-            base.classes[0] = "mop"; // replace old mclass
-        } else {
-            base = makeSpan(["mop"], inner, options);
-        }
-    } else {
-        // Otherwise, this is a text operator. Build the text from the
-        // operator's name.
-        // TODO(emily): Add a space in the middle of some of these
-        // operators, like \limsup
-        var output = [];
-        for (var i = 1; i < group.value.body.length; i++) {
-            output.push(_buildCommon2.default.mathsym(group.value.body[i], group.mode));
-        }
-        base = makeSpan(["mop"], output, options);
-    }
-
-    // If content of op is a single symbol, shift it vertically.
-    var baseShift = 0;
-    var slant = 0;
-    if (base instanceof _domTree2.default.symbolNode) {
-        // Shift the symbol so its center lies on the axis (rule 13). It
-        // appears that our fonts have the centers of the symbols already
-        // almost on the axis, so these numbers are very small. Note we
-        // don't actually apply this here, but instead it is used either in
-        // the vlist creation or separately when there are no limits.
-        baseShift = (base.height - base.depth) / 2 - options.fontMetrics().axisHeight;
-
-        // The slant of the symbol is just its italic correction.
-        slant = base.italic;
-    }
-
-    if (hasLimits) {
-        // IE 8 clips \int if it is in a display: inline-block. We wrap it
-        // in a new span so it is an inline, and works.
-        base = makeSpan([], [base]);
-
-        var supm = void 0;
-        var supKern = void 0;
-        var subm = void 0;
-        var subKern = void 0;
-        var newOptions = void 0;
-        // We manually have to handle the superscripts and subscripts. This,
-        // aside from the kern calculations, is copied from supsub.
-        if (supGroup) {
-            newOptions = options.havingStyle(style.sup());
-            supm = buildGroup(supGroup, newOptions, options);
-
-            supKern = Math.max(options.fontMetrics().bigOpSpacing1, options.fontMetrics().bigOpSpacing3 - supm.depth);
-        }
-
-        if (subGroup) {
-            newOptions = options.havingStyle(style.sub());
-            subm = buildGroup(subGroup, newOptions, options);
-
-            subKern = Math.max(options.fontMetrics().bigOpSpacing2, options.fontMetrics().bigOpSpacing4 - subm.height);
-        }
-
-        // Build the final group as a vlist of the possible subscript, base,
-        // and possible superscript.
-        var finalGroup = void 0;
-        var top = void 0;
-        var bottom = void 0;
-        if (!supGroup) {
-            top = base.height - baseShift;
-
-            // Shift the limits by the slant of the symbol. Note
-            // that we are supposed to shift the limits by 1/2 of the slant,
-            // but since we are centering the limits adding a full slant of
-            // margin will shift by 1/2 that.
-            finalGroup = _buildCommon2.default.makeVList({
-                positionType: "top",
-                positionData: top,
-                children: [{ type: "kern", size: options.fontMetrics().bigOpSpacing5 }, { type: "elem", elem: subm, marginLeft: -slant + "em" }, { type: "kern", size: subKern }, { type: "elem", elem: base }]
-            }, options);
-        } else if (!subGroup) {
-            bottom = base.depth + baseShift;
-
-            finalGroup = _buildCommon2.default.makeVList({
-                positionType: "bottom",
-                positionData: bottom,
-                children: [{ type: "elem", elem: base }, { type: "kern", size: supKern }, { type: "elem", elem: supm, marginLeft: slant + "em" }, { type: "kern", size: options.fontMetrics().bigOpSpacing5 }]
-            }, options);
-        } else if (!supGroup && !subGroup) {
-            // This case probably shouldn't occur (this would mean the
-            // supsub was sending us a group with no superscript or
-            // subscript) but be safe.
-            return base;
-        } else {
-            bottom = options.fontMetrics().bigOpSpacing5 + subm.height + subm.depth + subKern + base.depth + baseShift;
-
-            finalGroup = _buildCommon2.default.makeVList({
-                positionType: "bottom",
-                positionData: bottom,
-                children: [{ type: "kern", size: options.fontMetrics().bigOpSpacing5 }, { type: "elem", elem: subm, marginLeft: -slant + "em" }, { type: "kern", size: subKern }, { type: "elem", elem: base }, { type: "kern", size: supKern }, { type: "elem", elem: supm, marginLeft: slant + "em" }, { type: "kern", size: options.fontMetrics().bigOpSpacing5 }]
-            }, options);
-        }
-
-        return makeSpan(["mop", "op-limits"], [finalGroup], options);
-    } else {
-        if (baseShift) {
-            base.style.position = "relative";
-            base.style.top = baseShift + "em";
-        }
-
-        return base;
-    }
-};
-
-groupTypes.mod = function (group, options) {
-    var inner = [];
-
-    if (group.value.modType === "bmod") {
-        // “\nonscript\mskip-\medmuskip\mkern5mu”
-        if (!options.style.isTight()) {
-            inner.push(makeSpan(["mspace", "negativemediumspace"], [], options));
-        }
-        inner.push(makeSpan(["mspace", "thickspace"], [], options));
-    } else if (options.style.size === _Style2.default.DISPLAY.size) {
-        inner.push(makeSpan(["mspace", "quad"], [], options));
-    } else if (group.value.modType === "mod") {
-        inner.push(makeSpan(["mspace", "twelvemuspace"], [], options));
-    } else {
-        inner.push(makeSpan(["mspace", "eightmuspace"], [], options));
-    }
-
-    if (group.value.modType === "pod" || group.value.modType === "pmod") {
-        inner.push(_buildCommon2.default.mathsym("(", group.mode));
-    }
-
-    if (group.value.modType !== "pod") {
-        var modInner = [_buildCommon2.default.mathsym("m", group.mode), _buildCommon2.default.mathsym("o", group.mode), _buildCommon2.default.mathsym("d", group.mode)];
-        if (group.value.modType === "bmod") {
-            inner.push(makeSpan(["mbin"], modInner, options));
-            // “\mkern5mu\nonscript\mskip-\medmuskip”
-            inner.push(makeSpan(["mspace", "thickspace"], [], options));
-            if (!options.style.isTight()) {
-                inner.push(makeSpan(["mspace", "negativemediumspace"], [], options));
-            }
-        } else {
-            Array.prototype.push.apply(inner, modInner);
-            inner.push(makeSpan(["mspace", "sixmuspace"], [], options));
-        }
-    }
-
-    if (group.value.value) {
-        Array.prototype.push.apply(inner, buildExpression(group.value.value, options, false));
-    }
-
-    if (group.value.modType === "pod" || group.value.modType === "pmod") {
-        inner.push(_buildCommon2.default.mathsym(")", group.mode));
-    }
-
-    return _buildCommon2.default.makeFragment(inner);
-};
-
-groupTypes.katex = function (group, options) {
-    // The KaTeX logo. The offsets for the K and a were chosen to look
-    // good, but the offsets for the T, E, and X were taken from the
-    // definition of \TeX in TeX (see TeXbook pg. 356)
-    var k = makeSpan(["k"], [_buildCommon2.default.mathsym("K", group.mode)], options);
-    var a = makeSpan(["a"], [_buildCommon2.default.mathsym("A", group.mode)], options);
-
-    a.height = (a.height + 0.2) * 0.75;
-    a.depth = (a.height - 0.2) * 0.75;
-
-    var t = makeSpan(["t"], [_buildCommon2.default.mathsym("T", group.mode)], options);
-    var e = makeSpan(["e"], [_buildCommon2.default.mathsym("E", group.mode)], options);
-
-    e.height = e.height - 0.2155;
-    e.depth = e.depth + 0.2155;
-
-    var x = makeSpan(["x"], [_buildCommon2.default.mathsym("X", group.mode)], options);
-
-    return makeSpan(["mord", "katex-logo"], [k, a, t, e, x], options);
-};
-
-var makeLineSpan = function makeLineSpan(className, options, thickness) {
+var makeLineSpan = exports.makeLineSpan = function makeLineSpan(className, options, thickness) {
     var line = makeSpan([className], [], options);
     line.height = thickness || options.fontMetrics().defaultRuleThickness;
     line.style.borderBottomWidth = line.height + "em";
@@ -8072,28 +7891,6 @@ groupTypes.verb = function (group, options) {
     }
     _buildCommon2.default.tryCombineChars(body);
     return makeSpan(["mord", "text"].concat(newOptions.sizingClasses(options)), body, newOptions);
-};
-
-groupTypes.cursor = function (group, options) {
-    // Make an empty span for the rule
-    var cursor = makeSpan(["cursor"], [], options);
-
-    // Calculate the shift and height of the cursor, and account for units
-    var shift = (0, _units.calculateSize)(group.value.shift, options);
-    var height = (0, _units.calculateSize)(group.value.height, options);
-
-    // Style the cursor to the right size
-    cursor.style.marginRight = "-1px";
-    cursor.style.borderRight = "1px solid";
-    cursor.style.marginBottom = shift + "em";
-    cursor.style.height = height + "em";
-
-    // Record the height and width
-    cursor.width = 1;
-    cursor.height = height + shift;
-    cursor.depth = -shift;
-
-    return cursor;
 };
 
 groupTypes.rule = function (group, options) {
@@ -8559,7 +8356,7 @@ function buildHTML(tree, options) {
     return htmlNode;
 }
 
-},{"./ParseError":89,"./Style":94,"./buildCommon":96,"./delimiter":102,"./domTree":103,"./stretchy":115,"./units":119,"./utils":120,"babel-runtime/core-js/json/stringify":10}],98:[function(require,module,exports){
+},{"./ParseError":134,"./Style":139,"./buildCommon":141,"./delimiter":147,"./domTree":148,"./stretchy":167,"./units":171,"./utils":172,"babel-runtime/core-js/json/stringify":10}],143:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -8784,16 +8581,6 @@ groupTypes.color = function (group, options) {
     return node;
 };
 
-groupTypes.xmlClass = function (group, options) {
-    var inner = buildExpression(group.value.value, options);
-
-    var node = new _mathMLTree2.default.MathNode("mstyle", inner);
-
-    node.setAttribute("class", group.value.cl);
-
-    return node;
-};
-
 groupTypes.supsub = function (group, options) {
     // Is the inner group a relevant horizonal brace?
     var isBrace = false;
@@ -8841,42 +8628,6 @@ groupTypes.supsub = function (group, options) {
     return node;
 };
 
-groupTypes.genfrac = function (group, options) {
-    var node = new _mathMLTree2.default.MathNode("mfrac", [buildGroup(group.value.numer, options), buildGroup(group.value.denom, options)]);
-
-    if (!group.value.hasBarLine) {
-        node.setAttribute("linethickness", "0px");
-    }
-
-    if (group.value.leftDelim != null || group.value.rightDelim != null) {
-        var withDelims = [];
-
-        if (group.value.leftDelim != null) {
-            var leftOp = new _mathMLTree2.default.MathNode("mo", [new _mathMLTree2.default.TextNode(group.value.leftDelim)]);
-
-            leftOp.setAttribute("fence", "true");
-
-            withDelims.push(leftOp);
-        }
-
-        withDelims.push(node);
-
-        if (group.value.rightDelim != null) {
-            var rightOp = new _mathMLTree2.default.MathNode("mo", [new _mathMLTree2.default.TextNode(group.value.rightDelim)]);
-
-            rightOp.setAttribute("fence", "true");
-
-            withDelims.push(rightOp);
-        }
-
-        var outerNode = new _mathMLTree2.default.MathNode("mrow", withDelims);
-
-        return outerNode;
-    }
-
-    return node;
-};
-
 groupTypes.sqrt = function (group, options) {
     var node = void 0;
     if (group.value.index) {
@@ -8913,65 +8664,6 @@ groupTypes.spacing = function (group) {
 
         node.setAttribute("width", _buildCommon2.default.spacingFunctions[group.value].size);
     }
-
-    return node;
-};
-
-groupTypes.op = function (group, options) {
-    var node = void 0;
-
-    // TODO(emily): handle big operators using the `largeop` attribute
-
-    if (group.value.symbol) {
-        // This is a symbol. Just add the symbol.
-        node = new _mathMLTree2.default.MathNode("mo", [makeText(group.value.body, group.mode)]);
-    } else if (group.value.value) {
-        // This is an operator with children. Add them.
-        node = new _mathMLTree2.default.MathNode("mo", buildExpression(group.value.value, options));
-    } else {
-        // This is a text operator. Add all of the characters from the
-        // operator's name.
-        // TODO(emily): Add a space in the middle of some of these
-        // operators, like \limsup.
-        node = new _mathMLTree2.default.MathNode("mi", [new _mathMLTree2.default.TextNode(group.value.body.slice(1))]);
-
-        // TODO(ron): Append an <mo>&ApplyFunction;</mo> as in \operatorname
-        // ref: https://www.w3.org/TR/REC-MathML/chap3_2.html#sec3.2.2
-    }
-
-    return node;
-};
-
-groupTypes.cursor = function (group) {
-    var node = new _mathMLTree2.default.MathNode("mtext", [new _mathMLTree2.default.TextNode("|")]);
-
-    return node;
-};
-
-groupTypes.mod = function (group, options) {
-    var inner = [];
-
-    if (group.value.modType === "pod" || group.value.modType === "pmod") {
-        inner.push(new _mathMLTree2.default.MathNode("mo", [makeText("(", group.mode)]));
-    }
-    if (group.value.modType !== "pod") {
-        inner.push(new _mathMLTree2.default.MathNode("mo", [makeText("mod", group.mode)]));
-    }
-    if (group.value.value) {
-        var space = new _mathMLTree2.default.MathNode("mspace");
-        space.setAttribute("width", "0.333333em");
-        inner.push(space);
-        inner = inner.concat(buildExpression(group.value.value, options));
-    }
-    if (group.value.modType === "pod" || group.value.modType === "pmod") {
-        inner.push(new _mathMLTree2.default.MathNode("mo", [makeText(")", group.mode)]));
-    }
-
-    return new _mathMLTree2.default.MathNode("mo", inner);
-};
-
-groupTypes.katex = function (group) {
-    var node = new _mathMLTree2.default.MathNode("mtext", [new _mathMLTree2.default.TextNode("KaTeX")]);
 
     return node;
 };
@@ -9136,33 +8828,6 @@ groupTypes.kern = function (group) {
     return node;
 };
 
-groupTypes.lap = function (group, options) {
-    // mathllap, mathrlap, mathclap
-    var node = new _mathMLTree2.default.MathNode("mpadded", [buildGroup(group.value.body, options)]);
-
-    if (group.value.alignment !== "rlap") {
-        var offset = group.value.alignment === "llap" ? "-1" : "-0.5";
-        node.setAttribute("lspace", offset + "width");
-    }
-    node.setAttribute("width", "0px");
-
-    return node;
-};
-
-groupTypes.smash = function (group, options) {
-    var node = new _mathMLTree2.default.MathNode("mpadded", [buildGroup(group.value.body, options)]);
-
-    if (group.value.smashHeight) {
-        node.setAttribute("height", "0px");
-    }
-
-    if (group.value.smashDepth) {
-        node.setAttribute("depth", "0px");
-    }
-
-    return node;
-};
-
 groupTypes.mclass = function (group, options) {
     var inner = buildExpression(group.value.value, options);
     return new _mathMLTree2.default.MathNode("mstyle", inner);
@@ -9245,7 +8910,7 @@ function buildMathML(tree, texExpression, options) {
     return _buildCommon2.default.makeSpan(["katex-mathml"], [math]);
 }
 
-},{"./ParseError":89,"./Style":94,"./buildCommon":96,"./fontMetrics":106,"./mathMLTree":113,"./stretchy":115,"./symbols":117,"./utils":120}],99:[function(require,module,exports){
+},{"./ParseError":134,"./Style":139,"./buildCommon":141,"./fontMetrics":151,"./mathMLTree":165,"./stretchy":167,"./symbols":169,"./utils":172}],144:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -9308,7 +8973,7 @@ var buildTree = function buildTree(tree, expression, settings) {
 
 exports.default = buildTree;
 
-},{"./Options":88,"./Settings":92,"./Style":94,"./buildCommon":96,"./buildHTML":97,"./buildMathML":98}],100:[function(require,module,exports){
+},{"./Options":133,"./Settings":137,"./Style":139,"./buildCommon":141,"./buildHTML":142,"./buildMathML":143}],145:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -9398,7 +9063,7 @@ function defineEnvironment(_ref) {
     }
 }
 
-},{"./Options":88,"./ParseNode":90,"./buildHTML":97,"./buildMathML":98}],101:[function(require,module,exports){
+},{"./Options":133,"./ParseNode":135,"./buildHTML":142,"./buildMathML":143}],146:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -9475,7 +9140,7 @@ var ordargument = exports.ordargument = function ordargument(arg) {
     }
 };
 
-},{"./buildHTML":97,"./buildMathML":98}],102:[function(require,module,exports){
+},{"./buildHTML":142,"./buildMathML":143}],147:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -10054,7 +9719,7 @@ exports.default = {
     leftRightDelim: makeLeftRightDelim
 };
 
-},{"./ParseError":89,"./Style":94,"./buildCommon":96,"./domTree":103,"./fontMetrics":106,"./symbols":117,"./utils":120}],103:[function(require,module,exports){
+},{"./ParseError":134,"./Style":139,"./buildCommon":141,"./domTree":148,"./fontMetrics":151,"./symbols":169,"./utils":172}],148:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -10064,6 +9729,10 @@ Object.defineProperty(exports, "__esModule", {
 var _slicedToArray2 = require("babel-runtime/helpers/slicedToArray");
 
 var _slicedToArray3 = _interopRequireDefault(_slicedToArray2);
+
+var _toConsumableArray2 = require("babel-runtime/helpers/toConsumableArray");
+
+var _toConsumableArray3 = _interopRequireDefault(_toConsumableArray2);
 
 var _classCallCheck2 = require("babel-runtime/helpers/classCallCheck");
 
@@ -10259,9 +9928,9 @@ var documentFragment = function () {
         this.maxFontSize = 0;
         if (classes) {
             for (var i = 0; i < this.children.length; i++) {
-                for (var j = 0; j < classes.length; j++) {
-                    this.children[i].classes.push(classes[j]);
-                }
+                var _children$i$classes;
+
+                (_children$i$classes = this.children[i].classes).push.apply(_children$i$classes, (0, _toConsumableArray3.default)(classes));
             }
         }
         this.classes = classes || [];
@@ -10613,7 +10282,7 @@ exports.default = {
     lineNode: lineNode
 };
 
-},{"./svgGeometry":116,"./unicodeRegexes":118,"./utils":120,"babel-runtime/helpers/classCallCheck":13,"babel-runtime/helpers/createClass":14,"babel-runtime/helpers/slicedToArray":15}],104:[function(require,module,exports){
+},{"./svgGeometry":168,"./unicodeRegexes":170,"./utils":172,"babel-runtime/helpers/classCallCheck":22,"babel-runtime/helpers/createClass":23,"babel-runtime/helpers/slicedToArray":27,"babel-runtime/helpers/toConsumableArray":28}],149:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -10636,7 +10305,7 @@ exports.default = environments;
 
 // All environment definitions should be imported below
 
-},{"./defineEnvironment":100,"./environments/array.js":105}],105:[function(require,module,exports){
+},{"./defineEnvironment":145,"./environments/array.js":150}],150:[function(require,module,exports){
 "use strict";
 
 var _buildCommon = require("../buildCommon");
@@ -10707,8 +10376,8 @@ function parseArray(parser, result, style) {
         } else if (next === "\\end") {
             // Arrays terminate newlines with `\crcr` which consumes a `\cr` if
             // the last line is empty.
-            var lastRow = body[body.length - 1][0].value;
-            if (body.length > 1 && lastRow.value.length === 1 && lastRow.value[0].value.length === 0) {
+            var lastRow = body[body.length - 1];
+            if (body.length > 1 && lastRow.length === 1 && lastRow[0].value.value[0].value.length === 0) {
                 body.pop();
             }
             break;
@@ -10901,6 +10570,76 @@ var mathmlBuilder = function mathmlBuilder(group, options) {
     }));
 };
 
+// Convinient function for aligned and alignedat environments.
+var alignedHandler = function alignedHandler(context, args) {
+    var res = {
+        type: "array",
+        cols: [],
+        addJot: true
+    };
+    res = parseArray(context.parser, res, "display");
+
+    // Determining number of columns.
+    // 1. If the first argument is given, we use it as a number of columns,
+    //    and makes sure that each row doesn't exceed that number.
+    // 2. Otherwise, just count number of columns = maximum number
+    //    of cells in each row ("aligned" mode -- isAligned will be true).
+    //
+    // At the same time, prepend empty group {} at beginning of every second
+    // cell in each row (starting with second cell) so that operators become
+    // binary.  This behavior is implemented in amsmath's \start@aligned.
+    var numMaths = void 0;
+    var numCols = 0;
+    var emptyGroup = new _ParseNode2.default("ordgroup", [], context.mode);
+    if (args[0] && args[0].value) {
+        var arg0 = "";
+        for (var i = 0; i < args[0].value.length; i++) {
+            arg0 += args[0].value[i].value;
+        }
+        numMaths = Number(arg0);
+        numCols = numMaths * 2;
+    }
+    var isAligned = !numCols;
+    res.value.body.forEach(function (row) {
+        for (var _i = 1; _i < row.length; _i += 2) {
+            // Modify ordgroup node within styling node
+            var ordgroup = row[_i].value.value[0];
+            ordgroup.value.unshift(emptyGroup);
+        }
+        if (!isAligned) {
+            // Case 1
+            var curMaths = row.length / 2;
+            if (numMaths < curMaths) {
+                throw new _ParseError2.default("Too many math in a row: " + ("expected " + numMaths + ", but got " + curMaths), row);
+            }
+        } else if (numCols < row.length) {
+            // Case 2
+            numCols = row.length;
+        }
+    });
+
+    // Adjusting alignment.
+    // In aligned mode, we add one \qquad between columns;
+    // otherwise we add nothing.
+    for (var _i2 = 0; _i2 < numCols; ++_i2) {
+        var _align = "r";
+        var _pregap = 0;
+        if (_i2 % 2 === 1) {
+            _align = "l";
+        } else if (_i2 > 0 && isAligned) {
+            // "aligned" mode.
+            _pregap = 1; // add one \quad
+        }
+        res.value.cols[_i2] = {
+            type: "align",
+            align: _align,
+            pregap: _pregap,
+            postgap: 0
+        };
+    }
+    return res;
+};
+
 // Arrays are part of LaTeX, defined in lttab.dtx so its documentation
 // is part of the source2e.pdf file of LaTeX2e source documentation.
 // {darray} is an {array} environment where cells are set in \displaystyle,
@@ -11029,46 +10768,7 @@ var mathmlBuilder = function mathmlBuilder(group, options) {
     props: {
         numArgs: 0
     },
-    handler: function handler(context) {
-        var res = {
-            type: "array",
-            cols: [],
-            addJot: true
-        };
-        res = parseArray(context.parser, res, "display");
-        // Count number of columns = maximum number of cells in each row.
-        // At the same time, prepend empty group {} at beginning of every second
-        // cell in each row (starting with second cell) so that operators become
-        // binary.  This behavior is implemented in amsmath's \start@aligned.
-        var emptyGroup = new _ParseNode2.default("ordgroup", [], context.mode);
-        var numCols = 0;
-        res.value.body.forEach(function (row) {
-            for (var i = 1; i < row.length; i += 2) {
-                // Modify ordgroup node within styling node
-                var ordgroup = row[i].value.value[0];
-                ordgroup.value.unshift(emptyGroup);
-            }
-            if (numCols < row.length) {
-                numCols = row.length;
-            }
-        });
-        for (var i = 0; i < numCols; ++i) {
-            var _align = "r";
-            var _pregap = 0;
-            if (i % 2 === 1) {
-                _align = "l";
-            } else if (i > 0) {
-                _pregap = 1; // one \quad between columns
-            }
-            res.value.cols[i] = {
-                type: "align",
-                align: _align,
-                pregap: _pregap,
-                postgap: 0
-            };
-        }
-        return res;
-    },
+    handler: alignedHandler,
     htmlBuilder: htmlBuilder,
     mathmlBuilder: mathmlBuilder
 });
@@ -11098,7 +10798,24 @@ var mathmlBuilder = function mathmlBuilder(group, options) {
     mathmlBuilder: mathmlBuilder
 });
 
-},{"../ParseError":89,"../ParseNode":90,"../buildCommon":96,"../buildHTML":97,"../buildMathML":98,"../defineEnvironment":100,"../mathMLTree":113,"../units":119,"../utils":120}],106:[function(require,module,exports){
+// alignat environment is like an align environment, but one must explicitly
+// specify maximum number of columns in each row, and can adjust spacing between
+// each columns.
+(0, _defineEnvironment2.default)({
+    type: "array",
+    names: ["alignedat"],
+    // One for numbered and for unnumbered;
+    // but, KaTeX doesn't supports math numbering yet,
+    // they make no difference for now.
+    props: {
+        numArgs: 1
+    },
+    handler: alignedHandler,
+    htmlBuilder: htmlBuilder,
+    mathmlBuilder: mathmlBuilder
+});
+
+},{"../ParseError":134,"../ParseNode":135,"../buildCommon":141,"../buildHTML":142,"../buildMathML":143,"../defineEnvironment":145,"../mathMLTree":165,"../units":171,"../utils":172}],151:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -11397,7 +11114,7 @@ exports.default = {
     getCharacterMetrics: getCharacterMetrics
 };
 
-},{"./fontMetricsData":107,"./unicodeRegexes":118}],107:[function(require,module,exports){
+},{"./fontMetricsData":152,"./unicodeRegexes":170}],152:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -13161,7 +12878,7 @@ var fontMetricsData = {
 
 exports.default = fontMetricsData;
 
-},{}],108:[function(require,module,exports){
+},{}],153:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -13184,9 +12901,23 @@ var _defineFunction2 = require("./defineFunction");
 
 var _defineFunction3 = _interopRequireDefault(_defineFunction2);
 
+require("./functions/mathylem");
+
+require("./functions/katex");
+
 require("./functions/phantom");
 
-require("./functions/operators");
+require("./functions/mod");
+
+require("./functions/op");
+
+require("./functions/operatorname");
+
+require("./functions/genfrac");
+
+require("./functions/lap");
+
+require("./functions/smash");
 
 require("./functions/delimsizing");
 
@@ -13238,29 +12969,6 @@ defineFunction(["\\text", "\\textrm", "\\textsf", "\\texttt", "\\textnormal", "\
         type: "text",
         body: (0, _defineFunction2.ordargument)(body),
         font: textFunctionFonts[context.funcName]
-    };
-});
-
-// XML attributes
-defineFunction(["\\xmlClass"], {
-    numArgs: 2,
-    allowedInText: true,
-    greediness: 3,
-    argTypes: ["string", "original"]
-}, function (context, args) {
-    var cl = args[0];
-    var body = args[1];
-    // Normalize the different kinds of bodies (see \text above)
-    var inner = void 0;
-    if (body.type === "ordgroup") {
-        inner = body.value;
-    } else {
-        inner = [body];
-    }
-    return {
-        type: "xmlClass",
-        cl: cl,
-        value: inner
     };
 });
 
@@ -13363,18 +13071,6 @@ defineFunction(["\\rule"], {
     };
 });
 
-defineFunction(["\\cursor"], {
-    numArgs: 2,
-    allowedInText: true,
-    argTypes: ["size", "size"]
-}, function (context, args) {
-    return {
-        type: "cursor",
-        shift: args[0].value,
-        height: args[1].value
-    };
-});
-
 // TODO: In TeX, \mkern only accepts mu-units, and \kern does not accept
 // mu-units. In current KaTeX we relax this; both commands accept any unit.
 defineFunction(["\\kern", "\\mkern"], {
@@ -13384,16 +13080,6 @@ defineFunction(["\\kern", "\\mkern"], {
     return {
         type: "kern",
         dimension: args[0].value
-    };
-});
-
-// A KaTeX logo
-defineFunction(["\\KaTeX"], {
-    numArgs: 0,
-    allowedInText: true
-}, function (context) {
-    return {
-        type: "katex"
     };
 });
 
@@ -13434,28 +13120,6 @@ defineFunction(["\\stackrel"], {
         type: "mclass",
         mclass: "mrel",
         value: [supsub]
-    };
-});
-
-// \mod-type functions
-defineFunction(["\\bmod"], {
-    numArgs: 0
-}, function (context, args) {
-    return {
-        type: "mod",
-        modType: "bmod",
-        value: null
-    };
-});
-
-defineFunction(["\\pod", "\\pmod", "\\mod"], {
-    numArgs: 1
-}, function (context, args) {
-    var body = args[0];
-    return {
-        type: "mod",
-        modType: context.funcName.substr(1),
-        value: (0, _defineFunction2.ordargument)(body)
     };
 });
 
@@ -13516,138 +13180,6 @@ defineFunction(["\\int", "\\iint", "\\iiint", "\\oint"], {
         limits: false,
         symbol: true,
         body: context.funcName
-    };
-});
-
-// Limits, symbols
-defineFunction(["\\coprod", "\\bigvee", "\\bigwedge", "\\biguplus", "\\bigcap", "\\bigcup", "\\intop", "\\prod", "\\sum", "\\bigotimes", "\\bigoplus", "\\bigodot", "\\bigsqcup", "\\smallint"], {
-    numArgs: 0
-}, function (context) {
-    return {
-        type: "op",
-        limits: true,
-        symbol: true,
-        body: context.funcName
-    };
-});
-
-// \mathop class command
-defineFunction(["\\mathop"], {
-    numArgs: 1
-}, function (context, args) {
-    var body = args[0];
-    return {
-        type: "op",
-        limits: false,
-        symbol: false,
-        value: (0, _defineFunction2.ordargument)(body)
-    };
-});
-
-// Fractions
-defineFunction(["\\dfrac", "\\frac", "\\tfrac", "\\dbinom", "\\binom", "\\tbinom", "\\\\atopfrac"], {
-    numArgs: 2,
-    greediness: 2
-}, function (context, args) {
-    var numer = args[0];
-    var denom = args[1];
-    var hasBarLine = void 0;
-    var leftDelim = null;
-    var rightDelim = null;
-    var size = "auto";
-
-    switch (context.funcName) {
-        case "\\dfrac":
-        case "\\frac":
-        case "\\tfrac":
-            hasBarLine = true;
-            break;
-        case "\\\\atopfrac":
-            hasBarLine = false;
-            break;
-        case "\\dbinom":
-        case "\\binom":
-        case "\\tbinom":
-            hasBarLine = false;
-            leftDelim = "(";
-            rightDelim = ")";
-            break;
-        default:
-            throw new Error("Unrecognized genfrac command");
-    }
-
-    switch (context.funcName) {
-        case "\\dfrac":
-        case "\\dbinom":
-            size = "display";
-            break;
-        case "\\tfrac":
-        case "\\tbinom":
-            size = "text";
-            break;
-    }
-
-    return {
-        type: "genfrac",
-        numer: numer,
-        denom: denom,
-        hasBarLine: hasBarLine,
-        leftDelim: leftDelim,
-        rightDelim: rightDelim,
-        size: size
-    };
-});
-
-// Horizontal overlap functions
-defineFunction(["\\mathllap", "\\mathrlap", "\\mathclap"], {
-    numArgs: 1,
-    allowedInText: true
-}, function (context, args) {
-    var body = args[0];
-    return {
-        type: "lap",
-        alignment: context.funcName.slice(5),
-        body: body
-    };
-});
-
-// smash, with optional [tb], as in AMS
-defineFunction(["\\smash"], {
-    numArgs: 1,
-    numOptionalArgs: 1,
-    allowedInText: true
-}, function (context, args, optArgs) {
-    var smashHeight = false;
-    var smashDepth = false;
-    var tbArg = optArgs[0];
-    if (tbArg) {
-        // Optional [tb] argument is engaged.
-        // ref: amsmath: \renewcommand{\smash}[1][tb]{%
-        //               def\mb@t{\ht}\def\mb@b{\dp}\def\mb@tb{\ht\z@\z@\dp}%
-        var letter = "";
-        for (var i = 0; i < tbArg.value.length; ++i) {
-            letter = tbArg.value[i].value;
-            if (letter === "t") {
-                smashHeight = true;
-            } else if (letter === "b") {
-                smashDepth = true;
-            } else {
-                smashHeight = false;
-                smashDepth = false;
-                break;
-            }
-        }
-    } else {
-        smashHeight = true;
-        smashDepth = true;
-    }
-
-    var body = args[0];
-    return {
-        type: "smash",
-        body: body,
-        smashHeight: smashHeight,
-        smashDepth: smashDepth
     };
 });
 
@@ -13859,7 +13391,7 @@ defineFunction(["\\verb"], {
     throw new _ParseError2.default("\\verb ended by end of line instead of matching delimiter");
 });
 
-},{"./ParseError":89,"./ParseNode":90,"./defineFunction":101,"./functions/delimsizing":109,"./functions/operators":110,"./functions/phantom":111,"./utils":120}],109:[function(require,module,exports){
+},{"./ParseError":134,"./ParseNode":135,"./defineFunction":146,"./functions/delimsizing":154,"./functions/genfrac":155,"./functions/katex":156,"./functions/lap":157,"./functions/mathylem":158,"./functions/mod":159,"./functions/op":160,"./functions/operatorname":161,"./functions/phantom":162,"./functions/smash":163,"./utils":172}],154:[function(require,module,exports){
 "use strict";
 
 var _buildCommon = require("../buildCommon");
@@ -14119,7 +13651,865 @@ function checkDelimiter(delim, context) {
     }
 });
 
-},{"../ParseError":89,"../buildCommon":96,"../buildHTML":97,"../buildMathML":98,"../defineFunction":101,"../delimiter":102,"../mathMLTree":113,"../utils":120}],110:[function(require,module,exports){
+},{"../ParseError":134,"../buildCommon":141,"../buildHTML":142,"../buildMathML":143,"../defineFunction":146,"../delimiter":147,"../mathMLTree":165,"../utils":172}],155:[function(require,module,exports){
+"use strict";
+
+var _defineFunction = require("../defineFunction");
+
+var _defineFunction2 = _interopRequireDefault(_defineFunction);
+
+var _buildCommon = require("../buildCommon");
+
+var _buildCommon2 = _interopRequireDefault(_buildCommon);
+
+var _delimiter = require("../delimiter");
+
+var _delimiter2 = _interopRequireDefault(_delimiter);
+
+var _mathMLTree = require("../mathMLTree");
+
+var _mathMLTree2 = _interopRequireDefault(_mathMLTree);
+
+var _Style = require("../Style");
+
+var _Style2 = _interopRequireDefault(_Style);
+
+var _buildHTML = require("../buildHTML");
+
+var html = _interopRequireWildcard(_buildHTML);
+
+var _buildMathML = require("../buildMathML");
+
+var mml = _interopRequireWildcard(_buildMathML);
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+(0, _defineFunction2.default)({
+    type: "genfrac",
+    names: ["\\dfrac", "\\frac", "\\tfrac", "\\dbinom", "\\binom", "\\tbinom", "\\\\atopfrac"],
+    props: {
+        numArgs: 2,
+        greediness: 2
+    },
+    handler: function handler(context, args) {
+        var numer = args[0];
+        var denom = args[1];
+        var hasBarLine = void 0;
+        var leftDelim = null;
+        var rightDelim = null;
+        var size = "auto";
+
+        switch (context.funcName) {
+            case "\\dfrac":
+            case "\\frac":
+            case "\\tfrac":
+                hasBarLine = true;
+                break;
+            case "\\\\atopfrac":
+                hasBarLine = false;
+                break;
+            case "\\dbinom":
+            case "\\binom":
+            case "\\tbinom":
+                hasBarLine = false;
+                leftDelim = "(";
+                rightDelim = ")";
+                break;
+            default:
+                throw new Error("Unrecognized genfrac command");
+        }
+
+        switch (context.funcName) {
+            case "\\dfrac":
+            case "\\dbinom":
+                size = "display";
+                break;
+            case "\\tfrac":
+            case "\\tbinom":
+                size = "text";
+                break;
+        }
+
+        return {
+            type: "genfrac",
+            numer: numer,
+            denom: denom,
+            hasBarLine: hasBarLine,
+            leftDelim: leftDelim,
+            rightDelim: rightDelim,
+            size: size
+        };
+    },
+    htmlBuilder: function htmlBuilder(group, options) {
+        // Fractions are handled in the TeXbook on pages 444-445, rules 15(a-e).
+        // Figure out what style this fraction should be in based on the
+        // function used
+        var style = options.style;
+        if (group.value.size === "display") {
+            style = _Style2.default.DISPLAY;
+        } else if (group.value.size === "text") {
+            style = _Style2.default.TEXT;
+        }
+
+        var nstyle = style.fracNum();
+        var dstyle = style.fracDen();
+        var newOptions = void 0;
+
+        newOptions = options.havingStyle(nstyle);
+        var numerm = html.buildGroup(group.value.numer, newOptions, options);
+
+        newOptions = options.havingStyle(dstyle);
+        var denomm = html.buildGroup(group.value.denom, newOptions, options);
+
+        var rule = void 0;
+        var ruleWidth = void 0;
+        var ruleSpacing = void 0;
+        if (group.value.hasBarLine) {
+            rule = html.makeLineSpan("frac-line", options);
+            ruleWidth = rule.height;
+            ruleSpacing = rule.height;
+        } else {
+            rule = null;
+            ruleWidth = 0;
+            ruleSpacing = options.fontMetrics().defaultRuleThickness;
+        }
+
+        // Rule 15b
+        var numShift = void 0;
+        var clearance = void 0;
+        var denomShift = void 0;
+        if (style.size === _Style2.default.DISPLAY.size) {
+            numShift = options.fontMetrics().num1;
+            if (ruleWidth > 0) {
+                clearance = 3 * ruleSpacing;
+            } else {
+                clearance = 7 * ruleSpacing;
+            }
+            denomShift = options.fontMetrics().denom1;
+        } else {
+            if (ruleWidth > 0) {
+                numShift = options.fontMetrics().num2;
+                clearance = ruleSpacing;
+            } else {
+                numShift = options.fontMetrics().num3;
+                clearance = 3 * ruleSpacing;
+            }
+            denomShift = options.fontMetrics().denom2;
+        }
+
+        var frac = void 0;
+        if (ruleWidth === 0) {
+            // Rule 15c
+            var candidateClearance = numShift - numerm.depth - (denomm.height - denomShift);
+            if (candidateClearance < clearance) {
+                numShift += 0.5 * (clearance - candidateClearance);
+                denomShift += 0.5 * (clearance - candidateClearance);
+            }
+
+            frac = _buildCommon2.default.makeVList({
+                positionType: "individualShift",
+                children: [{ type: "elem", elem: denomm, shift: denomShift }, { type: "elem", elem: numerm, shift: -numShift }]
+            }, options);
+        } else {
+            // Rule 15d
+            var axisHeight = options.fontMetrics().axisHeight;
+
+            if (numShift - numerm.depth - (axisHeight + 0.5 * ruleWidth) < clearance) {
+                numShift += clearance - (numShift - numerm.depth - (axisHeight + 0.5 * ruleWidth));
+            }
+
+            if (axisHeight - 0.5 * ruleWidth - (denomm.height - denomShift) < clearance) {
+                denomShift += clearance - (axisHeight - 0.5 * ruleWidth - (denomm.height - denomShift));
+            }
+
+            var midShift = -(axisHeight - 0.5 * ruleWidth);
+
+            frac = _buildCommon2.default.makeVList({
+                positionType: "individualShift",
+                children: [{ type: "elem", elem: denomm, shift: denomShift }, { type: "elem", elem: rule, shift: midShift }, { type: "elem", elem: numerm, shift: -numShift }]
+            }, options);
+        }
+
+        // Since we manually change the style sometimes (with \dfrac or \tfrac),
+        // account for the possible size change here.
+        newOptions = options.havingStyle(style);
+        frac.height *= newOptions.sizeMultiplier / options.sizeMultiplier;
+        frac.depth *= newOptions.sizeMultiplier / options.sizeMultiplier;
+
+        // Rule 15e
+        var delimSize = void 0;
+        if (style.size === _Style2.default.DISPLAY.size) {
+            delimSize = options.fontMetrics().delim1;
+        } else {
+            delimSize = options.fontMetrics().delim2;
+        }
+
+        var leftDelim = void 0;
+        var rightDelim = void 0;
+        if (group.value.leftDelim == null) {
+            leftDelim = html.makeNullDelimiter(options, ["mopen"]);
+        } else {
+            leftDelim = _delimiter2.default.customSizedDelim(group.value.leftDelim, delimSize, true, options.havingStyle(style), group.mode, ["mopen"]);
+        }
+        if (group.value.rightDelim == null) {
+            rightDelim = html.makeNullDelimiter(options, ["mclose"]);
+        } else {
+            rightDelim = _delimiter2.default.customSizedDelim(group.value.rightDelim, delimSize, true, options.havingStyle(style), group.mode, ["mclose"]);
+        }
+
+        return _buildCommon2.default.makeSpan(["mord"].concat(newOptions.sizingClasses(options)), [leftDelim, _buildCommon2.default.makeSpan(["mfrac"], [frac]), rightDelim], options);
+    },
+    mathmlBuilder: function mathmlBuilder(group, options) {
+        var node = new _mathMLTree2.default.MathNode("mfrac", [mml.buildGroup(group.value.numer, options), mml.buildGroup(group.value.denom, options)]);
+
+        if (!group.value.hasBarLine) {
+            node.setAttribute("linethickness", "0px");
+        }
+
+        if (group.value.leftDelim != null || group.value.rightDelim != null) {
+            var withDelims = [];
+
+            if (group.value.leftDelim != null) {
+                var leftOp = new _mathMLTree2.default.MathNode("mo", [new _mathMLTree2.default.TextNode(group.value.leftDelim)]);
+
+                leftOp.setAttribute("fence", "true");
+
+                withDelims.push(leftOp);
+            }
+
+            withDelims.push(node);
+
+            if (group.value.rightDelim != null) {
+                var rightOp = new _mathMLTree2.default.MathNode("mo", [new _mathMLTree2.default.TextNode(group.value.rightDelim)]);
+
+                rightOp.setAttribute("fence", "true");
+
+                withDelims.push(rightOp);
+            }
+
+            var outerNode = new _mathMLTree2.default.MathNode("mrow", withDelims);
+
+            return outerNode;
+        }
+
+        return node;
+    }
+});
+
+},{"../Style":139,"../buildCommon":141,"../buildHTML":142,"../buildMathML":143,"../defineFunction":146,"../delimiter":147,"../mathMLTree":165}],156:[function(require,module,exports){
+"use strict";
+
+var _defineFunction = require("../defineFunction");
+
+var _defineFunction2 = _interopRequireDefault(_defineFunction);
+
+var _buildCommon = require("../buildCommon");
+
+var _buildCommon2 = _interopRequireDefault(_buildCommon);
+
+var _mathMLTree = require("../mathMLTree");
+
+var _mathMLTree2 = _interopRequireDefault(_mathMLTree);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+(0, _defineFunction2.default)({
+    type: "katex",
+    names: ["\\KaTeX"],
+    props: {
+        numArgs: 0,
+        allowedInText: true
+    },
+    handler: function handler(context, args) {
+        return {
+            type: "katex"
+        };
+    },
+    htmlBuilder: function htmlBuilder(group, options) {
+        // The KaTeX logo. The offsets for the K and a were chosen to look
+        // good, but the offsets for the T, E, and X were taken from the
+        // definition of \TeX in TeX (see TeXbook pg. 356)
+        var k = _buildCommon2.default.makeSpan(["k"], [_buildCommon2.default.mathsym("K", group.mode)], options);
+        var a = _buildCommon2.default.makeSpan(["a"], [_buildCommon2.default.mathsym("A", group.mode)], options);
+
+        a.height = (a.height + 0.2) * 0.75;
+        a.depth = (a.height - 0.2) * 0.75;
+
+        var t = _buildCommon2.default.makeSpan(["t"], [_buildCommon2.default.mathsym("T", group.mode)], options);
+        var e = _buildCommon2.default.makeSpan(["e"], [_buildCommon2.default.mathsym("E", group.mode)], options);
+
+        e.height = e.height - 0.2155;
+        e.depth = e.depth + 0.2155;
+
+        var x = _buildCommon2.default.makeSpan(["x"], [_buildCommon2.default.mathsym("X", group.mode)], options);
+
+        return _buildCommon2.default.makeSpan(["mord", "katex-logo"], [k, a, t, e, x], options);
+    },
+    mathmlBuilder: function mathmlBuilder(group, options) {
+        var node = new _mathMLTree2.default.MathNode("mtext", [new _mathMLTree2.default.TextNode("KaTeX")]);
+
+        return node;
+    }
+});
+// A KaTeX logo
+
+},{"../buildCommon":141,"../defineFunction":146,"../mathMLTree":165}],157:[function(require,module,exports){
+"use strict";
+
+var _defineFunction = require("../defineFunction");
+
+var _defineFunction2 = _interopRequireDefault(_defineFunction);
+
+var _buildCommon = require("../buildCommon");
+
+var _buildCommon2 = _interopRequireDefault(_buildCommon);
+
+var _mathMLTree = require("../mathMLTree");
+
+var _mathMLTree2 = _interopRequireDefault(_mathMLTree);
+
+var _buildHTML = require("../buildHTML");
+
+var html = _interopRequireWildcard(_buildHTML);
+
+var _buildMathML = require("../buildMathML");
+
+var mml = _interopRequireWildcard(_buildMathML);
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+(0, _defineFunction2.default)({
+    type: "lap",
+    names: ["\\mathllap", "\\mathrlap", "\\mathclap"],
+    props: {
+        numArgs: 1,
+        allowedInText: true
+    },
+    handler: function handler(context, args) {
+        var body = args[0];
+        return {
+            type: "lap",
+            alignment: context.funcName.slice(5),
+            body: body
+        };
+    },
+    htmlBuilder: function htmlBuilder(group, options) {
+        // mathllap, mathrlap, mathclap
+        var inner = void 0;
+        if (group.value.alignment === "clap") {
+            // ref: https://www.math.lsu.edu/~aperlis/publications/mathclap/
+            inner = _buildCommon2.default.makeSpan([], [html.buildGroup(group.value.body, options)]);
+            // wrap, since CSS will center a .clap > .inner > span
+            inner = _buildCommon2.default.makeSpan(["inner"], [inner], options);
+        } else {
+            inner = _buildCommon2.default.makeSpan(["inner"], [html.buildGroup(group.value.body, options)]);
+        }
+        var fix = _buildCommon2.default.makeSpan(["fix"], []);
+        return _buildCommon2.default.makeSpan(["mord", group.value.alignment], [inner, fix], options);
+    },
+    mathmlBuilder: function mathmlBuilder(group, options) {
+        // mathllap, mathrlap, mathclap
+        var node = new _mathMLTree2.default.MathNode("mpadded", [mml.buildGroup(group.value.body, options)]);
+
+        if (group.value.alignment !== "rlap") {
+            var offset = group.value.alignment === "llap" ? "-1" : "-0.5";
+            node.setAttribute("lspace", offset + "width");
+        }
+        node.setAttribute("width", "0px");
+
+        return node;
+    }
+});
+// Horizontal overlap functions
+
+},{"../buildCommon":141,"../buildHTML":142,"../buildMathML":143,"../defineFunction":146,"../mathMLTree":165}],158:[function(require,module,exports){
+"use strict";
+
+var _defineFunction = require("../defineFunction");
+
+var _defineFunction2 = _interopRequireDefault(_defineFunction);
+
+var _buildCommon = require("../buildCommon");
+
+var _buildCommon2 = _interopRequireDefault(_buildCommon);
+
+var _units = require("../units");
+
+var _mathMLTree = require("../mathMLTree");
+
+var _mathMLTree2 = _interopRequireDefault(_mathMLTree);
+
+var _buildHTML = require("../buildHTML");
+
+var html = _interopRequireWildcard(_buildHTML);
+
+var _buildMathML = require("../buildMathML");
+
+var mml = _interopRequireWildcard(_buildMathML);
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+(0, _defineFunction2.default)({
+    type: "class",
+    names: ["\\class"],
+    props: {
+        numArgs: 2,
+        allowedInText: true,
+        greediness: 3,
+        argTypes: ["string", "original"]
+    },
+    handler: function handler(context, args) {
+        var classes = args[0];
+        var body = args[1];
+        return {
+            type: "class",
+            classes: classes,
+            value: (0, _defineFunction.ordargument)(body)
+        };
+    },
+    htmlBuilder: function htmlBuilder(group, options) {
+        var elements = html.buildExpression(group.value.value, options, false);
+        return new _buildCommon2.default.makeFragment(elements, [group.value.classes]);
+    },
+    mathmlBuilder: function mathmlBuilder(group, options) {
+        var inner = mml.buildExpression(group.value.value, options);
+        var node = new _mathMLTree2.default.MathNode("mstyle", inner);
+        node.setAttribute("class", group.value.classes);
+        return node;
+    }
+});
+
+(0, _defineFunction2.default)({
+    type: "cursor",
+    names: ["\\cursor"],
+    props: {
+        numArgs: 2,
+        allowedInText: true,
+        argTypes: ["size", "size"]
+    },
+    handler: function handler(context, args) {
+        return {
+            type: "cursor",
+            shift: args[0].value,
+            height: args[1].value
+        };
+    },
+    htmlBuilder: function htmlBuilder(group, options) {
+        var cursor = _buildCommon2.default.makeSpan(["cursor"], [], options);
+
+        var shift = (0, _units.calculateSize)(group.value.shift, options);
+        var height = (0, _units.calculateSize)(group.value.height, options);
+
+        cursor.style.marginRight = "-1px";
+        cursor.style.borderRight = "1px solid";
+        cursor.style.marginBottom = shift + "em";
+        cursor.style.height = height + "em";
+
+        cursor.width = 1;
+        cursor.height = height + shift;
+        cursor.depth = -shift;
+
+        return cursor;
+    },
+    mathmlBuilder: function mathmlBuilder(group, options) {
+        return new _mathMLTree2.default.MathNode("mtext", [new _mathMLTree2.default.TextNode("|")]);
+    }
+});
+
+},{"../buildCommon":141,"../buildHTML":142,"../buildMathML":143,"../defineFunction":146,"../mathMLTree":165,"../units":171}],159:[function(require,module,exports){
+"use strict";
+
+var _defineFunction = require("../defineFunction");
+
+var _defineFunction2 = _interopRequireDefault(_defineFunction);
+
+var _buildCommon = require("../buildCommon");
+
+var _buildCommon2 = _interopRequireDefault(_buildCommon);
+
+var _mathMLTree = require("../mathMLTree");
+
+var _mathMLTree2 = _interopRequireDefault(_mathMLTree);
+
+var _Style = require("../Style");
+
+var _Style2 = _interopRequireDefault(_Style);
+
+var _buildHTML = require("../buildHTML");
+
+var html = _interopRequireWildcard(_buildHTML);
+
+var _buildMathML = require("../buildMathML");
+
+var mml = _interopRequireWildcard(_buildMathML);
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+// \mod-type functions
+var htmlModBuilder = function htmlModBuilder(group, options) {
+    var inner = [];
+
+    if (group.value.modType === "bmod") {
+        // “\nonscript\mskip-\medmuskip\mkern5mu”
+        if (!options.style.isTight()) {
+            inner.push(_buildCommon2.default.makeSpan(["mspace", "negativemediumspace"], [], options));
+        }
+        inner.push(_buildCommon2.default.makeSpan(["mspace", "thickspace"], [], options));
+    } else if (options.style.size === _Style2.default.DISPLAY.size) {
+        inner.push(_buildCommon2.default.makeSpan(["mspace", "quad"], [], options));
+    } else if (group.value.modType === "mod") {
+        inner.push(_buildCommon2.default.makeSpan(["mspace", "twelvemuspace"], [], options));
+    } else {
+        inner.push(_buildCommon2.default.makeSpan(["mspace", "eightmuspace"], [], options));
+    }
+
+    if (group.value.modType === "pod" || group.value.modType === "pmod") {
+        inner.push(_buildCommon2.default.mathsym("(", group.mode));
+    }
+
+    if (group.value.modType !== "pod") {
+        var modInner = [_buildCommon2.default.mathsym("m", group.mode), _buildCommon2.default.mathsym("o", group.mode), _buildCommon2.default.mathsym("d", group.mode)];
+        if (group.value.modType === "bmod") {
+            inner.push(_buildCommon2.default.makeSpan(["mbin"], modInner, options));
+            // “\mkern5mu\nonscript\mskip-\medmuskip”
+            inner.push(_buildCommon2.default.makeSpan(["mspace", "thickspace"], [], options));
+            if (!options.style.isTight()) {
+                inner.push(_buildCommon2.default.makeSpan(["mspace", "negativemediumspace"], [], options));
+            }
+        } else {
+            Array.prototype.push.apply(inner, modInner);
+            inner.push(_buildCommon2.default.makeSpan(["mspace", "sixmuspace"], [], options));
+        }
+    }
+
+    if (group.value.value) {
+        Array.prototype.push.apply(inner, html.buildExpression(group.value.value, options, false));
+    }
+
+    if (group.value.modType === "pod" || group.value.modType === "pmod") {
+        inner.push(_buildCommon2.default.mathsym(")", group.mode));
+    }
+
+    return _buildCommon2.default.makeFragment(inner);
+};
+
+var mmlModBuilder = function mmlModBuilder(group, options) {
+    var inner = [];
+
+    if (group.value.modType === "pod" || group.value.modType === "pmod") {
+        inner.push(new _mathMLTree2.default.MathNode("mo", [mml.makeText("(", group.mode)]));
+    }
+    if (group.value.modType !== "pod") {
+        inner.push(new _mathMLTree2.default.MathNode("mo", [mml.makeText("mod", group.mode)]));
+    }
+    if (group.value.value) {
+        var space = new _mathMLTree2.default.MathNode("mspace");
+        space.setAttribute("width", "0.333333em");
+        inner.push(space);
+        inner = inner.concat(mml.buildExpression(group.value.value, options));
+    }
+    if (group.value.modType === "pod" || group.value.modType === "pmod") {
+        inner.push(new _mathMLTree2.default.MathNode("mo", [mml.makeText(")", group.mode)]));
+    }
+
+    return new _mathMLTree2.default.MathNode("mo", inner);
+};
+
+(0, _defineFunction2.default)({
+    type: "mod",
+    names: ["\\bmod"],
+    props: {
+        numArgs: 0
+    },
+    handler: function handler(context, args) {
+        return {
+            type: "mod",
+            modType: "bmod",
+            value: null
+        };
+    },
+    htmlBuilder: htmlModBuilder,
+    mathmlBuilder: mmlModBuilder
+});
+
+// Note: calling defineFunction with a type that's already been defined only
+// works because the same htmlBuilder and mathmlBuilder are being used.
+(0, _defineFunction2.default)({
+    type: "mod",
+    names: ["\\pod", "\\pmod", "\\mod"],
+    props: {
+        numArgs: 1
+    },
+    handler: function handler(context, args) {
+        var body = args[0];
+        return {
+            type: "mod",
+            modType: context.funcName.substr(1),
+            value: (0, _defineFunction.ordargument)(body)
+        };
+    },
+    htmlBuilder: htmlModBuilder,
+    mathmlBuilder: mmlModBuilder
+});
+
+},{"../Style":139,"../buildCommon":141,"../buildHTML":142,"../buildMathML":143,"../defineFunction":146,"../mathMLTree":165}],160:[function(require,module,exports){
+"use strict";
+
+var _defineFunction = require("../defineFunction");
+
+var _defineFunction2 = _interopRequireDefault(_defineFunction);
+
+var _buildCommon = require("../buildCommon");
+
+var _buildCommon2 = _interopRequireDefault(_buildCommon);
+
+var _domTree = require("../domTree");
+
+var _domTree2 = _interopRequireDefault(_domTree);
+
+var _mathMLTree = require("../mathMLTree");
+
+var _mathMLTree2 = _interopRequireDefault(_mathMLTree);
+
+var _utils = require("../utils");
+
+var _utils2 = _interopRequireDefault(_utils);
+
+var _Style = require("../Style");
+
+var _Style2 = _interopRequireDefault(_Style);
+
+var _buildHTML = require("../buildHTML");
+
+var html = _interopRequireWildcard(_buildHTML);
+
+var _buildMathML = require("../buildMathML");
+
+var mml = _interopRequireWildcard(_buildMathML);
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+// Limits, symbols
+var htmlBuilder = function htmlBuilder(group, options) {
+    // Operators are handled in the TeXbook pg. 443-444, rule 13(a).
+    var supGroup = void 0;
+    var subGroup = void 0;
+    var hasLimits = false;
+    if (group.type === "supsub") {
+        // If we have limits, supsub will pass us its group to handle. Pull
+        // out the superscript and subscript and set the group to the op in
+        // its base.
+        supGroup = group.value.sup;
+        subGroup = group.value.sub;
+        group = group.value.base;
+        hasLimits = true;
+    }
+
+    var style = options.style;
+
+    // Most operators have a large successor symbol, but these don't.
+    var noSuccessor = ["\\smallint"];
+
+    var large = false;
+    if (style.size === _Style2.default.DISPLAY.size && group.value.symbol && !_utils2.default.contains(noSuccessor, group.value.body)) {
+
+        // Most symbol operators get larger in displaystyle (rule 13)
+        large = true;
+    }
+
+    var base = void 0;
+    if (group.value.symbol) {
+        // If this is a symbol, create the symbol.
+        var fontName = large ? "Size2-Regular" : "Size1-Regular";
+        base = _buildCommon2.default.makeSymbol(group.value.body, fontName, "math", options, ["mop", "op-symbol", large ? "large-op" : "small-op"]);
+    } else if (group.value.value) {
+        // If this is a list, compose that list.
+        var inner = html.buildExpression(group.value.value, options, true);
+        if (inner.length === 1 && inner[0] instanceof _domTree2.default.symbolNode) {
+            base = inner[0];
+            base.classes[0] = "mop"; // replace old mclass
+        } else {
+            base = _buildCommon2.default.makeSpan(["mop"], inner, options);
+        }
+    } else {
+        // Otherwise, this is a text operator. Build the text from the
+        // operator's name.
+        // TODO(emily): Add a space in the middle of some of these
+        // operators, like \limsup
+        var output = [];
+        for (var i = 1; i < group.value.body.length; i++) {
+            output.push(_buildCommon2.default.mathsym(group.value.body[i], group.mode));
+        }
+        base = _buildCommon2.default.makeSpan(["mop"], output, options);
+    }
+
+    // If content of op is a single symbol, shift it vertically.
+    var baseShift = 0;
+    var slant = 0;
+    if (base instanceof _domTree2.default.symbolNode) {
+        // Shift the symbol so its center lies on the axis (rule 13). It
+        // appears that our fonts have the centers of the symbols already
+        // almost on the axis, so these numbers are very small. Note we
+        // don't actually apply this here, but instead it is used either in
+        // the vlist creation or separately when there are no limits.
+        baseShift = (base.height - base.depth) / 2 - options.fontMetrics().axisHeight;
+
+        // The slant of the symbol is just its italic correction.
+        slant = base.italic;
+    }
+
+    if (hasLimits) {
+        // IE 8 clips \int if it is in a display: inline-block. We wrap it
+        // in a new span so it is an inline, and works.
+        base = _buildCommon2.default.makeSpan([], [base]);
+
+        var supm = void 0;
+        var supKern = void 0;
+        var subm = { height: 0, depth: 0 }; // Make flow happy
+        var subKern = void 0;
+        var newOptions = void 0;
+        // We manually have to handle the superscripts and subscripts. This,
+        // aside from the kern calculations, is copied from supsub.
+        if (supGroup) {
+            newOptions = options.havingStyle(style.sup());
+            supm = html.buildGroup(supGroup, newOptions, options);
+
+            supKern = Math.max(options.fontMetrics().bigOpSpacing1, options.fontMetrics().bigOpSpacing3 - supm.depth);
+        }
+
+        if (subGroup) {
+            newOptions = options.havingStyle(style.sub());
+            subm = html.buildGroup(subGroup, newOptions, options);
+
+            subKern = Math.max(options.fontMetrics().bigOpSpacing2, options.fontMetrics().bigOpSpacing4 - subm.height);
+        }
+
+        // Build the final group as a vlist of the possible subscript, base,
+        // and possible superscript.
+        var finalGroup = void 0;
+        var top = void 0;
+        var bottom = void 0;
+        if (!supGroup) {
+            top = base.height - baseShift;
+
+            // Shift the limits by the slant of the symbol. Note
+            // that we are supposed to shift the limits by 1/2 of the slant,
+            // but since we are centering the limits adding a full slant of
+            // margin will shift by 1/2 that.
+            finalGroup = _buildCommon2.default.makeVList({
+                positionType: "top",
+                positionData: top,
+                children: [{ type: "kern", size: options.fontMetrics().bigOpSpacing5 }, { type: "elem", elem: subm, marginLeft: -slant + "em" }, { type: "kern", size: subKern }, { type: "elem", elem: base }]
+            }, options);
+        } else if (!subGroup) {
+            bottom = base.depth + baseShift;
+
+            finalGroup = _buildCommon2.default.makeVList({
+                positionType: "bottom",
+                positionData: bottom,
+                children: [{ type: "elem", elem: base }, { type: "kern", size: supKern }, { type: "elem", elem: supm, marginLeft: slant + "em" }, { type: "kern", size: options.fontMetrics().bigOpSpacing5 }]
+            }, options);
+        } else if (!supGroup && !subGroup) {
+            // This case probably shouldn't occur (this would mean the
+            // supsub was sending us a group with no superscript or
+            // subscript) but be safe.
+            return base;
+        } else {
+            bottom = options.fontMetrics().bigOpSpacing5 + subm.height + subm.depth + subKern + base.depth + baseShift;
+
+            finalGroup = _buildCommon2.default.makeVList({
+                positionType: "bottom",
+                positionData: bottom,
+                children: [{ type: "kern", size: options.fontMetrics().bigOpSpacing5 }, { type: "elem", elem: subm, marginLeft: -slant + "em" }, { type: "kern", size: subKern }, { type: "elem", elem: base }, { type: "kern", size: supKern }, { type: "elem", elem: supm, marginLeft: slant + "em" }, { type: "kern", size: options.fontMetrics().bigOpSpacing5 }]
+            }, options);
+        }
+
+        return _buildCommon2.default.makeSpan(["mop", "op-limits"], [finalGroup], options);
+    } else {
+        if (baseShift) {
+            base.style.position = "relative";
+            base.style.top = baseShift + "em";
+        }
+
+        return base;
+    }
+};
+
+var mathmlBuilder = function mathmlBuilder(group, options) {
+    var node = void 0;
+
+    // TODO(emily): handle big operators using the `largeop` attribute
+
+    if (group.value.symbol) {
+        // This is a symbol. Just add the symbol.
+        node = new _mathMLTree2.default.MathNode("mo", [mml.makeText(group.value.body, group.mode)]);
+    } else if (group.value.value) {
+        // This is an operator with children. Add them.
+        node = new _mathMLTree2.default.MathNode("mo", mml.buildExpression(group.value.value, options));
+    } else {
+        // This is a text operator. Add all of the characters from the
+        // operator's name.
+        // TODO(emily): Add a space in the middle of some of these
+        // operators, like \limsup.
+        node = new _mathMLTree2.default.MathNode("mi", [new _mathMLTree2.default.TextNode(group.value.body.slice(1))]);
+
+        // TODO(ron): Append an <mo>&ApplyFunction;</mo> as in \operatorname
+        // ref: https://www.w3.org/TR/REC-MathML/chap3_2.html#sec3.2.2
+    }
+
+    return node;
+};
+
+(0, _defineFunction2.default)({
+    type: "op",
+    names: ["\\coprod", "\\bigvee", "\\bigwedge", "\\biguplus", "\\bigcap", "\\bigcup", "\\intop", "\\prod", "\\sum", "\\bigotimes", "\\bigoplus", "\\bigodot", "\\bigsqcup", "\\smallint"],
+    props: {
+        numArgs: 0
+    },
+    handler: function handler(context, args) {
+        return {
+            type: "op",
+            limits: true,
+            symbol: true,
+            body: context.funcName
+        };
+    },
+    htmlBuilder: htmlBuilder,
+    mathmlBuilder: mathmlBuilder
+});
+
+// Note: calling defineFunction with a type that's already been defined only
+// works because the same htmlBuilder and mathmlBuilder are being used.
+(0, _defineFunction2.default)({
+    type: "op",
+    names: ["\\mathop"],
+    props: {
+        numArgs: 1
+    },
+    handler: function handler(context, args) {
+        var body = args[0];
+        return {
+            type: "op",
+            limits: false,
+            symbol: false,
+            value: (0, _defineFunction.ordargument)(body)
+        };
+    },
+    htmlBuilder: htmlBuilder,
+    mathmlBuilder: mathmlBuilder
+});
+
+},{"../Style":139,"../buildCommon":141,"../buildHTML":142,"../buildMathML":143,"../defineFunction":146,"../domTree":148,"../mathMLTree":165,"../utils":172}],161:[function(require,module,exports){
 "use strict";
 
 var _defineFunction = require("../defineFunction");
@@ -14217,7 +14607,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
     }
 });
 
-},{"../buildCommon":96,"../buildHTML":97,"../buildMathML":98,"../defineFunction":101,"../domTree":103,"../mathMLTree":113}],111:[function(require,module,exports){
+},{"../buildCommon":141,"../buildHTML":142,"../buildMathML":143,"../defineFunction":146,"../domTree":148,"../mathMLTree":165}],162:[function(require,module,exports){
 "use strict";
 
 var _defineFunction = require("../defineFunction");
@@ -14339,7 +14729,128 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
     }
 });
 
-},{"../buildCommon":96,"../buildHTML":97,"../buildMathML":98,"../defineFunction":101,"../mathMLTree":113}],112:[function(require,module,exports){
+},{"../buildCommon":141,"../buildHTML":142,"../buildMathML":143,"../defineFunction":146,"../mathMLTree":165}],163:[function(require,module,exports){
+"use strict";
+
+var _defineFunction = require("../defineFunction");
+
+var _defineFunction2 = _interopRequireDefault(_defineFunction);
+
+var _buildCommon = require("../buildCommon");
+
+var _buildCommon2 = _interopRequireDefault(_buildCommon);
+
+var _mathMLTree = require("../mathMLTree");
+
+var _mathMLTree2 = _interopRequireDefault(_mathMLTree);
+
+var _buildHTML = require("../buildHTML");
+
+var html = _interopRequireWildcard(_buildHTML);
+
+var _buildMathML = require("../buildMathML");
+
+var mml = _interopRequireWildcard(_buildMathML);
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+(0, _defineFunction2.default)({
+    type: "smash",
+    names: ["\\smash"],
+    props: {
+        numArgs: 1,
+        numOptionalArgs: 1,
+        allowedInText: true
+    },
+    handler: function handler(context, args, optArgs) {
+        var smashHeight = false;
+        var smashDepth = false;
+        var tbArg = optArgs[0];
+        if (tbArg) {
+            // Optional [tb] argument is engaged.
+            // ref: amsmath: \renewcommand{\smash}[1][tb]{%
+            //               def\mb@t{\ht}\def\mb@b{\dp}\def\mb@tb{\ht\z@\z@\dp}%
+            var letter = "";
+            for (var i = 0; i < tbArg.value.length; ++i) {
+                letter = tbArg.value[i].value;
+                if (letter === "t") {
+                    smashHeight = true;
+                } else if (letter === "b") {
+                    smashDepth = true;
+                } else {
+                    smashHeight = false;
+                    smashDepth = false;
+                    break;
+                }
+            }
+        } else {
+            smashHeight = true;
+            smashDepth = true;
+        }
+
+        var body = args[0];
+        return {
+            type: "smash",
+            body: body,
+            smashHeight: smashHeight,
+            smashDepth: smashDepth
+        };
+    },
+    htmlBuilder: function htmlBuilder(group, options) {
+        var node = _buildCommon2.default.makeSpan(["mord"], [html.buildGroup(group.value.body, options)]);
+
+        if (!group.value.smashHeight && !group.value.smashDepth) {
+            return node;
+        }
+
+        if (group.value.smashHeight) {
+            node.height = 0;
+            // In order to influence makeVList, we have to reset the children.
+            if (node.children) {
+                for (var i = 0; i < node.children.length; i++) {
+                    node.children[i].height = 0;
+                }
+            }
+        }
+
+        if (group.value.smashDepth) {
+            node.depth = 0;
+            if (node.children) {
+                for (var _i = 0; _i < node.children.length; _i++) {
+                    node.children[_i].depth = 0;
+                }
+            }
+        }
+
+        // At this point, we've reset the TeX-like height and depth values.
+        // But the span still has an HTML line height.
+        // makeVList applies "display: table-cell", which prevents the browser
+        // from acting on that line height. So we'll call makeVList now.
+
+        return _buildCommon2.default.makeVList({
+            positionType: "firstBaseline",
+            children: [{ type: "elem", elem: node }]
+        }, options);
+    },
+    mathmlBuilder: function mathmlBuilder(group, options) {
+        var node = new _mathMLTree2.default.MathNode("mpadded", [mml.buildGroup(group.value.body, options)]);
+
+        if (group.value.smashHeight) {
+            node.setAttribute("height", "0px");
+        }
+
+        if (group.value.smashDepth) {
+            node.setAttribute("depth", "0px");
+        }
+
+        return node;
+    }
+});
+// smash, with optional [tb], as in AMS
+
+},{"../buildCommon":141,"../buildHTML":142,"../buildMathML":143,"../defineFunction":146,"../mathMLTree":165}],164:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -14636,12 +15147,16 @@ defineMacro("\\simcoloncolon", "\\sim\\mathrel{\\mkern-1.2mu}\\dblcolon");
 defineMacro("\\approxcolon", "\\approx\\mathrel{\\mkern-1.2mu}\\vcentcolon");
 defineMacro("\\approxcoloncolon", "\\approx\\mathrel{\\mkern-1.2mu}\\dblcolon");
 
-},{"./Token":95,"./symbols":117,"./utils":120}],113:[function(require,module,exports){
+},{"./Token":140,"./symbols":169,"./utils":172}],165:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
+
+var _getIterator2 = require("babel-runtime/core-js/get-iterator");
+
+var _getIterator3 = _interopRequireDefault(_getIterator2);
 
 var _classCallCheck2 = require("babel-runtime/helpers/classCallCheck");
 
@@ -14661,6 +15176,12 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
  * This node represents a general purpose MathML node of any type. The
  * constructor requires the type of node to create (for example, `"mo"` or
  * `"mspace"`, corresponding to `<mo>` and `<mspace>` tags).
+ */
+
+
+/**
+ * MathML node types used in KaTeX. For a complete list of MathML nodes, see
+ * https://developer.mozilla.org/en-US/docs/Web/MathML/Element.
  */
 var MathNode = function () {
     function MathNode(type, children) {
@@ -14698,8 +15219,29 @@ var MathNode = function () {
                 }
             }
 
-            for (var i = 0; i < this.children.length; i++) {
-                node.appendChild(this.children[i].toNode());
+            var _iteratorNormalCompletion = true;
+            var _didIteratorError = false;
+            var _iteratorError = undefined;
+
+            try {
+                for (var _iterator = (0, _getIterator3.default)(this.children), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+                    var child = _step.value;
+
+                    node.appendChild(child.toNode());
+                }
+            } catch (err) {
+                _didIteratorError = true;
+                _iteratorError = err;
+            } finally {
+                try {
+                    if (!_iteratorNormalCompletion && _iterator.return) {
+                        _iterator.return();
+                    }
+                } finally {
+                    if (_didIteratorError) {
+                        throw _iteratorError;
+                    }
+                }
             }
 
             return node;
@@ -14740,6 +15282,7 @@ var MathNode = function () {
 /**
  * This node represents a piece of text.
  */
+
 /**
  * These objects store data about MathML nodes. This is the MathML equivalent
  * of the types in domTree.js. Since MathML handles its own rendering, and
@@ -14786,7 +15329,7 @@ exports.default = {
     TextNode: TextNode
 };
 
-},{"./utils":120,"babel-runtime/helpers/classCallCheck":13,"babel-runtime/helpers/createClass":14}],114:[function(require,module,exports){
+},{"./utils":172,"babel-runtime/core-js/get-iterator":8,"babel-runtime/helpers/classCallCheck":22,"babel-runtime/helpers/createClass":23}],166:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -14816,7 +15359,7 @@ var parseTree = function parseTree(toParse, settings) {
 
 exports.default = parseTree;
 
-},{"./Parser":91}],115:[function(require,module,exports){
+},{"./Parser":136}],167:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -15047,6 +15590,9 @@ var svgSpan = function svgSpan(group, options) {
         align = _katexImagesData$labe[3];
 
         var numSvgChildren = paths.length;
+        if (1 > numSvgChildren || numSvgChildren > 3) {
+            throw new Error("Correct katexImagesData or update code below to support\n                " + numSvgChildren + " children.");
+        }
         height = viewBoxHeight / 1000;
 
         for (var i = 0; i < numSvgChildren; i++) {
@@ -15067,17 +15613,15 @@ var svgSpan = function svgSpan(group, options) {
             svgNode = new _domTree2.default.svgNode([path], attributes);
 
             if (numSvgChildren === 1) {
-                span = _buildCommon2.default.makeSpan(["hide-tail"], [svgNode], options);
+                spans.push(_buildCommon2.default.makeSpan(["hide-tail"], [svgNode], options));
             } else {
-                span = _buildCommon2.default.makeSpan([widthClass], [svgNode], options);
-                span.style.height = height + "em";
-                spans.push(span);
+                var _span = _buildCommon2.default.makeSpan([widthClass], [svgNode], options);
+                _span.style.height = height + "em";
+                spans.push(_span);
             }
         }
 
-        if (numSvgChildren > 1) {
-            span = _buildCommon2.default.makeSpan(["stretchy"], spans, options);
-        }
+        span = numSvgChildren === 1 ? spans[0] : _buildCommon2.default.makeSpan(["stretchy"], spans, options);
     }
 
     // Note that we are returning span.depth = 0.
@@ -15148,7 +15692,7 @@ exports.default = {
     svgSpan: svgSpan
 };
 
-},{"./buildCommon":96,"./domTree":103,"./mathMLTree":113,"./utils":120,"babel-runtime/helpers/slicedToArray":15}],116:[function(require,module,exports){
+},{"./buildCommon":141,"./domTree":148,"./mathMLTree":165,"./utils":172,"babel-runtime/helpers/slicedToArray":27}],168:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -15266,7 +15810,7 @@ var path = {
 
 exports.default = { path: path };
 
-},{}],117:[function(require,module,exports){
+},{}],169:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -15988,7 +16532,7 @@ defineSymbol(text, main, textord, "\u2019", "’");
 defineSymbol(text, main, textord, "\u201C", "“");
 defineSymbol(text, main, textord, "\u201D", "”");
 
-},{}],118:[function(require,module,exports){
+},{}],170:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -16006,7 +16550,7 @@ var hangulRegex = exports.hangulRegex = /[\uAC00-\uD7AF]/;
 // Notably missing are halfwidth Katakana and Romanji glyphs.
 var cjkRegex = exports.cjkRegex = /[\u3000-\u30FF\u4E00-\u9FAF\uAC00-\uD7AF\uFF00-\uFF60]/;
 
-},{}],119:[function(require,module,exports){
+},{}],171:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -16117,7 +16661,7 @@ var calculateSize = exports.calculateSize = function calculateSize(sizeValue, op
     return Math.min(sizeValue.number * scale, options.maxSize);
 };
 
-},{"./Options":88,"./ParseError":89}],120:[function(require,module,exports){
+},{"./Options":133,"./ParseError":134}],172:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -16226,7 +16770,7 @@ exports.default = {
     clearNode: clearNode
 };
 
-},{}],121:[function(require,module,exports){
+},{}],173:[function(require,module,exports){
 function getRelocatable(re) {
   // In the future, this could use a WeakMap instead of an expando.
   if (!re.__matchAtRelocatable) {
@@ -16265,7 +16809,7 @@ function matchAt(re, str, pos) {
 }
 
 module.exports = matchAt;
-},{}],122:[function(require,module,exports){
+},{}],174:[function(require,module,exports){
 /*global define:false */
 /**
  * Copyright 2012-2017 Craig Campbell
@@ -17311,161 +17855,96 @@ module.exports = matchAt;
     }
 }) (typeof window !== 'undefined' ? window : null, typeof  window !== 'undefined' ? document : null);
 
-},{}],123:[function(require,module,exports){
+},{}],175:[function(require,module,exports){
+/*
+object-assign
+(c) Sindre Sorhus
+@license MIT
+*/
+
 'use strict';
+/* eslint-disable no-unused-vars */
+var getOwnPropertySymbols = Object.getOwnPropertySymbols;
+var hasOwnProperty = Object.prototype.hasOwnProperty;
 var propIsEnumerable = Object.prototype.propertyIsEnumerable;
 
-function ToObject(val) {
-	if (val == null) {
+function toObject(val) {
+	if (val === null || val === undefined) {
 		throw new TypeError('Object.assign cannot be called with null or undefined');
 	}
 
 	return Object(val);
 }
 
-function ownEnumerableKeys(obj) {
-	var keys = Object.getOwnPropertyNames(obj);
+function shouldUseNative() {
+	try {
+		if (!Object.assign) {
+			return false;
+		}
 
-	if (Object.getOwnPropertySymbols) {
-		keys = keys.concat(Object.getOwnPropertySymbols(obj));
+		// Detect buggy property enumeration order in older V8 versions.
+
+		// https://bugs.chromium.org/p/v8/issues/detail?id=4118
+		var test1 = new String('abc');  // eslint-disable-line no-new-wrappers
+		test1[5] = 'de';
+		if (Object.getOwnPropertyNames(test1)[0] === '5') {
+			return false;
+		}
+
+		// https://bugs.chromium.org/p/v8/issues/detail?id=3056
+		var test2 = {};
+		for (var i = 0; i < 10; i++) {
+			test2['_' + String.fromCharCode(i)] = i;
+		}
+		var order2 = Object.getOwnPropertyNames(test2).map(function (n) {
+			return test2[n];
+		});
+		if (order2.join('') !== '0123456789') {
+			return false;
+		}
+
+		// https://bugs.chromium.org/p/v8/issues/detail?id=3056
+		var test3 = {};
+		'abcdefghijklmnopqrst'.split('').forEach(function (letter) {
+			test3[letter] = letter;
+		});
+		if (Object.keys(Object.assign({}, test3)).join('') !==
+				'abcdefghijklmnopqrst') {
+			return false;
+		}
+
+		return true;
+	} catch (err) {
+		// We don't expect any of the above to throw, but better to be safe.
+		return false;
 	}
-
-	return keys.filter(function (key) {
-		return propIsEnumerable.call(obj, key);
-	});
 }
 
-module.exports = Object.assign || function (target, source) {
+module.exports = shouldUseNative() ? Object.assign : function (target, source) {
 	var from;
-	var keys;
-	var to = ToObject(target);
+	var to = toObject(target);
+	var symbols;
 
 	for (var s = 1; s < arguments.length; s++) {
-		from = arguments[s];
-		keys = ownEnumerableKeys(Object(from));
+		from = Object(arguments[s]);
 
-		for (var i = 0; i < keys.length; i++) {
-			to[keys[i]] = from[keys[i]];
+		for (var key in from) {
+			if (hasOwnProperty.call(from, key)) {
+				to[key] = from[key];
+			}
+		}
+
+		if (getOwnPropertySymbols) {
+			symbols = getOwnPropertySymbols(from);
+			for (var i = 0; i < symbols.length; i++) {
+				if (propIsEnumerable.call(from, symbols[i])) {
+					to[symbols[i]] = from[symbols[i]];
+				}
+			}
 		}
 	}
 
 	return to;
-};
-
-},{}],124:[function(require,module,exports){
-/* eslint-disable no-undefined */
-
-var throttle = require('./throttle');
-
-/**
- * Debounce execution of a function. Debouncing, unlike throttling,
- * guarantees that a function is only executed a single time, either at the
- * very beginning of a series of calls, or at the very end.
- *
- * @param  {Number}   delay         A zero-or-greater delay in milliseconds. For event callbacks, values around 100 or 250 (or even higher) are most useful.
- * @param  {Boolean}  atBegin       Optional, defaults to false. If atBegin is false or unspecified, callback will only be executed `delay` milliseconds
- *                                  after the last debounced-function call. If atBegin is true, callback will be executed only at the first debounced-function call.
- *                                  (After the throttled-function has not been called for `delay` milliseconds, the internal counter is reset).
- * @param  {Function} callback      A function to be executed after delay milliseconds. The `this` context and all arguments are passed through, as-is,
- *                                  to `callback` when the debounced-function is executed.
- *
- * @return {Function} A new, debounced function.
- */
-module.exports = function ( delay, atBegin, callback ) {
-	return callback === undefined ? throttle(delay, atBegin, false) : throttle(delay, callback, atBegin !== false);
-};
-
-},{"./throttle":125}],125:[function(require,module,exports){
-/* eslint-disable no-undefined,no-param-reassign,no-shadow */
-
-/**
- * Throttle execution of a function. Especially useful for rate limiting
- * execution of handlers on events like resize and scroll.
- *
- * @param  {Number}    delay          A zero-or-greater delay in milliseconds. For event callbacks, values around 100 or 250 (or even higher) are most useful.
- * @param  {Boolean}   noTrailing     Optional, defaults to false. If noTrailing is true, callback will only execute every `delay` milliseconds while the
- *                                    throttled-function is being called. If noTrailing is false or unspecified, callback will be executed one final time
- *                                    after the last throttled-function call. (After the throttled-function has not been called for `delay` milliseconds,
- *                                    the internal counter is reset)
- * @param  {Function}  callback       A function to be executed after delay milliseconds. The `this` context and all arguments are passed through, as-is,
- *                                    to `callback` when the throttled-function is executed.
- * @param  {Boolean}   debounceMode   If `debounceMode` is true (at begin), schedule `clear` to execute after `delay` ms. If `debounceMode` is false (at end),
- *                                    schedule `callback` to execute after `delay` ms.
- *
- * @return {Function}  A new, throttled, function.
- */
-module.exports = function ( delay, noTrailing, callback, debounceMode ) {
-
-	// After wrapper has stopped being called, this timeout ensures that
-	// `callback` is executed at the proper times in `throttle` and `end`
-	// debounce modes.
-	var timeoutID;
-
-	// Keep track of the last time `callback` was executed.
-	var lastExec = 0;
-
-	// `noTrailing` defaults to falsy.
-	if ( typeof noTrailing !== 'boolean' ) {
-		debounceMode = callback;
-		callback = noTrailing;
-		noTrailing = undefined;
-	}
-
-	// The `wrapper` function encapsulates all of the throttling / debouncing
-	// functionality and when executed will limit the rate at which `callback`
-	// is executed.
-	function wrapper () {
-
-		var self = this;
-		var elapsed = Number(new Date()) - lastExec;
-		var args = arguments;
-
-		// Execute `callback` and update the `lastExec` timestamp.
-		function exec () {
-			lastExec = Number(new Date());
-			callback.apply(self, args);
-		}
-
-		// If `debounceMode` is true (at begin) this is used to clear the flag
-		// to allow future `callback` executions.
-		function clear () {
-			timeoutID = undefined;
-		}
-
-		if ( debounceMode && !timeoutID ) {
-			// Since `wrapper` is being called for the first time and
-			// `debounceMode` is true (at begin), execute `callback`.
-			exec();
-		}
-
-		// Clear any existing timeout.
-		if ( timeoutID ) {
-			clearTimeout(timeoutID);
-		}
-
-		if ( debounceMode === undefined && elapsed > delay ) {
-			// In throttle mode, if `delay` time has been exceeded, execute
-			// `callback`.
-			exec();
-
-		} else if ( noTrailing !== true ) {
-			// In trailing throttle mode, since `delay` time has not been
-			// exceeded, schedule `callback` to execute `delay` ms after most
-			// recent execution.
-			//
-			// If `debounceMode` is true (at begin), schedule `clear` to execute
-			// after `delay` ms.
-			//
-			// If `debounceMode` is false (at end), schedule `callback` to
-			// execute after `delay` ms.
-			timeoutID = setTimeout(debounceMode ? clear : exec, debounceMode === undefined ? delay - elapsed : delay);
-		}
-
-	}
-
-	// Return the wrapper function.
-	return wrapper;
-
 };
 
 },{}]},{},[4])(4)

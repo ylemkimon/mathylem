@@ -196,212 +196,191 @@
   min-height: 2px;
 }
 .katex .mord + .mop,
-.katex .mord + .cursor + .mop,
-.katex .mord + .cursor + .cursor + .mop {
+.katex .mord + .cursor + .mop {
   margin-left: 0.16667em;
 }
 .katex .mord + .mbin,
-.katex .mord + .cursor + .mbin,
-.katex .mord + .cursor + .cursor + .mbin {
+.katex .mord + .cursor + .mbin {
   margin-left: 0.22222em;
 }
 .katex .mord + .mrel,
-.katex .mord + .cursor + .mrel,
-.katex .mord + .cursor + .cursor + .mrel {
+.katex .mord + .cursor + .mrel {
   margin-left: 0.27778em;
 }
 .katex .mord + .minner,
-.katex .mord + .cursor + .minner,
-.katex .mord + .cursor + .cursor + .minner {
+.katex .mord + .cursor + .minner {
   margin-left: 0.16667em;
 }
 .katex .mop + .mord,
-.katex .mop + .cursor + .mord,
-.katex .mop + .cursor + .cursor + .mord {
+.katex .mop + .cursor + .mord {
   margin-left: 0.16667em;
 }
 .katex .mop + .mop,
-.katex .mop + .cursor + .mop,
-.katex .mop + .cursor + .cursor + .mop {
+.katex .mop + .cursor + .mop {
   margin-left: 0.16667em;
 }
 .katex .mop + .mrel,
-.katex .mop + .cursor + .mrel,
-.katex .mop + .cursor + .cursor + .mrel {
+.katex .mop + .cursor + .mrel {
   margin-left: 0.27778em;
 }
 .katex .mop + .minner,
-.katex .mop + .cursor + .minner,
-.katex .mop + .cursor + .cursor + .minner {
+.katex .mop + .cursor + .minner {
   margin-left: 0.16667em;
 }
 .katex .mbin + .mord,
-.katex .mbin + .cursor + .mord,
-.katex .mbin + .cursor + .cursor + .mord {
+.katex .mbin + .cursor + .mord {
   margin-left: 0.22222em;
 }
 .katex .mbin + .mop,
-.katex .mbin + .cursor + .mop,
-.katex .mbin + .cursor + .cursor + .mop {
+.katex .mbin + .cursor + .mop {
   margin-left: 0.22222em;
 }
 .katex .mbin + .mopen,
-.katex .mbin + .cursor + .mopen,
-.katex .mbin + .cursor + .cursor + .mopen {
+.katex .mbin + .cursor + .mopen {
   margin-left: 0.22222em;
 }
 .katex .mbin + .minner,
-.katex .mbin + .cursor + .minner,
-.katex .mbin + .cursor + .cursor + .minner {
+.katex .mbin + .cursor + .minner {
   margin-left: 0.22222em;
 }
 .katex .mrel + .mord,
-.katex .mrel + .cursor + .mord,
-.katex .mrel + .cursor + .cursor + .mord {
+.katex .mrel + .cursor + .mord {
   margin-left: 0.27778em;
 }
 .katex .mrel + .mop,
-.katex .mrel + .cursor + .mop,
-.katex .mrel + .cursor + .cursor + .mop {
+.katex .mrel + .cursor + .mop {
   margin-left: 0.27778em;
 }
 .katex .mrel + .mopen,
-.katex .mrel + .cursor + .mopen,
-.katex .mrel + .cursor + .cursor + .mopen {
+.katex .mrel + .cursor + .mopen {
   margin-left: 0.27778em;
 }
 .katex .mrel + .minner,
-.katex .mrel + .cursor + .minner,
-.katex .mrel + .cursor + .cursor + .minner {
+.katex .mrel + .cursor + .minner {
   margin-left: 0.27778em;
 }
 .katex .mclose + .mop,
-.katex .mclose + .cursor + .mop,
-.katex .mclose + .cursor + .cursor + .mop {
+.katex .mclose + .cursor + .mop {
   margin-left: 0.16667em;
 }
 .katex .mclose + .mbin,
-.katex .mclose + .cursor + .mbin,
-.katex .mclose + .cursor + .cursor + .mbin {
+.katex .mclose + .cursor + .mbin {
   margin-left: 0.22222em;
 }
 .katex .mclose + .mrel,
-.katex .mclose + .cursor + .mrel,
-.katex .mclose + .cursor + .cursor + .mrel {
+.katex .mclose + .cursor + .mrel {
   margin-left: 0.27778em;
 }
 .katex .mclose + .minner,
-.katex .mclose + .cursor + .minner,
-.katex .mclose + .cursor + .cursor + .minner {
+.katex .mclose + .cursor + .minner {
   margin-left: 0.16667em;
 }
 .katex .mpunct + .mord,
-.katex .mpunct + .cursor + .mord,
-.katex .mpunct + .cursor + .cursor + .mord {
+.katex .mpunct + .cursor + .mord {
   margin-left: 0.16667em;
 }
 .katex .mpunct + .mop,
-.katex .mpunct + .cursor + .mop,
-.katex .mpunct + .cursor + .cursor + .mop {
+.katex .mpunct + .cursor + .mop {
   margin-left: 0.16667em;
 }
 .katex .mpunct + .mrel,
-.katex .mpunct + .cursor + .mrel,
-.katex .mpunct + .cursor + .cursor + .mrel {
+.katex .mpunct + .cursor + .mrel {
   margin-left: 0.16667em;
 }
 .katex .mpunct + .mopen,
-.katex .mpunct + .cursor + .mopen,
-.katex .mpunct + .cursor + .cursor + .mopen {
+.katex .mpunct + .cursor + .mopen {
   margin-left: 0.16667em;
 }
 .katex .mpunct + .mclose,
-.katex .mpunct + .cursor + .mclose,
-.katex .mpunct + .cursor + .cursor + .mclose {
+.katex .mpunct + .cursor + .mclose {
   margin-left: 0.16667em;
 }
 .katex .mpunct + .mpunct,
-.katex .mpunct + .cursor + .mpunct,
-.katex .mpunct + .cursor + .cursor + .mpunct {
+.katex .mpunct + .cursor + .mpunct {
   margin-left: 0.16667em;
 }
 .katex .mpunct + .minner,
-.katex .mpunct + .cursor + .minner,
-.katex .mpunct + .cursor + .cursor + .minner {
+.katex .mpunct + .cursor + .minner {
   margin-left: 0.16667em;
 }
 .katex .minner + .mord,
-.katex .minner + .cursor + .mord,
-.katex .minner + .cursor + .cursor + .mord {
+.katex .minner + .cursor + .mord {
   margin-left: 0.16667em;
 }
 .katex .minner + .mop,
-.katex .minner + .cursor + .mop,
-.katex .minner + .cursor + .cursor + .mop {
+.katex .minner + .cursor + .mop {
   margin-left: 0.16667em;
 }
 .katex .minner + .mbin,
-.katex .minner + .cursor + .mbin,
-.katex .minner + .cursor + .cursor + .mbin {
+.katex .minner + .cursor + .mbin {
   margin-left: 0.22222em;
 }
 .katex .minner + .mrel,
-.katex .minner + .cursor + .mrel,
-.katex .minner + .cursor + .cursor + .mrel {
+.katex .minner + .cursor + .mrel {
   margin-left: 0.27778em;
 }
 .katex .minner + .mopen,
-.katex .minner + .cursor + .mopen,
-.katex .minner + .cursor + .cursor + .mopen {
+.katex .minner + .cursor + .mopen {
   margin-left: 0.16667em;
 }
 .katex .minner + .mpunct,
-.katex .minner + .cursor + .mpunct,
-.katex .minner + .cursor + .cursor + .mpunct {
+.katex .minner + .cursor + .mpunct {
   margin-left: 0.16667em;
 }
 .katex .minner + .minner,
-.katex .minner + .cursor + .minner,
-.katex .minner + .cursor + .cursor + .minner {
+.katex .minner + .cursor + .minner {
   margin-left: 0.16667em;
 }
-.katex .mord.mtight {
-  margin-left: 0 !important;
+.katex .mord.mtight,
+.katex .cursor + .mord.mtight {
+  margin-left: 0;
 }
-.katex .mop.mtight {
-  margin-left: 0 !important;
+.katex .mop.mtight,
+.katex .cursor + .mop.mtight {
+  margin-left: 0;
 }
-.katex .mbin.mtight {
-  margin-left: 0 !important;
+.katex .mbin.mtight,
+.katex .cursor + .mbin.mtight {
+  margin-left: 0;
 }
-.katex .mrel.mtight {
-  margin-left: 0 !important;
+.katex .mrel.mtight,
+.katex .cursor + .mrel.mtight {
+  margin-left: 0;
 }
-.katex .mopen.mtight {
-  margin-left: 0 !important;
+.katex .mopen.mtight,
+.katex .cursor + .mopen.mtight {
+  margin-left: 0;
 }
-.katex .mclose.mtight {
-  margin-left: 0 !important;
+.katex .mclose.mtight,
+.katex .cursor + .mclose.mtight {
+  margin-left: 0;
 }
-.katex .mpunct.mtight {
-  margin-left: 0 !important;
+.katex .mpunct.mtight,
+.katex .cursor + .mpunct.mtight {
+  margin-left: 0;
 }
-.katex .minner.mtight {
-  margin-left: 0 !important;
+.katex .minner.mtight,
+.katex .cursor + .minner.mtight {
+  margin-left: 0;
 }
-.katex .mord + .mop.mtight {
+.katex .mord + .mop.mtight,
+.katex .mord + .cursor + .mop.mtight {
   margin-left: 0.16667em;
 }
-.katex .mop + .mord.mtight {
+.katex .mop + .mord.mtight,
+.katex .mop + .cursor + .mord.mtight {
   margin-left: 0.16667em;
 }
-.katex .mop + .mop.mtight {
+.katex .mop + .mop.mtight,
+.katex .mop + .cursor + .mop.mtight {
   margin-left: 0.16667em;
 }
-.katex .mclose + .mop.mtight {
+.katex .mclose + .mop.mtight,
+.katex .mclose + .cursor + .mop.mtight {
   margin-left: 0.16667em;
 }
-.katex .minner + .mop.mtight {
+.katex .minner + .mop.mtight,
+.katex .minner + .cursor + .mop.mtight {
   margin-left: 0.16667em;
 }
 .katex .vlist-t {
@@ -1208,9 +1187,8 @@
 
 .mathylem {
   border: 1px solid #bdc3c7;
+  border-radius: 4px;
   background-color: #fafafa;
-  border-bottom-right-radius: 4px;
-  border-bottom-left-radius: 4px;
   cursor: text;
   min-height: 60px;
   overflow: auto;
@@ -1220,6 +1198,9 @@
      -moz-user-select: none;
       -ms-user-select: none;
           user-select: none; }
+  .my-toolbar + .mathylem {
+    border-top-right-radius: 0;
+    border-top-left-radius: 0; }
   .mathylem.my-active {
     background-color: #fff; }
     .mathylem.my-active .main-cursor {
@@ -1236,18 +1217,19 @@
   .mathylem .selection {
     color: #df0030; }
   .mathylem .my-text {
-    border: 1px solid #ccc;
+    border: 1px solid transparent;
     margin: 1px; }
+    .mathylem .my-text.my-active {
+      border-color: #ccc; }
 
 .my-toolbar {
   background-color: #fff;
   opacity: .6;
-  border-top: 1px solid #bdc3c7;
-  border-left: 1px solid #bdc3c7;
-  border-right: 1px solid #bdc3c7;
+  border: 1px solid #bdc3c7;
+  border-bottom: 0;
   border-top-left-radius: 4px;
   border-top-right-radius: 4px;
-  padding: 4px 10px;
+  padding: 3px 5px;
   -webkit-touch-callout: none;
   -webkit-user-select: none;
      -moz-user-select: none;
@@ -1257,8 +1239,7 @@
     opacity: .8; }
   .my-toolbar > * {
     display: inline-block; }
-  .my-toolbar > a,
-  .my-toolbar > div {
+  .my-toolbar > a {
     border: 1px solid transparent;
     border-radius: 3px;
     color: #2c3e50;
@@ -1267,38 +1248,28 @@
     text-align: center;
     width: 28px;
     height: 28px; }
-    .my-toolbar > a:hover, .my-toolbar > a.my-active,
-    .my-toolbar > div:hover,
-    .my-toolbar > div.my-active {
-      background: #fcfcfc;
+    .my-toolbar > a:hover {
       border-color: #95a5a6; }
-  .my-toolbar > div > div {
-    position: relative;
-    left: -1px;
-    top: -29px;
-    display: none; }
-    .my-toolbar > div > div > a {
-      border: 1px solid #95a5a6;
-      background: #fcfcfc;
-      border-radius: 3px;
-      color: #2c3e50;
-      cursor: pointer;
-      line-height: 28px;
-      position: absolute;
-      text-align: center;
-      width: 28px;
-      height: 28px; }
-      .my-toolbar > div > div > a:hover {
-        border-color: orange; }
-  .my-toolbar > div.my-active > div {
-    display: block; }
+    .my-toolbar > a.my-disabled {
+      cursor: default;
+      color: gray;
+      border-color: transparent; }
+      .my-toolbar > a.my-disabled.hide-when-disabled {
+        display: none; }
   .my-toolbar > i.separator {
     border-left: 1px solid #d9d9d9;
-    border-right: 1px solid #fff;
     color: transparent;
-    margin: 0 6px;
-    text-indent: -10px;
+    margin: 0 5px;
     width: 0; }
+
+.my-mobileinput {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  padding: 0;
+  margin: 0;
+  border: 0; }
 
 @-webkit-keyframes blink-animation {
   to {
@@ -1307,3 +1278,64 @@
 @keyframes blink-animation {
   to {
     visibility: hidden; } }
+
+@font-face {
+  font-family: 'MathYlem-icons';
+  src:
+    url('fonts/MathYlem-icons.ttf?rxn05s') format('truetype'),
+    url('fonts/MathYlem-icons.woff?rxn05s') format('woff'),
+    url('fonts/MathYlem-icons.svg?rxn05s#MathYlem-icons') format('svg');
+  font-weight: normal;
+  font-style: normal;
+}
+
+[class^="icon-"], [class*=" icon-"] {
+  display: inline-block;
+  /* use !important to prevent issues with browser extensions that change fonts */
+  font-family: 'MathYlem-icons' !important;
+  font-style: normal;
+  font-weight: normal;
+  font-variant: normal;
+  text-transform: none;
+
+  /* Better Font Rendering =========== */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.icon-remove-row:before {
+  content: "\e90a";
+}
+.icon-remove-column:before {
+  content: "\e90b";
+}
+.icon-insert-up:before {
+  content: "\e906";
+}
+.icon-insert-down:before {
+  content: "\e907";
+}
+.icon-insert-left:before {
+  content: "\e908";
+}
+.icon-insert-right:before {
+  content: "\e909";
+}
+.icon-help:before {
+  content: "\e905";
+}
+.icon-paste:before {
+  content: "\e904";
+}
+.icon-cut:before {
+  content: "\e903";
+}
+.icon-copy:before {
+  content: "\e902";
+}
+.icon-redo:before {
+  content: "\e901";
+}
+.icon-undo:before {
+  content: "\e900";
+}
