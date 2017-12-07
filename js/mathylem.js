@@ -154,9 +154,8 @@ export default class MathYlem extends Editor {
       }
     };
     if (touchCapable) {
-      this.fakeInput = this.createFakeInput();
+      this.mobileInput = this.createMobileInput(onBlur);
       editor.addEventListener('click', onFocus);
-      this.fakeInput.addEventListener('blur', onBlur);
     } else {
       editor.tabIndex = 0;
       editor.addEventListener('focus', onFocus);
@@ -167,63 +166,58 @@ export default class MathYlem extends Editor {
     return editor;
   }
 
-  createFakeInput() {
-    const fakeInput = document.createElement('textarea');
-    fakeInput.className = 'my-fakeinput';
-    fakeInput.setAttribute('autocapitalize', 'none');
-    fakeInput.setAttribute('autocomplete', 'off');
-    fakeInput.setAttribute('autocorrect', 'off');
-    fakeInput.setAttribute('spellcheck', 'false');
-    fakeInput.value = '____________________';
-    fakeInput.style.top = `${this.container.offsetTop}px`;
-    fakeInput.style.left = `${this.container.offsetLeft}px`;
+  createMobileInput(onBlur) {
+    const mobileInput = document.createElement('textarea');
+    mobileInput.className = 'my-mobileinput mousetrap';
+    mobileInput.setAttribute('autocapitalize', 'none');
+    mobileInput.setAttribute('autocomplete', 'off');
+    mobileInput.setAttribute('autocorrect', 'off');
+    mobileInput.setAttribute('spellcheck', 'false');
+    mobileInput.value = '#';
+    mobileInput.style.top = `${this.container.offsetTop}px`;
+    mobileInput.style.left = `${this.container.offsetLeft}px`;
 
-    this._processedFakeInput = 20;
-    fakeInput.addEventListener('input', /*(func => {
-      let timeout;
-      return () => {
-        clearTimeout(timeout);
-        timeout = setTimeout(() => {
-          timeout = null;
-          func();
-        }, 100);
-      };
-    })*/(() => {
-      for (; this._processedFakeInput > this.fakeInput.value.length; this._processedFakeInput--) {
+    this.processed = 1;
+    mobileInput.addEventListener('input', () => {
+      // keyboard events may not be fired or have wrong keyCode
+      // https://bugs.chromium.org/p/chromium/issues/detail?id=118639
+      // https://bugs.chromium.org/p/chromium/issues/detail?id=184812
+      const length = this.mobileInput.value.length;
+      for (; this.processed > length; this.processed--) {
         Mousetrap.trigger('backspace');
       }
-      if (this.fakeInput.value.length === 0) {
-        this._processedFakeInput = 20;
-        this.fakeInput.value = '____________________';
+      if (length === 0) {
+        this.processed = 1;
+        this.mobileInput.value = '#';
       }
-      for (; this._processedFakeInput < this.fakeInput.value.length; this._processedFakeInput++) {
-        const c = this.fakeInput.value[this._processedFakeInput];
+      for (; this.processed < length; this.processed++) {
+        const c = this.mobileInput.value[this.processed];
         if (c !== c.toLowerCase()) {
           Mousetrap.trigger(`shift+${c.toLowerCase()}`);
         } else if (c === ' ') {
           Mousetrap.trigger('space');
+        } else if (c === '\n') {
+          Mousetrap.trigger('enter');
         } else {
           Mousetrap.trigger(c);
         }
       }
+      // setSelectionRange may not work in the input event
+      // https://bugs.chromium.org/p/chromium/issues/detail?id=32865
+      setTimeout(() => this.mobileInput.setSelectionRange(
+        this.mobileInput.value.length,
+        this.mobileInput.value.length,
+      ), 0);
     });
-    fakeInput.addEventListener('keydown', (e) => {
-      if (e.keyCode === 8) {
-        Mousetrap.trigger('backspace');
-        e.preventDefault();
-      } else if (e.keyCode === 13) {
-        Mousetrap.trigger('enter');
-        e.preventDefault();
-      }
-    });
-    fakeInput.addEventListener('focus', () => {
+    mobileInput.addEventListener('focus', () => {
       if (!this.active) {
         this.activate(false);
       }
     });
+    mobileInput.addEventListener('blur', onBlur);
 
-    this.container.appendChild(fakeInput);
-    return fakeInput;
+    this.container.appendChild(mobileInput);
+    return mobileInput;
   }
 
   createToolbar() {
@@ -483,16 +477,18 @@ export default class MathYlem extends Editor {
     MathYlem.activeMathYlem = this;
     this.active = true;
     this.editor.className += ' my-active';
-    if (focus) {
-      if (this.fakeInput) {
-        this.fakeInput.style.top = this.editor.offsetTop + 'px';
-        this.fakeInput.style.left = this.editor.offsetLeft + 'px';
-        this.fakeInput.focus();
-        this.fakeInput.setSelectionRange(this.fakeInput.value.length,
-          this.fakeInput.value.length);
-      } else {
-        this.editor.focus();
+    if (this.mobileInput) {
+      this.mobileInput.style.top = `${this.editor.offsetTop}px`;
+      this.mobileInput.style.left = `${this.editor.offsetLeft}px`;
+      if (focus) {
+        this.mobileInput.focus();
       }
+      this.mobileInput.setSelectionRange(
+        this.mobileInput.value.length,
+        this.mobileInput.value.length,
+      );
+    } else if (focus) {
+      this.editor.focus();
     }
     this.render();
     this.emit('focus');
@@ -501,8 +497,8 @@ export default class MathYlem extends Editor {
   deactivate(blur) {
     this.active = false;
     this.editor.className = this.editor.className.replace(/(\s+|^)my-active(\s+|$)/, ' ');
-    if (blur && this.fakeInput) {
-      this.fakeInput.blur();
+    if (blur && this.mobileInput) {
+      this.mobileInput.blur();
     }
     this.render();
     this.emit('blur');

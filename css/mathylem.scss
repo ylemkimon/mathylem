@@ -11,7 +11,7 @@ $primary-border-radius: 4px;
   padding: 10px;
   -webkit-touch-callout: none;
   user-select: none;
-  
+
   .my-toolbar+& {
     border-top-right-radius: 0;
     border-top-left-radius: 0;
@@ -44,7 +44,7 @@ $primary-border-radius: 4px;
   .my-text {
     border: 1px solid transparent;
     margin: 1px;
-    
+
     &.my-active {
       border-color: #ccc;
     }
@@ -83,12 +83,12 @@ $primary-border-radius: 4px;
     &:hover {
       border-color: #95a5a6;
     }
-    
+
     &.my-disabled {
       cursor: default;
       color: gray;
       border-color: transparent;
-      
+
       &.hide-when-disabled {
         display: none;
       }
@@ -103,7 +103,7 @@ $primary-border-radius: 4px;
   }
 }
 
-.my-fakeinput {
+.my-mobileinput {
   position: absolute;
   width: 1px;
   height: 1px;
