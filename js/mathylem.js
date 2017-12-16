@@ -1,5 +1,5 @@
 /* eslint-env browser */
-import Mousetrap from 'mousetrap';
+import { MODKEY, KEYCODE_MAP, KEY_MAP } from './keyboard';
 import katex from 'katex';
 import Editor from './editor';
 import { Symbols } from './symbols';
@@ -88,6 +88,59 @@ export default class MathYlem extends Editor {
         hideWhenDisabled: true,
       },
     ],
+    keybindings: {
+      '/': 'frac',
+      '%': 'mod',
+      '^': 'pow',
+      _: 'sub',
+      '|': 'abs',
+      '!': 'fact',
+      '\\': 'symbol',
+
+      '(': {
+        symbol: ['replaceF', 'func', 0],
+        '*': 'paren',
+      },
+      ArrowUp: ['moveCursor', 'up'],
+      ArrowDown: ['moveCursor', 'down'],
+      ArrowRight: ['moveCursor', 1],
+      ArrowLeft: ['moveCursor', -1],
+      ')': ['moveCursor', 1, true],
+      Home: 'home',
+      End: 'end',
+      'Shift-ArrowLeft': ['moveSelection', -1],
+      'Shift-ArrowRight': ['moveSelection', 1],
+      [`${MODKEY}-a`]: 'selectAll',
+      Backspace: 'deleteBackward',
+      Delete: 'deleteForward',
+      [`${MODKEY}-c`]: ['clipboardSelection', false],
+      [`${MODKEY}-x`]: ['clipboardSelection', true],
+      [`${MODKEY}-v`]: 'paste',
+      [`${MODKEY}-z`]: 'undo',
+      [`${MODKEY}-y`]: 'redo',
+      ' ': {
+        text: ' ',
+        symbol: 'autocompleteSymbol',
+        '*': ['checkSymbol', true],
+      },
+      Enter: {
+        symbol: 'completeSymbol',
+        '*': ['emit', 'done'],
+      },
+
+      [`${MODKEY}-ArrowLeft`]: ['extendList', 'left', false],
+      [`${MODKEY}-ArrowRight`]: ['extendList', 'right', false],
+      [`${MODKEY}-Shift-ArrowLeft`]: ['extendList', 'left', true],
+      [`${MODKEY}-Shift-ArrowRight`]: ['extendList', 'right', true],
+      ',': ['extendList', 'right', false],
+      [`${MODKEY}-ArrowUp`]: ['extendList', 'up', false],
+      [`${MODKEY}-ArrowDown`]: ['extendList', 'down', false],
+      [`${MODKEY}-Shift-ArrowUp`]: ['extendList', 'up', true],
+      [`${MODKEY}-Shift-ArrowDown`]: ['extendList', 'down', true],
+      ';': ['extendList', 'down', false],
+      [`${MODKEY}-Backspace`]: ['removeList', false],
+      [`${MODKEY}-Shift-Backspace`]: ['removeList', true],
+    },
   });
 
   static instances = {};
@@ -161,6 +214,8 @@ export default class MathYlem extends Editor {
       editor.addEventListener('focus', onFocus);
       editor.addEventListener('blur', onBlur);
     }
+    this.container.addEventListener('keypress', this);
+    this.container.addEventListener('keydown', this);
 
     this.container.appendChild(editor);
     return editor;
@@ -417,6 +472,70 @@ export default class MathYlem extends Editor {
     y.render(true);
   }
 
+  handleEvent(e) {
+    switch (e.type) {
+      case 'keypress':
+        this.onKeypress(e);
+        break;
+      case 'keydown':
+        this.onKeydown(e);
+        break;
+      default:
+        break;
+    }
+  }
+
+  onKeypress(e) {
+    const key = e.key || (e.charCode && String.fromCharCode(e.charCode));
+    if (!key) {
+      return;
+    }
+
+    const action = /^[a-zA-Z0-9.+*\-=<>]$/.test(key) ? key : this.config.keybindings[key];
+    if (action) {
+      e.preventDefault();
+      e.stopPropagation();
+
+      this.tempCursor.set(null);
+      this.executeAction(action);
+    }
+  }
+
+  onKeydown(e) {
+    const key = KEY_MAP[e.key] || e.key;
+    if (!key && !e.keyCode) {
+      return;
+    }
+    const code = KEYCODE_MAP[e.keyCode] || String.fromCharCode(e.keyCode).toLowerCase();
+
+    let modifiers = '';
+    if (e.ctrlKey && key !== 'Control') {
+      modifiers += 'Control-';
+    }
+    if (e.metaKey && key !== 'Meta') {
+      modifiers += 'Meta-';
+    }
+    if (e.altKey && key !== 'Alt') {
+      modifiers += 'Alt-';
+    }
+    if (e.shiftKey && key !== 'Shift') {
+      modifiers += 'Shift-';
+    }
+
+    if (!modifiers && key.length === 1 && code.length === 1) {
+      return;
+    }
+    const action = this.config.keybindings[modifiers + key] ||
+      this.config.keybindings[modifiers + code];
+    if (action) {
+      e.preventDefault();
+      e.stopPropagation();
+
+      this.tempCursor.set(null);
+      this.executeAction(action);
+    }
+  }
+
   selectTo(e) {
     const from = this.selStatus ? this.selCursor : this.mainCursor;
     const to = MathYlem.getLocation(e, from);
@@ -509,98 +628,6 @@ MathYlem.Editor = Editor;
 MathYlem.Doc = Doc;
 MathYlem.Symbols = Symbols;
 MathYlem.katex = katex;
-
-const shortcuts = {
-  '=': '=',
-  '+': '+',
-  '-': '-',
-  '.': '.',
-  'shift+/': '/',
-  'shift+=': '+',
-
-  '*': '*',
-  '/': 'frac',
-  '%': 'mod',
-  '^': 'pow',
-  _: 'sub',
-  '|': 'abs',
-  '!': 'fact',
-  '<': '<',
-  '>': '>',
-  '\\': 'symbol',
-  'shift+up': 'pow',
-  'shift+down': 'sub',
-
-  '(': {
-    symbol: ['replaceF', 'func', 0],
-    '*': 'paren',
-  },
-
-  up: ['moveCursor', 'up'],
-  down: ['moveCursor', 'down'],
-  right: ['moveCursor', 1],
-  left: ['moveCursor', -1],
-  'alt+k': ['moveCursor', 'up'],
-  'alt+j': ['moveCursor', 'down'],
-  'alt+l': ['moveCursor', 1],
-  'alt+h': ['moveCursor', -1],
-  ')': ['moveCursor', 1, true],
-  home: 'home',
-  end: 'end',
-  'shift+left': ['moveSelection', -1],
-  'shift+right': ['moveSelection', 1],
-  'mod+a': 'selectAll',
-  backspace: 'deleteBackward',
-  del: 'deleteForward',
-  'mod+c': ['clipboardSelection', false],
-  'mod+x': ['clipboardSelection', true],
-  'mod+v': 'paste',
-  'mod+z': 'undo',
-  'mod+y': 'redo',
-  space: {
-    text: ' ',
-    symbol: 'autocompleteSymbol',
-    '*': ['checkSymbol', true],
-  },
-  enter: {
-    symbol: 'completeSymbol',
-    '*': ['emit', 'done'],
-  },
-  'mod+left': ['extendList', 'left', false],
-  'mod+right': ['extendList', 'right', false],
-  'mod+shift+left': ['extendList', 'left', true],
-  'mod+shift+right': ['extendList', 'right', true],
-  ',': ['extendList', 'right', false],
-  'mod+up': ['extendList', 'up', false],
-  'mod+down': ['extendList', 'down', false],
-  'mod+shift+up': ['extendList', 'up', true],
-  'mod+shift+down': ['extendList', 'down', true],
-  ';': ['extendList', 'down', false],
-  'mod+backspace': ['removeList', false],
-  'mod+shift+backspace': ['removeList', true],
-};
-for (let i = 48; i <= 57; i++) {
-  shortcuts[String.fromCharCode(i)] = String.fromCharCode(i);
-}
-for (let i = 97; i <= 122; i++) {
-  const letter = String.fromCharCode(i);
-  shortcuts[letter] = letter;
-  shortcuts[`shift+${letter}`] = String.fromCharCode(i - 32);
-}
-
-Mousetrap.addKeycodes({ 173: '-' }); // Firefox
-
-for (const i in shortcuts) {
-  Mousetrap.bind(i, () => {
-    const y = MathYlem.activeMathYlem;
-    if (!y) {
-      return true;
-    }
-    y.tempCursor.set(null);
-    y.executeAction(shortcuts[i]);
-    return false;
-  });
-}
 
 if (touchCapable) {
   window.addEventListener('touchstart', MathYlem.mouseDown);
