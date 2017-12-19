@@ -150,26 +150,23 @@ export default class MathYlem extends Editor {
   constructor(el, config) {
     super(Object.assign({}, MathYlem.DEFAULT_CONFIG, config));
 
-    if (typeof el === 'string' || el instanceof String) {
-      el = document.getElementById(el);
-    }
-    if (!el) {
+    this.container = typeof el === 'string' ? document.getElementById(el) : el;
+    if (!this.container) {
       throw new Error('Invalid element.');
-    } else if (el.mathylem) {
+    } else if (this.container.mathylem) {
       throw new Error('MathYlem already attached.');
     }
 
-    if (!el.id) {
+    if (!this.container.id) {
       let i = 0;
       while (document.getElementById(`mathylem_${i}`)) {
         i++;
       }
-      el.id = `mathylem_${i}`;
+      this.container.id = `mathylem_${i}`;
     }
 
-    this.container = el;
-    MathYlem.instances[el.id] = this;
-    el.mathylem = this;
+    MathYlem.instances[this.container.id] = this;
+    this.container.mathylem = this;
 
     this.editor = this.createEditor();
     if (this.config.toolbar) {
