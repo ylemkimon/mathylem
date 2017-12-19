@@ -291,6 +291,7 @@ export default class Editor extends EventEmitter {
   }
 
   deleteFromF(node) {
+    this.saveState();
     const p = node.parentNode;
     const prev = node.previousSibling;
     const next = node.nextSibling;
@@ -307,6 +308,7 @@ export default class Editor extends EventEmitter {
       return;
     }
     if (this.mainCursor.pos > 0) {
+      this.saveState();
       const value = this.mainCursor.value;
       this.mainCursor.value = value.slice(0, this.mainCursor.pos - 1) +
         value.slice(this.mainCursor.pos);
@@ -344,6 +346,7 @@ export default class Editor extends EventEmitter {
       return;
     }
     if (this.mainCursor.pos < this.mainCursor.value.length) {
+      this.saveState();
       const value = this.mainCursor.value;
       this.mainCursor.value = value.slice(0, this.mainCursor.pos) +
         value.slice(this.mainCursor.pos + 1);
@@ -610,9 +613,6 @@ export default class Editor extends EventEmitter {
         this.config.blacklist.indexOf(name) > -1) {
       return;
     }
-    if (!silent) {
-      this.saveState();
-    }
     const prev = this.mainCursor.node.previousSibling;
     const par = this.mainCursor.node.parentNode;
     const pp = par.parentNode;
@@ -627,8 +627,11 @@ export default class Editor extends EventEmitter {
     if (name === 'pow' && this.mainCursor.pos === 0 && pp.nodeName === 'f' &&
         pp.childNodes.length === 1) {
       this.mainCursor.node = pp.nextSibling;
-      this.insertSymbol('pow', true);
+      this.insertSymbol('pow');
       return;
+    }
+    if (!silent) {
+      this.saveState();
     }
 
     const s = Symbols[name];
