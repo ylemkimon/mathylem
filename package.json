@@ -1,15 +1,11 @@
 {
   "name": "mathylem",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "description": "WYSIWYG mathematics equation editor",
-  "directories": {
-    "doc": "doc",
-    "test": "test"
-  },
   "main": "mathylem.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "rebuild": "./make"
+    "build": "gulp"
   },
   "repository": {
     "type": "git",
@@ -27,8 +23,8 @@
   },
   "homepage": "https://github.com/ylemkimon/mathylem",
   "browser": {
-    "./js/xmldom/node.js": "./js/xmldom/browser.js",
-    "./mathylem.js": "./js/mathylem.js"
+    "xmldom": "./js/xmldom_browser.js",
+    "mathylem.js": "./js/mathylem.js"
   },
   "browserslist": [
     "last 5 versions",
