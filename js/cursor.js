@@ -9,27 +9,25 @@ export default class Cursor {
       this.pos = NaN;
       return;
     }
-
-    if (node.nodeName === 'f') {
-      let nn = node.firstChild;
-      while (nn != null && (nn.childNodes.length > 1 || nn.firstChild.textContent.length > 0)) {
-        nn = nn.nextSibling;
-      }
-      if (nn != null) {
-        node = nn;
-      } else {
-        node = this.node.firstChild;
-        pos = true;
-      }
-    }
-    while (node.nodeName !== 'e') {
-      node = pos ? node.lastChild : node.firstChild;
-    }
     this.node = node;
-    if (typeof pos === 'number') {
-      this.pos = pos;
-    } else {
-      this.pos = pos ? this.node.textContent.length : 0;
+    this.pos = pos;
+
+    if (this.node.nodeName === 'f') {
+      this.node = this.node.firstChild;
+      while (this.node != null && (this.node.childNodes.length > 1 ||
+          this.node.firstChild.textContent.length > 0)) {
+        this.node = this.node.nextSibling;
+      }
+      if (this.node == null) {
+        this.node = node.firstChild;
+        this.pos = true;
+      }
+    }
+    while (this.node.nodeName !== 'e') {
+      this.node = this.pos ? this.node.lastChild : this.node.firstChild;
+    }
+    if (typeof this.pos !== 'number') {
+      this.pos = this.pos ? this.value.length : 0;
     }
   }
 
