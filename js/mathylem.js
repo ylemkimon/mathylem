@@ -1,10 +1,10 @@
 /* eslint-env browser */
-import { MODKEY, KEYCODE_MAP, KEY_MAP } from './keyboard';
 import katex from 'katex';
 import Editor from './editor';
 import { Symbols } from './symbols';
 import Cursor from './cursor';
 import Doc from './doc';
+import { MODKEY, KEYCODE_MAP, KEY_MAP } from './keyboard';
 
 // touch capable devices might have not-div-focusable virtual keyboard
 // https://github.com/ylemkimon/mathylem/issues/27
@@ -174,42 +174,24 @@ export default class MathYlem extends Editor {
     }
 
     this.active = true;
-    this._focus = false;
+    this.maintainFocus = false;
     this.deactivate(true);
   }
 
   createEditor() {
     const editor = document.createElement('div');
     editor.className = 'mathylem';
-
-    const onFocus = () => {
-      if (this.active) {
-        return;
-      }
-      this._focus = true;
-      setTimeout(() => {
-        this._focus = false;
-      }, 500);
-      this.activate(true);
-    };
-    const onBlur = (e) => {
-      if (this._focus) {
-        this._focus = false;
-        e.target.focus();
-      } else {
-        if (MathYlem.activeMathYlem === this) {
-          MathYlem.activeMathYlem = null;
-        }
-        this.deactivate(false);
-      }
-    };
     if (touchCapable) {
-      this.mobileInput = this.createMobileInput(onBlur);
-      editor.addEventListener('click', onFocus);
+      this.mobileInput = this.createMobileInput();
+      editor.addEventListener('click', this);
+      editor.addEventListener('touchstart', this);
+      this.container.addEventListener('touchstart', this);
     } else {
       editor.tabIndex = 0;
-      editor.addEventListener('focus', onFocus);
-      editor.addEventListener('blur', onBlur);
+      editor.addEventListener('focus', this);
+      editor.addEventListener('blur', this);
+      editor.addEventListener('mousedown', this);
+      this.container.addEventListener('mousedown', this);
     }
     this.container.addEventListener('keypress', this);
     this.container.addEventListener('keydown', this);
@@ -218,7 +200,7 @@ export default class MathYlem extends Editor {
     return editor;
   }
 
-  createMobileInput(onBlur) {
+  createMobileInput() {
     const mobileInput = document.createElement('textarea');
     mobileInput.className = 'my-mobileinput mousetrap';
     mobileInput.setAttribute('autocapitalize', 'none');
@@ -230,43 +212,9 @@ export default class MathYlem extends Editor {
     mobileInput.style.left = `${this.container.offsetLeft}px`;
 
     this.processed = 1;
-    mobileInput.addEventListener('input', () => {
-      // keyboard events may not be fired or have wrong keyCode
-      // https://bugs.chromium.org/p/chromium/issues/detail?id=118639
-      // https://bugs.chromium.org/p/chromium/issues/detail?id=184812
-      const length = this.mobileInput.value.length;
-      for (; this.processed > length; this.processed--) {
-        Mousetrap.trigger('backspace');
-      }
-      if (length === 0) {
-        this.processed = 1;
-        this.mobileInput.value = '#';
-      }
-      for (; this.processed < length; this.processed++) {
-        const c = this.mobileInput.value[this.processed];
-        if (c !== c.toLowerCase()) {
-          Mousetrap.trigger(`shift+${c.toLowerCase()}`);
-        } else if (c === ' ') {
-          Mousetrap.trigger('space');
-        } else if (c === '\n') {
-          Mousetrap.trigger('enter');
-        } else {
-          Mousetrap.trigger(c);
-        }
-      }
-      // setSelectionRange may not work in the input event
-      // https://bugs.chromium.org/p/chromium/issues/detail?id=32865
-      setTimeout(() => this.mobileInput.setSelectionRange(
-        this.mobileInput.value.length,
-        this.mobileInput.value.length,
-      ), 0);
-    });
-    mobileInput.addEventListener('focus', () => {
-      if (!this.active) {
-        this.activate(false);
-      }
-    });
-    mobileInput.addEventListener('blur', onBlur);
+    mobileInput.addEventListener('input', this);
+    mobileInput.addEventListener('focus', this);
+    mobileInput.addEventListener('blur', this);
 
     this.container.appendChild(mobileInput);
     return mobileInput;
@@ -290,9 +238,8 @@ export default class MathYlem extends Editor {
           itemEl.className = 'hide-when-disabled';
         }
         itemEl.innerHTML = `<i class="icon-${item.icon}"></i>`;
-        itemEl.setAttribute('data-target', this.container.id);
         itemEl.setAttribute('data-action', JSON.stringify(item.action));
-        itemEl.addEventListener('click', MathYlem.onButtonClick);
+        itemEl.addEventListener('click', this);
       }
       toolbar.appendChild(itemEl);
     }
@@ -386,48 +333,6 @@ export default class MathYlem extends Editor {
     }
   }
 
-  static mouseDown(e) {
-    let n = e.target;
-    const y = MathYlem.activeMathYlem;
-    while (n != null) {
-      if (y && n === y.editor) {
-        MathYlem.isMouseDown = true;
-        if (e.shiftKey) {
-          y.selectTo(e);
-        } else {
-          y.mainCursor = MathYlem.getLocation(e.touches ? e.touches[0] : e);
-          y.clearSelection();
-        }
-        y.render();
-      } else if (n.mathylem) {
-        if (y) {
-          if (n.mathylem === y) {
-            y._focus = true;
-            setTimeout(() => {
-              y._focus = false;
-            }, 500);
-          } else {
-            y.deactivate(true);
-          }
-        }
-        return;
-      }
-      n = n.parentNode;
-    }
-    MathYlem.activeMathYlem = null;
-    for (const i in MathYlem.instances) {
-      MathYlem.instances[i].deactivate(true);
-    }
-  }
-
-  static onButtonClick() {
-    if (/(?:\s+|^)my-disabled(?:\s+|$)/.test(this.className)) {
-      return;
-    }
-    MathYlem.instances[this.getAttribute('data-target')]
-      .executeAction(JSON.parse(this.getAttribute('data-action')));
-  }
-
   static mouseMove(e) {
     const y = MathYlem.activeMathYlem;
     if (!y) {
@@ -476,6 +381,26 @@ export default class MathYlem extends Editor {
         break;
       case 'keydown':
         this.onKeydown(e);
+        break;
+      case 'input':
+        this.onMobileInput(e);
+        break;
+      case 'mousedown':
+      case 'touchstart':
+        this.onMousedown(e);
+        break;
+      case 'click':
+        if (e.currentTarget.hasAttribute('data-action')) {
+          this.onButtonClick(e);
+        } else {
+          this.onFocus(e);
+        }
+        break;
+      case 'focus':
+        this.onFocus(e);
+        break;
+      case 'blur':
+        this.onBlur(e);
         break;
       default:
         break;
@@ -530,6 +455,91 @@ export default class MathYlem extends Editor {
 
       this.tempCursor.set(null);
       this.executeAction(action);
+    }
+  }
+
+  onMobileInput() {
+    this.tempCursor.set(null);
+
+    // keyboard events may not be fired or have wrong keyCode
+    // https://bugs.chromium.org/p/chromium/issues/detail?id=118639
+    // https://bugs.chromium.org/p/chromium/issues/detail?id=184812
+    const length = this.mobileInput.value.length;
+    for (; this.processed > length; this.processed--) {
+      this.executeAction(MathYlem.keybindings.Backspace);
+    }
+    if (length === 0) {
+      this.processed = 1;
+      this.mobileInput.value = '#';
+    }
+    for (; this.processed < length; this.processed++) {
+      // XXX: this will give wrong result if selection is changed
+      // however, selection API or resetting the value may not work
+      // due to autocompletion even with autocomplete="off"
+      const c = this.mobileInput.value[this.processed];
+      if (/^[a-zA-Z0-9.+*\-=<>]$/.test(c)) {
+        this.executeAction(c);
+      } else if (c === '\n') {
+        this.executeAction(MathYlem.keybindings.Enter);
+      } else {
+        this.executeAction(MathYlem.keybindings[c]);
+      }
+    }
+    // setSelectionRange may not work in the input event
+    // https://bugs.chromium.org/p/chromium/issues/detail?id=32865
+    setTimeout(() => this.mobileInput.setSelectionRange(
+      this.mobileInput.value.length,
+      this.mobileInput.value.length,
+    ), 0);
+  }
+
+  onButtonClick(e) {
+    if (/(?:\s+|^)my-disabled(?:\s+|$)/.test(e.currentTarget.className)) {
+      return;
+    }
+    this.executeAction(JSON.parse(e.currentTarget.getAttribute('data-action')));
+  }
+
+  onMousedown(e) {
+    if (this.active) {
+      if (e.currentTarget === this.editor) {
+        MathYlem.isMouseDown = true;
+        if (e.shiftKey) {
+          this.selectTo(e);
+        } else {
+          this.mainCursor = MathYlem.getLocation(e.touches ? e.touches[0] : e);
+          this.clearSelection();
+        }
+        this.render();
+      } else {
+        this.maintainFocus = true;
+        setTimeout(() => {
+          this.maintainFocus = false;
+        }, 500);
+      }
+    }
+  }
+
+  onFocus() {
+    if (this.active) {
+      return;
+    }
+    this.maintainFocus = true;
+    setTimeout(() => {
+      this.maintainFocus = false;
+    }, 500);
+    this.activate(true);
+  }
+
+  onBlur(e) {
+    if (this.maintainFocus) {
+      this.maintainFocus = false;
+      e.target.focus();
+    } else {
+      if (MathYlem.activeMathYlem === this) {
+        MathYlem.activeMathYlem = null;
+      }
+      this.deactivate(false);
     }
   }
 
@@ -627,10 +637,8 @@ MathYlem.Symbols = Symbols;
 MathYlem.katex = katex;
 
 if (touchCapable) {
-  window.addEventListener('touchstart', MathYlem.mouseDown);
   window.addEventListener('touchmove', MathYlem.touchMove);
 } else {
-  window.addEventListener('mousedown', MathYlem.mouseDown);
   window.addEventListener('mouseup', MathYlem.mouseUp);
   window.addEventListener('mousemove', MathYlem.mouseMove);
 }
