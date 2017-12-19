@@ -60,7 +60,7 @@ gulp.task('css', () => {
     .pipe(gulp.dest(BUILD));
 });
 
-gulp.task('fonts', () => gulp.src(['lib/katex/static/fonts/*', 'css/fonts/*'])
+gulp.task('fonts', () => gulp.src(['node_modules/katex/submodules/katex-fonts/fonts/*', 'css/fonts/*'])
   .pipe(gulp.dest(`${BUILD}fonts/`)));
 
 gulp.task('default', ['js', 'css', 'fonts']);
