@@ -1,3 +1,4 @@
+/* eslint-env browser */
 export const MODKEY = /Mac|iPod|iPhone|iPad/.test(navigator.platform) ? 'Meta' : 'Control';
 
 export const KEYCODE_MAP = {
