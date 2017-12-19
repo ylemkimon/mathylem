@@ -268,9 +268,6 @@ export default class Editor extends EventEmitter {
   saveState() {
     this.pushState(this.undoData);
     this.redoData = [];
-
-    this.emit('change');
-    this.render();
   }
 
   undo() {
