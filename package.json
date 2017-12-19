@@ -36,10 +36,8 @@
     "not ie < 9"
   ],
   "dependencies": {
-    "eventemitter3": "^2.0.3",
+    "eventemitter3": "^3.0.0",
     "katex": "github:ylemkimon/katex",
-    "match-at": "^0.1.1",
-    "throttle-debounce": "^1.0.1",
     "xmldom": "^0.1.27"
   },
   "devDependencies": {
@@ -50,9 +48,9 @@
     "@babel/preset-flow": "^7.0.0-beta.35",
     "@babel/runtime": "^7.0.0-beta.35",
     "babel-eslint": "^8.0.3",
-    "browserify": "^13.3.0",
-    "eslint": "^4.9.0",
     "babelify": "github:ylemkimon/babelify",
+    "browserify": "^14.5.0",
+    "eslint": "^4.13.1",
     "eslint-config-airbnb-base": "^12.1.0",
     "eslint-plugin-import": "^2.8.0",
     "gulp": "^3.9.1",
@@ -63,7 +61,6 @@
     "gulp-sass": "^3.1.0",
     "gulp-sourcemaps": "^2.6.1",
     "gulp-uglify": "^3.0.0",
-    "gulp-util": "^3.0.8",
     "merge-stream": "^1.0.1",
     "vinyl-buffer": "^1.0.0",
     "vinyl-source-stream": "^1.1.0"
