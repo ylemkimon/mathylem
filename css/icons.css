@@ -1,9 +1,10 @@
 @font-face {
   font-family: 'MathYlem-icons';
   src:
-    url('fonts/MathYlem-icons.ttf?rxn05s') format('truetype'),
-    url('fonts/MathYlem-icons.woff?rxn05s') format('woff'),
-    url('fonts/MathYlem-icons.svg?rxn05s#MathYlem-icons') format('svg');
+    url('fonts/MathYlem-icons.woff2') format('woff2'),
+    url('fonts/MathYlem-icons.woff') format('woff'),
+    url('fonts/MathYlem-icons.ttf') format('truetype'),
+    url('fonts/MathYlem-icons.svg#MathYlem-icons') format('svg');
   font-weight: normal;
   font-style: normal;
 }
