@@ -18,9 +18,7 @@ export default class Editor extends EventEmitter {
     this.config = Object.assign({}, Editor.DEFAULT_CONFIG, config);
     this.autoreplace = true;
 
-    for (const e in this.config.events) {
-      this.on(e, this.config.events[e]);
-    }
+    Object.entries(this.config.events).forEach(([event, handler]) => this.on(event, handler));
 
     this.doc = new Doc();
 
@@ -592,16 +590,15 @@ export default class Editor extends EventEmitter {
       return;
     }
 
-    for (const s in Symbols) {
-      if ((force || ['psi', 'xi'].indexOf(s) === -1) && this.config.blacklist.indexOf(s) === -1 &&
-          value.substring(this.mainCursor.pos - s.length, this.mainCursor.pos) === s) {
-        this.saveState();
-        this.mainCursor.value = value.slice(0, this.mainCursor.pos - s.length) +
-          value.slice(this.mainCursor.pos);
-        this.mainCursor.pos -= s.length;
-        this.insertSymbol(s, true);
-        return;
-      }
+    const symbol = Object.keys(Symbols).find(s =>
+      value.substring(this.mainCursor.pos - s.length, this.mainCursor.pos) === s &&
+      this.config.blacklist.indexOf(s) === -1 && (force || ['psi', 'xi'].indexOf(s) === -1));
+    if (symbol) {
+      this.saveState();
+      this.mainCursor.value = value.slice(0, this.mainCursor.pos - symbol.length) +
+        value.slice(this.mainCursor.pos);
+      this.mainCursor.pos -= symbol.length;
+      this.insertSymbol(symbol, true);
     }
   }
 

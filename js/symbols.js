@@ -1,12 +1,7 @@
 export const Symbols = {};
 
 export function addSymbols(data) {
-  if (typeof data === 'string' || data instanceof String) {
-    data = JSON.parse(data);
-  }
-
-  for (const name in data) {
-    const symbol = data[name];
+  Object.entries(typeof data === 'string' ? JSON.parse(data) : data).forEach(([name, symbol]) => {
     if (symbol.builder) {
       symbol.arguments.forEach((item) => {
         if (Array.isArray(item)) {
@@ -18,7 +13,7 @@ export function addSymbols(data) {
     } else {
       Symbols[name] = symbol;
     }
-  }
+  });
 }
 
 const defaultSymbols = {
