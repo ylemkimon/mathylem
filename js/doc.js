@@ -59,11 +59,8 @@ export default class Doc {
       return results;
     } else if (node.nodeName === 'f') {
       const output = Symbols[node.getAttribute('type')].output;
-      if (type === 'latex' && Doc.isSmall(node) && 'small_latex' in output) {
-        type = 'small_latex';
-      }
-
-      const out = output[type].split(/(\{\$[0-9]+(?:\{[^}]+\})*\})/g);
+      const out = ((type === 'latex' && Doc.isSmall(node) && output.small_latex) || output[type])
+        .split(/(\{\$[0-9]+(?:\{[^}]+\})*\})/g);
       for (let i = 0; i < out.length; i++) {
         const m = out[i].match(/^\{\$([0-9]+)((?:\{[^}]+\})*)\}$/);
         if (!m) {
@@ -87,14 +84,14 @@ export default class Doc {
   }
 
   static isSmall(node) {
-    node = node.parentNode;
-    while (node != null && node.nodeName !== 'm') {
-      if (Doc.getCAttribute(node, 'small')) {
+    let n = node.parentNode;
+    while (n != null && n.nodeName !== 'm') {
+      if (Doc.getCAttribute(n, 'small')) {
         return true;
       }
-      node = node.parentNode;
-      while (node != null && node.nodeName !== 'c') {
-        node = node.parentNode;
+      n = n.parentNode;
+      while (n != null && n.nodeName !== 'c') {
+        n = n.parentNode;
       }
     }
     return false;
@@ -112,23 +109,18 @@ export default class Doc {
   }
 
   static getFName(node) {
-    if (node.nodeName === 'e') {
-      node = node.parentNode;
-    }
-    if (node.parentNode.nodeName === 'f') {
-      return node.parentNode.getAttribute('type');
+    const n = node.nodeName === 'e' ? node.parentNode : node;
+    if (n.parentNode.nodeName === 'f') {
+      return n.parentNode.getAttribute('type');
     }
     return null;
   }
 
   static getCAttribute(node, attr) {
-    if (node.nodeName === 'e') {
-      node = node.parentNode;
-    }
-    const name = Doc.getFName(node);
+    const n = node.nodeName === 'e' ? node.parentNode : node;
+    const name = Doc.getFName(n);
     if (name) {
-      const index = Doc.indexOfNode(node);
-
+      const index = Doc.indexOfNode(n);
       const attrs = Symbols[name].attrs;
       if (attrs && attrs[index] && attrs[index][attr]) {
         return attrs[index][attr];
@@ -138,8 +130,9 @@ export default class Doc {
   }
 
   static indexOfNode(node) {
+    let n = node;
     let pos = 0;
-    while ((node = node.previousSibling) != null) {
+    while ((n = n.previousSibling) != null) {
       pos++;
     }
     return pos;
@@ -150,18 +143,19 @@ export default class Doc {
   }
 
   static getArrayIndex(node, twod) {
-    while (node.parentNode && !(node.nodeName === 'c' && node.parentNode.nodeName === 'l' &&
-        (!twod || node.parentNode.parentNode.nodeName === 'l'))) {
-      node = node.parentNode;
+    let n = node;
+    while (n.parentNode && !(n.nodeName === 'c' && n.parentNode.nodeName === 'l' &&
+        (!twod || n.parentNode.parentNode.nodeName === 'l'))) {
+      n = n.parentNode;
     }
-    if (!node.parentNode) {
+    if (!n.parentNode) {
       return null;
     }
 
     const index = [];
-    while (node.parentNode.nodeName === 'l') {
-      index.push([node, Doc.indexOfNode(node)]);
-      node = node.parentNode;
+    while (n.parentNode.nodeName === 'l') {
+      index.push([n, Doc.indexOfNode(n)]);
+      n = n.parentNode;
     }
     return index;
   }
