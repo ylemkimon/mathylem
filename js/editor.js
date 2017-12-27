@@ -10,6 +10,7 @@ export default class Editor extends EventEmitter {
     blacklist: [],
     events: {},
     xmlContent: '<m><e></e></m>',
+    caret: '\\cursor{-0.2ex}{0.7em}',
   };
 
   constructor(config) {
@@ -20,8 +21,6 @@ export default class Editor extends EventEmitter {
 
     Object.entries(this.config.events).forEach(([event, handler]) => this.on(event, handler));
 
-    this.doc = new Doc();
-
     this.mainCursor = new Cursor();
     this.selCursor = new Cursor();
     this.tempCursor = new Cursor();
@@ -29,27 +28,24 @@ export default class Editor extends EventEmitter {
     this.setContent(this.config.xmlContent);
   }
 
-  getContent(type, render) {
-    this.prepareOutput(this.doc.root, render);
-    const output = this.doc.getContent(type, render);
-    this.postOutput(this.doc.root);
-    return output;
+  get xml() {
+    return this.doc.value;
   }
 
-  get xml() {
-    return this.doc.getContent('xml');
+  getContent(type, render) {
+    return this.doc.getContent(type, render, this);
   }
 
   get latex() {
-    return this.doc.getContent('latex');
+    return this.getContent('latex');
   }
 
   get text() {
-    return this.doc.getContent('text');
+    return this.getContent('text');
   }
 
   setContent(data, cursorPos) {
-    this.doc.setContent(data);
+    this.doc = new Doc(data);
     this.mainCursor.set(this.doc.root, cursorPos);
     this.clearSelection();
     this.undoData = [];
@@ -208,9 +204,9 @@ export default class Editor extends EventEmitter {
   moveCursor(dir, out) {
     this.clearSelection();
     if (dir === 'up' || dir === 'down') {
-      const t = Doc.getCAttribute(this.mainCursor.node, dir);
-      if (t) {
-        this.mainCursor.set(this.mainCursor.node.parentNode.parentNode.childNodes[t - 1], true);
+      const t = Doc.getCAttribute(this.mainCursor.node, dir === 'up' ? 'below' : 'above');
+      if (t != null) {
+        this.mainCursor.set(this.mainCursor.node.parentNode.parentNode.childNodes[t], true);
       } else {
         const index = Doc.getArrayIndex(this.mainCursor.node, true);
         if (!index) {
@@ -276,16 +272,7 @@ export default class Editor extends EventEmitter {
     this.popState(this.redoData, this.undoData);
   }
 
-  deleteFromC() {
-    const pos = Doc.indexOfNode(this.mainCursor.node.parentNode);
-    const index = Doc.getCAttribute(this.mainCursor.node, 'delete');
-    const f = this.mainCursor.node.parentNode.parentNode;
-    const remaining = Array.from(f.childNodes[index - 1].childNodes);
-    this.deleteFromF(f);
-    this.insertNodes(remaining, pos >= index);
-  }
-
-  deleteFromF(node) {
+  deleteF(node) {
     this.saveState();
     const p = node.parentNode;
     const prev = node.previousSibling;
@@ -310,27 +297,23 @@ export default class Editor extends EventEmitter {
       this.mainCursor.pos--;
     } else {
       const prev = this.mainCursor.node.previousSibling;
-      let p = this.mainCursor.node.parentNode;
-      if (prev != null) { //  && prev.nodeName === 'f'
+      const p = this.mainCursor.node.parentNode;
+      const pp = p.parentNode;
+      if (prev != null) {
         if (Symbols[prev.getAttribute('type')].char) {
-          this.deleteFromF(prev);
+          this.deleteF(prev);
         } else {
           this.moveCursor(-1);
         }
-      } else if (p.previousSibling != null) {
-        if (Doc.getCAttribute(this.mainCursor.node, 'delete')) {
-          this.deleteFromC();
+      } else if (p.nodeName === 'c') {
+        if (Doc.getCAttribute(p, 'delete', true)) {
+          const pos = Doc.indexOfNode(p);
+          const index = Symbols[pp.getAttribute('type')].main || 0;
+          const remaining = Array.from(pp.childNodes[index].childNodes);
+          this.deleteF(pp);
+          this.insertNodes(remaining, pos >= index + 1);
         } else {
           this.moveCursor(-1);
-        }
-      } else if (prev == null && p.nodeName === 'c' && p.previousSibling == null) {
-        while (p.parentNode.nodeName === 'l') { //  || p.parentNode.nodeName === 'c'
-          p = p.parentNode;
-        }
-        if (Doc.getCAttribute(p, 'delete')) {
-          this.deleteFromC();
-        } else {
-          this.deleteFromF(p.parentNode);
         }
       }
     }
@@ -346,7 +329,7 @@ export default class Editor extends EventEmitter {
       this.mainCursor.value = value.slice(0, this.mainCursor.pos) +
         value.slice(this.mainCursor.pos + 1);
     } else if (this.mainCursor.node.nextSibling != null) {
-      this.deleteFromF(this.mainCursor.node.nextSibling);
+      this.deleteF(this.mainCursor.node.nextSibling);
     }
   }
 
@@ -415,8 +398,6 @@ export default class Editor extends EventEmitter {
     const text = n.textContent;
     let result = '';
 
-    const caret = Doc.isSmall(n) ? '\\cursor{-0.05em}{0.5em}'
-      : '\\cursor{-0.2ex}{0.7em}';
     for (let i = 0; i < text.length + 1; i++) {
       const current = new Cursor(n, i);
       if (current.equals(this.mainCursor)) {
@@ -424,9 +405,9 @@ export default class Editor extends EventEmitter {
           result += '}';
         }
         if (text.length === 0) {
-          result += `\\class{main-cursor my-elem my-blank loc${path}-0}{${caret}}`;
+          result += `\\class{main-cursor my-elem my-blank loc${path}-0}{${this.config.caret}}`;
         } else {
-          result += `\\class{main-cursor}{${caret}}`;
+          result += `\\class{main-cursor}{${this.config.caret}}`;
         }
         if (this.selStatus < 0) {
           result += '\\class{selection}{';
@@ -436,26 +417,26 @@ export default class Editor extends EventEmitter {
           result += '}';
         }
         if (text.length === 0 && n.parentNode.childElementCount > 1) {
-          result += `\\class{sel-cursor my-elem my-blank loc${path}-0}{${caret}}`;
+          result += `\\class{sel-cursor my-elem my-blank loc${path}-0}{${this.config.caret}}`;
         } else {
-          result += `\\class{sel-cursor}{${caret}}`;
+          result += `\\class{sel-cursor}{${this.config.caret}}`;
         }
         if (this.selStatus > 0) {
           result += '\\class{selection}{';
         }
       } else if (current.equals(this.tempCursor)) {
         if (text.length > 0) {
-          result += `\\class{temp-cursor}{${caret}}`;
+          result += `\\class{temp-cursor}{${this.config.caret}}`;
         } else if (n.parentNode.childElementCount === 1) {
           result += `\\class{temp-cursor my-elem my-blank loc${path}-0}{[?]}`;
         } else {
-          result += `\\class{temp-cursor my-elem my-blank loc${path}-0}{${caret}}`;
+          result += `\\class{temp-cursor my-elem my-blank loc${path}-0}{${this.config.caret}}`;
         }
       } else if (text.length === 0) {
         if (n.parentNode.childElementCount === 1) {
           result = `\\class{placeholder my-elem my-blank loc${path}-0}{[?]}`;
         } else {
-          result = `\\phantom{\\class{my-elem my-blank loc${path}-0}{\\cursor{0.1ex}{1ex}}}`;
+          result = `\\phantom{\\class{my-elem my-blank loc${path}-0}{${this.config.caret}}}`;
         }
       }
       if (i < text.length) {
@@ -472,39 +453,6 @@ export default class Editor extends EventEmitter {
     return result;
   }
 
-  prepareOutput(n, render, path = '') {
-    if (n.nodeName === 'e') {
-      if (render) {
-        n.setAttribute('render', this.renderE(n, path));
-      }
-    } else {
-      if (n.nodeName === 'c' && Doc.getCAttribute(n, 'parentheses') && (n === this.mainCursor.node
-        .parentNode || (this.tempCursor.node && n === this.tempCursor.node.parentNode) ||
-          !Doc.isParenthesesOmittable(n))) {
-        n.setAttribute('parentheses', '');
-      }
-
-      let count = 0;
-      for (let c = n.firstChild; c != null; c = c.nextSibling) {
-        this.prepareOutput(c, render, `${path}_${count++}`);
-      }
-    }
-  }
-
-  postOutput(n) {
-    if (n.nodeName === 'e') {
-      n.removeAttribute('render');
-    } else {
-      if (n.nodeName === 'c') {
-        n.removeAttribute('parentheses');
-      }
-
-      for (let c = n.firstChild; c != null; c = c.nextSibling) {
-        this.postOutput(c);
-      }
-    }
-  }
-
   makeF(name, content = []) {
     const base = this.doc.base;
     const f = base.createElement('f');
@@ -514,7 +462,7 @@ export default class Editor extends EventEmitter {
     const output = Symbols[name].output.latex;
     let m;
     while ((m = regex.exec(output)) !== null) {
-      const index = parseInt(m[1]) - 1;
+      const index = parseInt(m[1]);
       const c = base.createElement('c');
       if (index in content) {
         content[index].forEach(x => c.appendChild(x.cloneNode(true)));
@@ -614,7 +562,7 @@ export default class Editor extends EventEmitter {
 
     if (name === '*' && this.config.autoreplace && this.mainCursor.pos === 0 &&
         prev && prev.nodeName === 'f' && prev.getAttribute('type') === '*') {
-      this.deleteFromF(prev);
+      this.deleteF(prev);
       this.insertSymbol('pow', true);
       return;
     }
@@ -629,60 +577,47 @@ export default class Editor extends EventEmitter {
     }
 
     const s = Symbols[name];
+    const main = s.main || 0;
     const content = {};
-    let leftPiece;
-    let rightPiece;
-    let cur = s.current || 0;
-    let toRemove = [];
-    let toReplace = null;
+    let toRemove = [this.mainCursor.node];
+    let left = value.slice(0, this.mainCursor.pos);
+    let right = value.slice(this.mainCursor.pos);
 
-    if (cur > 0) {
-      cur--; //
-      if (this.selStatus) {
-        const selStartPos = this.selStatus < 0 ? this.mainCursor.pos : this.selCursor.pos;
-        const sel = this.getSelection();
-        this.clearSelection();
+    if (this.selStatus && !(s.args && s.args[main] && s.args[main].text)) {
+      const selStartPos = this.selStatus < 0 ? this.mainCursor.pos : this.selCursor.pos;
+      const sel = this.getSelection();
 
-        toRemove = sel.involved;
-        leftPiece = this.makeE(sel.remnant.textContent.slice(0, selStartPos));
-        rightPiece = this.makeE(sel.remnant.textContent.slice(selStartPos));
-        content[cur] = sel.nodeList;
-      } else if (s.current_type === 'token') { //
-        if (this.mainCursor.pos === 0 && prev != null) {
-          toReplace = prev;
-          content[cur] = [this.makeE(), prev, this.makeE()];
-        } else {
-          const token = value.substring(0, this.mainCursor.pos).match(/[0-9.]+$|[a-zA-Z]$/);
-          if (token != null && token.length > 0) {
-            toRemove = [this.mainCursor.node];
-            leftPiece = this.makeE(value.slice(0, this.mainCursor.pos - token[0].length));
-            rightPiece = this.makeE(value.slice(this.mainCursor.pos));
-            content[cur] = [this.makeE(token[0])];
-          }
+      toRemove = sel.involved;
+      left = sel.remnant.textContent.slice(0, selStartPos);
+      right = sel.remnant.textContent.slice(selStartPos);
+      content[main] = sel.nodeList;
+    } else if (s.token) {
+      if (this.mainCursor.pos === 0 && prev != null) {
+        toRemove = [prev];
+        left = null;
+        right = null;
+        content[main] = [this.makeE(), prev, this.makeE()];
+      } else {
+        const token = value.substring(0, this.mainCursor.pos).match(/[0-9.]+$|[a-zA-Z]$/);
+        if (token) {
+          left = value.slice(0, this.mainCursor.pos - token[0].length);
+          content[main] = [this.makeE(token[0])];
         }
       }
-    }
-    if (toReplace == null && leftPiece == null) {
-      toRemove = [this.mainCursor.node];
-      leftPiece = this.makeE(value.slice(0, this.mainCursor.pos));
-      rightPiece = this.makeE(value.slice(this.mainCursor.pos));
     }
 
     const f = this.makeF(name, content);
 
-    if (toReplace != null) {
-      par.replaceChild(f, toReplace);
-    } else {
-      const next = toRemove[toRemove.length - 1].nextSibling;
-      toRemove.forEach(x => par.removeChild(x));
-
-      par.insertBefore(leftPiece, next);
-      par.insertBefore(f, next);
-      par.insertBefore(rightPiece, next);
+    this.clearSelection();
+    const next = toRemove[toRemove.length - 1].nextSibling;
+    toRemove.forEach(x => par.removeChild(x));
+    par.insertBefore(f, next);
+    if (left != null) {
+      par.insertBefore(this.makeE(left), f);
+      par.insertBefore(this.makeE(right), next);
     }
 
-    // XXX
-    if (s.char || (s.current >= f.childElementCount)) {
+    if (s.char) {
       this.mainCursor.set(f.nextSibling);
     } else {
       this.mainCursor.set(f);

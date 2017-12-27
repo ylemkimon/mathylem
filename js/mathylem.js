@@ -584,12 +584,16 @@ export default class MathYlem extends Editor {
     }
 
     if (!this.active && !this.latex) {
-      katex.render(this.config.emptyContent, this.editor);
+      katex.render(this.config.emptyContent, this.editor, {
+        displayStyle: true,
+      });
       return;
     }
     const tex = this.getContent('latex', true);
     try {
-      katex.render(tex, this.editor);
+      katex.render(tex, this.editor, {
+        displayStyle: true,
+      });
     } catch (e) {
       console.warn(tex); // eslint-disable-line no-console
       console.warn(e); // eslint-disable-line no-console

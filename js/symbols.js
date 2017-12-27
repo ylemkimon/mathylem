@@ -3,7 +3,7 @@ export const Symbols = {};
 export function addSymbols(data) {
   Object.entries(typeof data === 'string' ? JSON.parse(data) : data).forEach(([name, symbol]) => {
     if (symbol.builder) {
-      symbol.arguments.forEach((item) => {
+      symbol.args.forEach((item) => {
         if (Array.isArray(item)) {
           Symbols[item[0]] = symbol.builder(...item);
         } else {
@@ -19,10 +19,10 @@ export function addSymbols(data) {
 const defaultSymbols = {
   text: {
     output: {
-      latex: '\\text{{$1}}',
-      text: '\'{$1}\'',
+      latex: '\\text{{$0}}',
+      text: '\'{$0}\'',
     },
-    attrs: [
+    args: [
       {
         text: true,
       },
@@ -30,10 +30,10 @@ const defaultSymbols = {
   },
   symbol: {
     output: {
-      latex: '\\backslash\\texttt{{$1}}',
-      text: '{$1}',
+      latex: '\\backslash\\texttt{{$0}}',
+      text: '{$0}',
     },
-    attrs: [
+    args: [
       {
         text: true,
       },
@@ -41,10 +41,10 @@ const defaultSymbols = {
   },
   func: {
     output: {
-      latex: '\\backslash\\mathrm{{$1}}\\left( {$2{ , }} \\right)',
-      text: '$1({$2{,}})',
+      latex: '\\backslash\\mathrm{{$0}}\\left( {$1{ , }} \\right)',
+      text: '$0({$1{,}})',
     },
-    attrs: [
+    args: [
       {
         text: true,
       },
@@ -52,165 +52,118 @@ const defaultSymbols = {
   },
   abs: {
     output: {
-      latex: '\\left|{$1}\\right|',
-      text: 'abs({$1})',
+      latex: '\\left|{$0}\\right|',
+      text: 'abs({$0})',
     },
-    current: 1,
-    attrs: [
-      {
-        delete: 1,
-      },
-    ],
   },
   sqrt: {
     output: {
-      latex: '\\sqrt{{$1}}',
-      text: 'sqrt({$1})',
+      latex: '\\sqrt{{$0}}',
+      text: 'sqrt({$0})',
     },
-    attrs: [
-      {
-        delete: 1,
-      },
-    ],
   },
   exp: {
     output: {
-      latex: 'e^{{$1}}',
-      text: 'exp({$1})',
+      latex: 'e^{{$0}}',
+      text: 'exp({$0})',
     },
-    attrs: [
-      {
-        delete: 1,
-        small: true,
-      },
-    ],
   },
   fact: {
     output: {
-      latex: '{{$1}}!',
-      text: 'factorial({$1})',
+      latex: '{{$0}}!',
+      text: 'factorial({$0})',
     },
-    current: 1,
-    current_type: 'token',
-    attrs: [
+    token: true,
+    args: [
       {
-        delete: 1,
         parentheses: true,
       },
     ],
   },
   binom: {
     output: {
-      latex: '\\displaystyle\\binom{{$1}}{{$2}}',
-      small_latex: '\\binom{{$1}}{{$2}}',
-      text: 'binomial({$1},{$2})',
+      latex: '\\binom{{$0}}{{$1}}',
+      text: 'binomial({$0},{$1})',
     },
-    attrs: [
+    args: [
       {
-        down: 2,
+        above: 1,
       },
       {
-        up: 1,
+        below: 0,
       },
     ],
   },
   paren: {
     output: {
-      latex: '\\left({$1}\\right)',
-      text: '({$1})',
+      latex: '\\left({$0}\\right)',
+      text: '({$0})',
     },
-    current: 1,
-    attrs: [
-      {
-        delete: 1,
-      },
-    ],
   },
   floor: {
     output: {
-      latex: '\\lfloor{$1}\\rfloor',
-      text: 'floor({$1})',
+      latex: '\\lfloor{$0}\\rfloor',
+      text: 'floor({$0})',
     },
-    attrs: [
-      {
-        delete: 1,
-      },
-    ],
   },
   pow: {
     output: {
-      latex: '{{$1}}^{{$2}}',
-      text: '({$1})**({$2})',
+      latex: '{{$0}}^{{$1}}',
+      text: '({$0})**({$1})',
     },
-    current: 2,
-    current_type: 'token',
-    attrs: [
+    token: true,
+    args: [
       {
-        up: 2,
+        below: 1,
         parentheses: true,
-        delete: 1,
       },
       {
-        down: 1,
-        delete: 1,
-        small: true,
+        above: 0,
       },
     ],
   },
   sub: {
     output: {
-      latex: '{{$1}}_{{$2}}',
-      text: '{$1}_{$2}',
+      latex: '{{$0}}_{{$1}}',
+      text: '{$0}_{$1}',
     },
-    current: 1,
-    current_type: 'token',
-    attrs: [
+    token: true,
+    args: [
       {
-        down: 2,
+        above: 1,
         parentheses: true,
-        delete: 1,
       },
       {
-        up: 1,
-        delete: 1,
-        small: true,
+        below: 0,
       },
     ],
   },
   frac: {
     output: {
-      latex: '\\dfrac{{$1}}{{$2}}',
-      small_latex: '\\frac{{$1}}{{$2}}',
-      text: '({$1})/({$2})',
+      latex: '\\frac{{$0}}{{$1}}',
+      text: '({$0})/({$1})',
     },
-    current: 1,
-    current_type: 'token',
-    attrs: [
+    token: true,
+    args: [
       {
-        down: 2,
+        above: 1,
       },
       {
-        up: 1,
-        delete: 1,
+        below: 0,
       },
     ],
   },
   mod: {
     output: {
-      latex: '{$1}\\bmod{$2}',
-      text: '({$1})%({$2})',
+      latex: '{$0}\\bmod{$1}',
+      text: '({$0})%({$1})',
     },
-    current: 1,
-    current_type: 'token',
-    attrs: [
+    token: true,
+    args: [
       {
-        down: 2,
-        delete: 1,
         parentheses: true,
       },
       {
-        up: 1,
-        delete: 1,
         parentheses: true,
       },
     ],
@@ -231,198 +184,156 @@ const defaultSymbols = {
   },
   lim: {
     output: {
-      latex: '\\displaystyle\\lim_{{$1}\\to{$2}}{$3}',
-      small_latex: '\\lim_{{$1}\\to{$2}}{$3}',
-      text: 'Limit({$3},{$1},{$2})',
+      latex: '\\lim_{{$0}\\to{$1}}{$2}',
+      text: 'Limit({$2},{$0},{$1})',
     },
-    attrs: [
+    main: 2,
+    args: [
       {
-        up: 3,
-        small: true,
+        below: 2,
       },
       {
-        up: 3,
-        small: true,
+        below: 2,
+        delete: false,
       },
       {
-        down: 2,
-        delete: 3,
+        above: 1,
         parentheses: true,
       },
     ],
   },
   antid: {
     output: {
-      latex: '\\displaystyle\\int{{$1}}d{$2}',
-      small_latex: '\\int{{$1}}d{$2}',
-      text: 'Integral({$1},{$2})',
+      latex: '\\int{{$0}}d{$1}',
+      text: 'Integral({$0},{$1})',
     },
-    attrs: [
+    args: [
+      null,
       {
-        delete: 1,
-      },
-      {
-        delete: 1,
         parentheses: true,
       },
     ],
   },
   int: {
     output: {
-      latex: '\\displaystyle\\int_{{$1}}^{{$2}}{$3}d{$4}',
-      small_latex: '\\int_{{$1}}^{{$2}}{$3}d{$4}',
-      text: 'Integral({$3},({$4},{$1},{$2}))',
+      latex: '\\int_{{$0}}^{{$1}}{$2}d{$3}',
+      text: 'Integral({$2},({$3},{$0},{$1}))',
     },
-    attrs: [
+    main: 2,
+    args: [
       {
-        up: 2,
-        small: true,
+        below: 1,
       },
       {
-        down: 1,
-        small: true,
+        above: 0,
       },
       {
-        down: 1,
-        up: 2,
-        delete: 3,
+        above: 0,
+        below: 1,
       },
       {
-        down: 1,
-        up: 2,
+        above: 0,
+        below: 1,
         parentheses: true,
-        delete: 3,
       },
     ],
   },
   deriv: {
     output: {
-      latex: '\\dfrac{d}{d{$1}}{$2}',
-      small_latex: '\\frac{d}{d{$1}}{$2}',
-      text: 'Derivative({$2},{$1})',
+      latex: '\\frac{d}{d{$0}}{$1}',
+      text: 'Derivative({$1},{$0})',
     },
-    attrs: [
+    main: 1,
+    args: [
       {
-        up: 2,
+        below: 1,
         parentheses: true,
       },
       {
-        down: 1,
-        delete: 2,
+        above: 0,
         parentheses: true,
       },
     ],
   },
   sum: {
     output: {
-      latex: '\\displaystyle\\sum_{{$1}={$2}}^{{$3}}{$4}',
-      small_latex: '\\sum_{{$1}={$2}}^{{$3}}{$4}',
-      text: 'Sum({$4},({$1},{$2},{$3}))',
+      latex: '\\sum_{{$0}={$1}}^{{$2}}{$3}',
+      text: 'Sum({$3},({$0},{$1},{$2}))',
     },
-    attrs: [
+    main: 3,
+    args: [
       {
-        up: 3,
-        small: true,
+        below: 2,
       },
       {
-        up: 3,
-        small: true,
+        below: 2,
+        delete: false,
       },
       {
-        down: 2,
-        small: true,
+        above: 1,
       },
       {
-        down: 2,
-        up: 3,
-        delete: 4,
+        above: 1,
+        below: 2,
         parentheses: true,
       },
     ],
   },
   prod: {
     output: {
-      latex: '\\displaystyle\\prod_{{$1}={$2}}^{{$3}}{$4}',
-      small_latex: '\\prod_{{$1}={$2}}^{{$3}}{$4}',
-      text: 'Product({$4},({$1},{$2},{$3}))',
+      latex: '\\prod_{{$0}={$1}}^{{$2}}{$3}',
+      text: 'Product({$3},({$0},{$1},{$2}))',
     },
-    attrs: [
+    main: 3,
+    args: [
       {
-        up: 3,
-        small: true,
+        below: 2,
       },
       {
-        up: 3,
-        small: true,
+        below: 2,
+        delete: false,
       },
       {
-        down: 2,
-        small: true,
+        above: 1,
       },
       {
-        down: 2,
-        up: 3,
-        delete: 4,
+        above: 1,
+        below: 2,
         parentheses: true,
       },
     ],
   },
   root: {
     output: {
-      latex: '\\sqrt[{$1}]{{$2}}',
-      text: 'root({$2},{$1})',
+      latex: '\\sqrt[{$0}]{{$1}}',
+      text: 'root({$1},{$0})',
     },
-    attrs: [
+    main: 1,
+    args: [
       {
-        down: 2,
-        small: true,
-        delete: 2,
+        above: 1,
       },
       {
-        up: 1,
-        delete: 2,
+        below: 0,
       },
     ],
   },
-  list: {
-    output: {
-      latex: '\\left[ {$1{ , }} \\right]',
-      text: '[{$1{,}}]',
-    },
-  },
-  set: {
-    output: {
-      latex: '\\left\\{ {$1{ ,\\; }} \\right\\}',
-      text: '{{$1{,}}}',
-    },
-  },
-  tuple: {
-    output: {
-      latex: '\\left\\langle {$1{ , }} \\right\\rangle',
-      text: '({$1{,}})',
-    },
-  },
   mat: {
     output: {
-      latex: '\\left(\\begin{matrix} {$1{ & }{\\\\}} \\end{matrix}\\right)',
-      text: 'Matrix([[{$1{,}{],[}}]])',
+      latex: '\\left(\\begin{matrix} {$0{ & }{\\\\}} \\end{matrix}\\right)',
+      text: 'Matrix([[{$0{,}{],[}}]])',
     },
   },
-  _func_nonlatex: {
+  _nonLaTeXFunc: {
     builder(name) {
       return {
         output: {
-          latex: `\\mathrm{${name}}\\left({$1}\\right)`,
-          text: `${name}({$1})`,
+          latex: `\\mathrm{${name}}\\left({$0}\\right)`,
+          text: `${name}({$0})`,
         },
-        attrs: [
-          {
-            delete: 1,
-          },
-        ],
       };
     },
-    arguments: [
+    args: [
       'sech',
       'csch',
       'asin',
@@ -443,17 +354,12 @@ const defaultSymbols = {
     builder(name) {
       return {
         output: {
-          latex: `\\${name}\\left({$1}\\right)`,
-          text: `${name}({$1})`,
+          latex: `\\${name}\\left({$0}\\right)`,
+          text: `${name}({$0})`,
         },
-        attrs: [
-          {
-            delete: 1,
-          },
-        ],
       };
     },
-    arguments: [
+    args: [
       'sin',
       'cos',
       'tan',
@@ -482,7 +388,7 @@ const defaultSymbols = {
         op: true,
       };
     },
-    arguments: [
+    args: [
       ['*', '\\cdot'],
       ['<=', '\\leq'],
       ['<', '<'],
@@ -500,7 +406,7 @@ const defaultSymbols = {
         char: true,
       };
     },
-    arguments: [
+    args: [
       'alpha',
       'beta',
       'gamma',

@@ -2,18 +2,15 @@ import { DOMParser, XMLSerializer } from 'xmldom';
 import { Symbols } from './symbols';
 
 export default class Doc {
-  constructor(data) {
-    this.setContent(data);
+  constructor(data = '<m><e></e></m>') {
+    this.value = data;
   }
 
-  getContent(type, render) {
-    if (type === 'xml') {
-      return (new XMLSerializer()).serializeToString(this.base);
-    }
-    return this.render(type, this.root, render);
+  get value() {
+    return (new XMLSerializer()).serializeToString(this.base);
   }
 
-  setContent(data = '<m><e></e></m>') {
+  set value(data) {
     this.base = (new DOMParser()).parseFromString(data, 'text/xml');
   }
 
@@ -21,29 +18,13 @@ export default class Doc {
     return this.base.documentElement;
   }
 
-  render(type, node, render) {
+  getContent(type, render, editor, node = this.root, path = '') {
     let result = '';
     if (node.nodeName === 'e') {
-      if (type === 'latex' && render) {
-        result = node.getAttribute('render');
+      if (type === 'latex' && render && editor) {
+        result = editor.renderE(node, path);
       } else if (type === 'text') {
-        result = node.textContent;
-        const prev = node.previousSibling && !Symbols[node.previousSibling.getAttribute('type')].op;
-        const next = node.nextSibling && !Symbols[node.nextSibling.getAttribute('type')].op;
-        if (result === '' && prev && next) {
-          result = '*';
-        } else if (!Doc.getCAttribute(node, 'text')) {
-          result = result.replace(/([a-zA-Z])(?=\.)/g, '$1*')
-            .replace(/(\.)(?=[a-zA-Z])/g, '$1*')
-            .replace(/([a-zA-Z])(?=[a-zA-Z0-9])/g, '$1*')
-            .replace(/([a-zA-Z0-9])(?=[a-zA-Z])/g, '$1*');
-          if (prev) {
-            result = result.replace(/^([a-zA-Z0-9])/g, '*$1');
-          }
-          if (next) {
-            result = result.replace(/([a-zA-Z0-9])$/g, '$1*');
-          }
-        }
+        result = Doc.insertMultiplicationSign(node);
       } else {
         result = node.textContent;
       }
@@ -51,56 +32,65 @@ export default class Doc {
     }
 
     const results = [];
+    let count = 0;
     for (let n = node.firstChild; n != null; n = n.nextSibling) {
-      results.push(this.render(type, n, render));
+      results.push(this.getContent(type, render, editor, n, `${path}_${count++}`));
     }
 
     if (node.nodeName === 'l') {
       return results;
     } else if (node.nodeName === 'f') {
-      const output = Symbols[node.getAttribute('type')].output;
-      const out = ((type === 'latex' && Doc.isSmall(node) && output.small_latex) || output[type])
-        .split(/(\{\$[0-9]+(?:\{[^}]+\})*\})/g);
-      for (let i = 0; i < out.length; i++) {
-        const m = out[i].match(/^\{\$([0-9]+)((?:\{[^}]+\})*)\}$/);
+      const output = Symbols[node.getAttribute('type')].output[type].split(/(\{\$[0-9]+(?:\{[^}]+\})*\})/g);
+      for (let i = 0; i < output.length; i++) {
+        const m = output[i].match(/^\{\$([0-9]+)((?:\{[^}]+\})*)\}$/);
         if (!m) {
-          result += out[i];
+          result += output[i];
         } else if (m[2].length === 0) {
-          result += results[parseInt(m[1]) - 1];
+          result += results[parseInt(m[1])];
         } else {
           const mm = m[2].match(/\{[^}]*\}/g);
           const joiner = (d, l) => (d === 0 ? l : l.map(x => joiner(d - 1, x))
             .join(mm[d - 1].substring(1, mm[d - 1].length - 1)));
-          result += joiner(mm.length, results[parseInt(m[1]) - 1]);
+          result += joiner(mm.length, results[parseInt(m[1])]);
         }
       }
     } else {
       result = results.join('');
-      if (type === 'latex' && node.hasAttribute('parentheses')) {
+      if (type === 'latex' && Doc.getCAttribute(node, 'parentheses') &&
+          !Doc.isParenthesesOmittable(node, editor)) {
         result = `\\left(${result}\\right)`;
       }
     }
     return result;
   }
 
-  static isSmall(node) {
-    let n = node.parentNode;
-    while (n != null && n.nodeName !== 'm') {
-      if (Doc.getCAttribute(n, 'small')) {
-        return true;
+  static insertMultiplicationSign(node) {
+    let result = node.textContent;
+    const prev = node.previousSibling && !Symbols[node.previousSibling.getAttribute('type')].op;
+    const next = node.nextSibling && !Symbols[node.nextSibling.getAttribute('type')].op;
+    if (result === '' && prev && next) {
+      result = '*';
+    } else if (!Doc.getCAttribute(node, 'text')) {
+      result = result.replace(/([a-zA-Z])(?=\.)/g, '$1*')
+        .replace(/(\.)(?=[a-zA-Z])/g, '$1*')
+        .replace(/([a-zA-Z])(?=[a-zA-Z0-9])/g, '$1*')
+        .replace(/([a-zA-Z0-9])(?=[a-zA-Z])/g, '$1*');
+      if (prev) {
+        result = result.replace(/^([a-zA-Z0-9])/g, '*$1');
       }
-      n = n.parentNode;
-      while (n != null && n.nodeName !== 'c') {
-        n = n.parentNode;
+      if (next) {
+        result = result.replace(/([a-zA-Z0-9])$/g, '$1*');
       }
     }
-    return false;
   }
 
-  static isParenthesesOmittable(n) {
+  static isParenthesesOmittable(n, editor) {
     const value = n.firstChild.textContent;
-    if (n.childElementCount === 3 &&
-        value === '' && n.lastChild.textContent === '') {
+    if (editor && (n === editor.mainCursor.node.parentNode || (editor.tempCursor.node &&
+        n === editor.tempCursor.node.parentNode))) {
+      return false;
+    }
+    if (n.childElementCount === 3 && value === '' && n.lastChild.textContent === '') {
       const name = n.childNodes[1].getAttribute('type');
       return Symbols[name].char || name === 'paren';
     }
@@ -116,15 +106,16 @@ export default class Doc {
     return null;
   }
 
-  static getCAttribute(node, attr) {
+  static getCAttribute(node, attr, defaultValue) {
     const n = node.nodeName === 'e' ? node.parentNode : node;
     const name = Doc.getFName(n);
     if (name) {
       const index = Doc.indexOfNode(n);
-      const attrs = Symbols[name].attrs;
-      if (attrs && attrs[index] && attrs[index][attr]) {
-        return attrs[index][attr];
+      const args = Symbols[name].args;
+      if (args && args[index] && args[index][attr] != null) {
+        return args[index][attr];
       }
+      return defaultValue;
     }
     return null;
   }
