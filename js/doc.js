@@ -56,9 +56,12 @@ export default class Doc {
       }
     } else {
       result = results.join('');
-      if (type === 'latex' && Doc.getCAttribute(node, 'parentheses') &&
-          !Doc.isParenthesesOmittable(node, editor)) {
-        result = `\\left(${result}\\right)`;
+      if (type === 'latex') {
+        if (Doc.getCAttribute(node, 'parentheses') && !Doc.isParenthesesOmittable(node, editor)) {
+          result = `\\left(${result}\\right)`;
+        } else if (node.nodeName === 'm' && render) {
+          result = `\\displaystyle{${result}}`;
+        }
       }
     }
     return result;
