@@ -52,7 +52,7 @@ gulp.task('css', () => {
     .pipe(sass())
     .pipe(prefix());
 
-  return merge(scss, gulp.src(['node_modules/katex/static/katex.css', 'css/*.css']))
+  return merge(scss, gulp.src(['lib/katex/static/katex.css', 'css/*.css']))
     .pipe(concat('mathylem.css'))
     .pipe(gulp.dest(BUILD))
     .pipe(rename({ extname: '.min.css' }))
@@ -60,7 +60,7 @@ gulp.task('css', () => {
     .pipe(gulp.dest(BUILD));
 });
 
-gulp.task('fonts', () => gulp.src(['node_modules/katex/submodules/katex-fonts/fonts/*', 'css/fonts/*'])
+gulp.task('fonts', () => gulp.src(['lib/katex/submodules/katex-fonts/fonts/*', 'css/fonts/*'])
   .pipe(gulp.dest(`${BUILD}fonts/`)));
 
 gulp.task('default', ['js', 'css', 'fonts']);

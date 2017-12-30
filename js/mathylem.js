@@ -1,5 +1,5 @@
 /* eslint-env browser */
-import katex from 'katex';
+import katex from './../lib/katex/katex';
 import Editor from './editor';
 import { Symbols } from './symbols';
 import Cursor from './cursor';

@@ -33,7 +33,6 @@
   ],
   "dependencies": {
     "eventemitter3": "^3.0.0",
-    "katex": "github:ylemkimon/katex",
     "xmldom": "^0.1.27"
   },
   "devDependencies": {
