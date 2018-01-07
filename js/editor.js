@@ -1,6 +1,6 @@
 import EventEmitter from 'eventemitter3';
 import Doc from './doc';
-import { Symbols } from './symbols';
+import Symbols from './symbols';
 import Cursor from './cursor';
 
 export default class Editor extends EventEmitter {

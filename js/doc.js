@@ -1,5 +1,5 @@
 import { DOMParser, XMLSerializer } from 'xmldom';
-import { Symbols } from './symbols';
+import Symbols from './symbols';
 
 export default class Doc {
   constructor(data = '<m><e></e></m>') {

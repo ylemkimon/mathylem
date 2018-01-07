@@ -1,7 +1,7 @@
 /* eslint-env browser */
 import katex from './../lib/katex/katex';
 import Editor from './editor';
-import { Symbols } from './symbols';
+import Symbols from './symbols';
 import Cursor from './cursor';
 import Doc from './doc';
 import { MODKEY, KEYCODE_MAP, KEY_MAP } from './keyboard';

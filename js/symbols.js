@@ -1,21 +1,3 @@
-export const Symbols = {};
-
-export function addSymbols(data) {
-  Object.entries(typeof data === 'string' ? JSON.parse(data) : data).forEach(([name, symbol]) => {
-    if (symbol.builder) {
-      symbol.args.forEach((item) => {
-        if (Array.isArray(item)) {
-          Symbols[item[0]] = symbol.builder(...item);
-        } else {
-          Symbols[item] = symbol.builder(item);
-        }
-      });
-    } else {
-      Symbols[name] = symbol;
-    }
-  });
-}
-
 const defaultSymbols = {
   text: {
     output: {
@@ -445,4 +427,25 @@ const defaultSymbols = {
     ],
   },
 };
-addSymbols(defaultSymbols);
+
+const Symbols = {};
+Object.defineProperty(Symbols, 'add', {
+  value: (data) => {
+    Object.entries(typeof data === 'string' ? JSON.parse(data) : data).forEach(([name, symbol]) => {
+      if (symbol.builder) {
+        symbol.args.forEach((item) => {
+          if (Array.isArray(item)) {
+            Symbols[item[0]] = symbol.builder(...item);
+          } else {
+            Symbols[item] = symbol.builder(item);
+          }
+        });
+      } else {
+        Symbols[name] = symbol;
+      }
+    });
+  },
+});
+
+Symbols.add(defaultSymbols);
+export default Symbols;
