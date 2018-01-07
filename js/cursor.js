@@ -56,6 +56,7 @@ export default class Cursor {
       }
       return -1;
     }
-    return Math.sign(other.pos - this.pos);
+    const diff = other.pos - this.pos;
+    return diff > 0 ? 1 : (diff && -1);
   }
 }
