@@ -93,9 +93,9 @@ export default class Doc {
         n === editor.tempCursor.node.parentNode))) {
       return false;
     }
-    if (n.childElementCount === 3 && value === '' && n.lastChild.textContent === '') {
-      const name = n.childNodes[1].getAttribute('type');
-      return Symbols[name].char || name === 'paren';
+    if (n.childNodes.length === 3 && value === '' && n.lastChild.textContent === '') {
+      const fname = n.childNodes[1].getAttribute('type');
+      return Symbols[fname].char || fname === 'paren';
     }
     return n.childNodes.length === 1 && /^(?:.|\d*\.?\d+)$/.test(value) &&
       /(?:\D|^)$/.test(n.parentNode.previousSibling.textContent);
@@ -111,10 +111,10 @@ export default class Doc {
 
   static getCAttribute(node, attr, defaultValue) {
     const n = node.nodeName === 'e' ? node.parentNode : node;
-    const name = Doc.getFName(n);
-    if (name) {
+    const fname = Doc.getFName(n);
+    if (fname) {
       const index = Doc.indexOfNode(n);
-      const args = Symbols[name].args;
+      const args = Symbols[fname].args;
       if (args && args[index] && args[index][attr] != null) {
         return args[index][attr];
       }

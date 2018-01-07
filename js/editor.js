@@ -453,13 +453,13 @@ export default class Editor extends EventEmitter {
     return result;
   }
 
-  makeF(name, content = []) {
+  makeF(fname, content = []) {
     const base = this.doc.base;
     const f = base.createElement('f');
-    f.setAttribute('type', name);
+    f.setAttribute('type', fname);
 
     const regex = /{\$([0-9]+)((?:\{[^}]+})*)}/g;
-    const output = Symbols[name].output.latex;
+    const output = Symbols[fname].output.latex;
     let m;
     while ((m = regex.exec(output)) !== null) {
       const index = parseInt(m[1]);
@@ -509,14 +509,14 @@ export default class Editor extends EventEmitter {
     }
   }
 
-  replaceSymbol(node, name, content) {
-    const symbol = Symbols[name];
-    if (!symbol || this.config.blacklist.indexOf(name) > -1) {
+  replaceSymbol(node, fname, content) {
+    const symbol = Symbols[fname];
+    if (!symbol || this.config.blacklist.indexOf(fname) > -1) {
       return false;
     }
 
     this.saveState();
-    const f = this.makeF(name, content);
+    const f = this.makeF(fname, content);
     node.parentNode.replaceChild(f, node);
     this.mainCursor.set(symbol.char ? f.nextSibling : f);
     return true;
@@ -550,9 +550,9 @@ export default class Editor extends EventEmitter {
     }
   }
 
-  insertSymbol(name, silent) {
+  insertSymbol(fname, silent) {
     if (Doc.getCAttribute(this.mainCursor.node, 'text') ||
-        this.config.blacklist.indexOf(name) > -1) {
+        this.config.blacklist.indexOf(fname) > -1) {
       return;
     }
     const prev = this.mainCursor.node.previousSibling;
@@ -560,13 +560,13 @@ export default class Editor extends EventEmitter {
     const pp = par.parentNode;
     const value = this.mainCursor.value;
 
-    if (name === '*' && this.config.autoreplace && this.mainCursor.pos === 0 &&
+    if (fname === '*' && this.config.autoreplace && this.mainCursor.pos === 0 &&
         prev && prev.nodeName === 'f' && prev.getAttribute('type') === '*') {
       this.deleteF(prev);
       this.insertSymbol('pow', true);
       return;
     }
-    if (name === 'pow' && this.mainCursor.pos === 0 && pp.nodeName === 'f' &&
+    if (fname === 'pow' && this.mainCursor.pos === 0 && pp.nodeName === 'f' &&
         pp.childNodes.length === 1) {
       this.mainCursor.node = pp.nextSibling;
       this.insertSymbol('pow');
@@ -576,7 +576,7 @@ export default class Editor extends EventEmitter {
       this.saveState();
     }
 
-    const s = Symbols[name];
+    const s = Symbols[fname];
     const main = s.main || 0;
     const content = {};
     let toRemove = [this.mainCursor.node];
@@ -606,7 +606,7 @@ export default class Editor extends EventEmitter {
       }
     }
 
-    const f = this.makeF(name, content);
+    const f = this.makeF(fname, content);
 
     this.clearSelection();
     const next = toRemove[toRemove.length - 1].nextSibling;
@@ -628,9 +628,9 @@ export default class Editor extends EventEmitter {
     if (Array.isArray(action)) {
       this[action[0]](...action.slice(1));
     } else if (typeof action !== 'string') {
-      const name = Doc.getFName(this.mainCursor.node);
-      if (name in action) {
-        this.executeAction(action[name]);
+      const fname = Doc.getFName(this.mainCursor.node);
+      if (fname in action) {
+        this.executeAction(action[fname]);
       } else if ('*' in action) {
         this.executeAction(action['*']);
       }
