@@ -97,8 +97,8 @@ export default class Doc {
       const name = n.childNodes[1].getAttribute('type');
       return Symbols[name].char || name === 'paren';
     }
-    return n.childElementCount === 1 && (value.length === 1 ||
-      !Number.isNaN(value - parseFloat(value)));
+    return n.childNodes.length === 1 && /^(?:.|\d*\.?\d+)$/.test(value) &&
+      /(?:\D|^)$/.test(n.parentNode.previousSibling.textContent);
   }
 
   static getFName(node) {
