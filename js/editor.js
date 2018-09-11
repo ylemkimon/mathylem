@@ -9,7 +9,7 @@ export default class Editor extends EventEmitter {
     autoreplace: true,
     blacklist: [],
     events: {},
-    xmlContent: '<m><e></e></m>',
+    content: '<m><e></e></m>',
     caret: '\\cursor{-0.2ex}{0.7em}',
   };
 
@@ -25,7 +25,7 @@ export default class Editor extends EventEmitter {
     this.selCursor = new Cursor();
     this.tempCursor = new Cursor();
 
-    this.setContent(this.config.xmlContent);
+    this.setContent(this.config.content);
   }
 
   get xml() {
