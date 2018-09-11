@@ -352,7 +352,7 @@ export default class Editor extends EventEmitter {
         if (!copy) {
           if (vertical) {
             newNode = this.doc.base.createElement('l');
-            for (let i = 0; i < node.childElementCount; i++) {
+            for (let i = 0; i < node.childNodes.length; i++) {
               const c = this.doc.base.createElement('c');
               c.appendChild(this.makeE());
               newNode.appendChild(c);
@@ -416,7 +416,7 @@ export default class Editor extends EventEmitter {
         if (this.selStatus < 0) {
           result += '}';
         }
-        if (text.length === 0 && n.parentNode.childElementCount > 1) {
+        if (text.length === 0 && n.parentNode.childNodes.length > 1) {
           result += `\\class{sel-cursor my-elem my-blank loc${path}-0}{${this.config.caret}}`;
         } else {
           result += `\\class{sel-cursor}{${this.config.caret}}`;
@@ -427,13 +427,13 @@ export default class Editor extends EventEmitter {
       } else if (current.equals(this.tempCursor)) {
         if (text.length > 0) {
           result += `\\class{temp-cursor}{${this.config.caret}}`;
-        } else if (n.parentNode.childElementCount === 1) {
+        } else if (n.parentNode.childNodes.length === 1) {
           result += `\\class{temp-cursor my-elem my-blank loc${path}-0}{[?]}`;
         } else {
           result += `\\class{temp-cursor my-elem my-blank loc${path}-0}{${this.config.caret}}`;
         }
       } else if (text.length === 0) {
-        if (n.parentNode.childElementCount === 1) {
+        if (n.parentNode.childNodes.length === 1) {
           result = `\\class{placeholder my-elem my-blank loc${path}-0}{[?]}`;
         } else {
           result = `\\phantom{\\class{my-elem my-blank loc${path}-0}{${this.config.caret}}}`;

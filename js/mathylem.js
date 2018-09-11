@@ -75,7 +75,7 @@ export default class MathYlem extends Editor {
         icon: 'remove-row',
         enabled() {
           const index = Doc.getArrayIndex(this.mainCursor.node, true);
-          return index && index[1][0].parentNode.childElementCount > 1;
+          return index && index[1][0].parentNode.childNodes.length > 1;
         },
         hideWhenDisabled: true,
       }, {
@@ -83,7 +83,7 @@ export default class MathYlem extends Editor {
         icon: 'remove-column',
         enabled() {
           const index = Doc.getArrayIndex(this.mainCursor.node);
-          return index && index[0][0].parentNode.childElementCount > 1;
+          return index && index[0][0].parentNode.childNodes.length > 1;
         },
         hideWhenDisabled: true,
       },
