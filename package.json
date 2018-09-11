@@ -2,10 +2,14 @@
   "name": "mathylem",
   "version": "0.0.1",
   "description": "WYSIWYG mathematics equation editor",
-  "main": "mathylem.js",
+  "main": "build/mathylem.node.js",
+  "browser": "build/mathylem.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "gulp"
+    "build": "webpack",
+    "watch": "webpack --watch",
+    "flow": "flow",
+    "start": "webpack-dev-server --open --config webpack.dev.js"
   },
   "repository": {
     "type": "git",
@@ -22,42 +26,37 @@
     "url": "https://github.com/ylemkimon/mathylem/issues"
   },
   "homepage": "https://github.com/ylemkimon/mathylem",
-  "browser": {
-    "xmldom": "./js/xmldom_browser.js",
-    "mathylem.js": "./js/mathylem.js"
-  },
-  "browserslist": [
-    "last 5 versions",
-    "> 1%",
-    "not ie < 9"
-  ],
   "dependencies": {
     "eventemitter3": "^3.0.0",
     "xmldom": "^0.1.27"
   },
   "devDependencies": {
-    "@babel/core": "^7.0.0-beta.35",
-    "@babel/plugin-proposal-class-properties": "^7.0.0-beta.35",
-    "@babel/plugin-transform-runtime": "^7.0.0-beta.35",
-    "@babel/preset-env": "^7.0.0-beta.35",
-    "@babel/preset-flow": "^7.0.0-beta.35",
-    "@babel/runtime": "^7.0.0-beta.35",
-    "babel-eslint": "^8.0.3",
-    "babelify": "github:ylemkimon/babelify",
-    "browserify": "^14.5.0",
-    "eslint": "^4.13.1",
-    "eslint-config-airbnb-base": "^12.1.0",
+    "@babel/core": "^7.0.0",
+    "@babel/plugin-proposal-class-properties": "^7.0.0",
+    "@babel/plugin-transform-runtime": "^7.0.0",
+    "@babel/preset-env": "^7.0.0",
+    "@babel/preset-flow": "^7.0.0",
+    "@babel/runtime": "^7.0.0",
+    "autoprefixer": "^9.1.5",
+    "babel-eslint": "^9.0.0",
+    "babel-loader": "^8.0.2",
+    "css-loader": "^1.0.0",
+    "cssnano": "^4.0.1",
+    "eslint": "^5.0.0",
+    "eslint-config-airbnb-base": "^13.0.0",
+    "eslint-plugin-flowtype": "^2.40.1",
     "eslint-plugin-import": "^2.8.0",
-    "gulp": "^3.9.1",
-    "gulp-autoprefixer": "^4.0.0",
-    "gulp-clean-css": "^3.9.0",
-    "gulp-concat": "^2.6.1",
-    "gulp-rename": "^1.2.2",
-    "gulp-sass": "^3.1.0",
-    "gulp-sourcemaps": "^2.6.1",
-    "gulp-uglify": "^3.0.0",
-    "merge-stream": "^1.0.1",
-    "vinyl-buffer": "^1.0.0",
-    "vinyl-source-stream": "^1.1.0"
+    "file-loader": "^2.0.0",
+    "flow-bin": "^0.80.0",
+    "html-webpack-plugin": "^3.2.0",
+    "less": "^3.8.1",
+    "less-loader": "^4.0.5",
+    "mini-css-extract-plugin": "^0.4.0",
+    "node-sass": "^4.7.2",
+    "style-loader": "^0.23.0",
+    "uglifyjs-webpack-plugin": "^1.1.5",
+    "webpack": "^4.9.1",
+    "webpack-cli": "^3.1.0",
+    "webpack-dev-server": "^3.1.8"
   }
 }

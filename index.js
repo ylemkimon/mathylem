@@ -1,9 +1,5 @@
 var mathylem;
 
-Raven.config('https://7e9a14e2cee24012a2110767a247c41e@sentry.io/254048', {
-  release: '0.0.1-alpha'
-}).install();
-
 $('document').ready(function () {
   // MathYlem.staticRenderAll();
   $('#xml_btn').on('click', function () {
@@ -19,19 +15,17 @@ $('document').ready(function () {
     $('#stuff')[0].innerHTML = '';
   });
 
-  Raven.context(function () {
-    mathylem = new MathYlem('mathylem1', {
-      'events': {
-        'done': function () {
-          createText('text');
-        }
-      },
-      'emptyContent': '\\gray{\\text{Click here}}'
-    });
+  mathylem = new MathYlem('mathylem1', {
+    'events': {
+      'done': function () {
+        createText('text');
+      }
+    },
+    'emptyContent': '\\gray{\\text{Click here}}'
+  });
 
-    new MathYlem('mathylem2', {
-      'emptyContent': '\\gray{\\text{Click here}}'
-    });
+  new MathYlem('mathylem2', {
+    'emptyContent': '\\gray{\\text{Click here}}'
   });
 });
 

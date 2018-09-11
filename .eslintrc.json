@@ -1,6 +1,12 @@
 {
   "parser": "babel-eslint",
-  "extends": "airbnb-base",
+  "plugins": [
+      "flowtype"
+  ],
+  "extends": [
+    "airbnb-base",
+    "plugin:flowtype/recommended"
+  ],
   "rules": {
     "accessor-pairs": "error",
     "brace-style": ["error", "1tbs"],
