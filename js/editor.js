@@ -309,7 +309,10 @@ export default class Editor extends EventEmitter {
         if (Doc.getCAttribute(p, 'delete', true)) {
           const pos = Doc.indexOfNode(p);
           const index = Symbols[pp.getAttribute('type')].main || 0;
-          const remaining = Array.from(pp.childNodes[index].childNodes);
+          const remaining = [];
+          for (let n = pp.childNodes[index].firstChild; n != null; n = n.nextSibling) {
+            remaining.push(n);
+          }
           this.deleteF(pp);
           this.insertNodes(remaining, pos >= index + 1);
         } else {
@@ -538,9 +541,16 @@ export default class Editor extends EventEmitter {
       return;
     }
 
-    const symbol = Object.keys(Symbols).find(s =>
-      value.substring(this.mainCursor.pos - s.length, this.mainCursor.pos) === s &&
-      this.config.blacklist.indexOf(s) === -1 && (force || ['psi', 'xi'].indexOf(s) === -1));
+    const symbols = Object.keys(Symbols);
+    let symbol;
+    for (let i = 0; i < symbols.length; i++) {
+      const s = symbols[i];
+      if (value.substring(this.mainCursor.pos - s.length, this.mainCursor.pos) === s &&
+          this.config.blacklist.indexOf(s) === -1 && (force || ['psi', 'xi'].indexOf(s) === -1)) {
+        symbol = s;
+        break;
+      }
+    }
     if (symbol) {
       this.saveState();
       this.mainCursor.value = value.slice(0, this.mainCursor.pos - symbol.length) +
