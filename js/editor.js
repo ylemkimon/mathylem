@@ -10,7 +10,7 @@ export default class Editor extends EventEmitter {
     blacklist: [],
     events: {},
     content: '<m><e></e></m>',
-    caret: '\\cursor{-0.2ex}{0.7em}',
+    caret: '\\caret',
   };
 
   constructor(config) {

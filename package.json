@@ -28,6 +28,7 @@
   "homepage": "https://github.com/ylemkimon/mathylem",
   "dependencies": {
     "eventemitter3": "^3.0.0",
+    "katex": "^0.10.0-rc.1",
     "xmldom": "^0.1.27"
   },
   "devDependencies": {

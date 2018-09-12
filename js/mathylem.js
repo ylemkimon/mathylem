@@ -1,7 +1,7 @@
 /* eslint-env browser */
-import katex from './../lib/katex/katex';
+import katex from 'katex';
 import Editor from './editor';
-import Symbols from './symbols';
+// import Symbols from './symbols';
 import Cursor from './cursor';
 import Doc from './doc';
 import { MODKEY, KEYCODE_MAP, KEY_MAP } from './keyboard';
@@ -12,7 +12,7 @@ const touchCapable = 'ontouchstart' in window;
 
 export default class MathYlem extends Editor {
   static DEFAULT_CONFIG = Object.assign({}, Editor.DEFAULT_CONFIG, {
-    emptyContent: '\\red{[?]}',
+    emptyContent: '\\textcolor{red}{[?]}',
     toolbar: [
       {
         action: 'undo',
@@ -589,7 +589,7 @@ export default class MathYlem extends Editor {
     }
     const tex = this.getContent('latex', true);
     try {
-      katex.render(tex, this.editor);
+      katex.render(tex, this.editor, { throwOnError: false });
     } catch (e) {
       console.warn(tex); // eslint-disable-line no-console
       console.warn(e); // eslint-disable-line no-console
@@ -631,10 +631,10 @@ export default class MathYlem extends Editor {
   }
 }
 
-MathYlem.Editor = Editor;
+/* MathYlem.Editor = Editor;
 MathYlem.Doc = Doc;
 MathYlem.Symbols = Symbols;
-MathYlem.katex = katex;
+MathYlem.katex = katex; */
 
 if (touchCapable) {
   window.addEventListener('touchmove', MathYlem.touchMove);
@@ -644,5 +644,3 @@ if (touchCapable) {
 }
 window.addEventListener('scroll', MathYlem.recomputeLocations);
 window.addEventListener('resize', MathYlem.recomputeLocations);
-
-module.exports = exports.default;
