@@ -1,21 +1,16 @@
-import { DOMParser, XMLSerializer } from 'xmldom';
 import Symbols from './symbols';
+import Node from './mathnode';
 
 export default class Doc {
-  constructor(data = '<m><e></e></m>') {
-    this.value = data;
-  }
-
-  get value() {
-    return (new XMLSerializer()).serializeToString(this.base);
-  }
-
-  set value(data) {
-    this.base = (new DOMParser()).parseFromString(data, 'text/xml');
+  // TODO: construct tree from data
+  // TODO: use Doc as Root
+  constructor(data) {
+    this.value = new Node('m');
+    this.value.appendChild(new Node('e'));
   }
 
   get root() {
-    return this.base.documentElement;
+    return this.value;
   }
 
   getContent(type, render, editor, node = this.root, path = '') {
@@ -93,17 +88,18 @@ export default class Doc {
         n === editor.tempCursor.node.parentNode))) {
       return false;
     }
-    if (n.childNodes.length === 3 && value === '' && n.lastChild.textContent === '') {
+    if (n.childrenCount === 3 && value === '' && n.lastChild.textContent === '') {
       const fname = n.childNodes[1].getAttribute('type');
       return Symbols[fname].char || fname === 'paren';
     }
-    return n.childNodes.length === 1 && /^(?:.|\d*\.?\d+)$/.test(value) &&
+    return n.childrenCount === 1 && /^(?:.|\d*\.?\d+)$/.test(value) &&
+      // TODO : improve when not first argument, maybe different parentheses handling strategy
       /(?:\D|^)$/.test(n.parentNode.previousSibling.textContent);
   }
 
   static getFName(node) {
     const n = node.nodeName === 'e' ? node.parentNode : node;
-    if (n.parentNode.nodeName === 'f') {
+    if (n.parentNode && n.parentNode.nodeName === 'f') {
       return n.parentNode.getAttribute('type');
     }
     return null;
@@ -113,7 +109,7 @@ export default class Doc {
     const n = node.nodeName === 'e' ? node.parentNode : node;
     const fname = Doc.getFName(n);
     if (fname) {
-      const index = Doc.indexOfNode(n);
+      const index = n.index;
       const args = Symbols[fname].args;
       if (args && args[index] && args[index][attr] != null) {
         return args[index][attr];
@@ -123,17 +119,8 @@ export default class Doc {
     return null;
   }
 
-  static indexOfNode(node) {
-    let n = node;
-    let pos = 0;
-    while ((n = n.previousSibling) != null) {
-      pos++;
-    }
-    return pos;
-  }
-
   static getPath(node) {
-    return node.nodeName === 'm' ? 'loc' : `${Doc.getPath(node.parentNode)}_${Doc.indexOfNode(node)}`;
+    return node.nodeName === 'm' ? 'loc' : `${Doc.getPath(node.parentNode)}_${node.index}`;
   }
 
   static getArrayIndex(node, twod) {
@@ -148,7 +135,7 @@ export default class Doc {
 
     const index = [];
     while (n.parentNode.nodeName === 'l') {
-      index.push([n, Doc.indexOfNode(n)]);
+      index.push([n, n.index]);
       n = n.parentNode;
     }
     return index;

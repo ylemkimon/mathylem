@@ -2,6 +2,7 @@ import EventEmitter from 'eventemitter3';
 import Doc from './doc';
 import Symbols from './symbols';
 import Cursor from './cursor';
+import Node from './mathnode';
 
 export default class Editor extends EventEmitter {
   static Clipboard = [];
@@ -105,23 +106,23 @@ export default class Editor extends EventEmitter {
 
     const nodeList = [];
     const involved = [];
-    const remnant = this.makeE(left.substring(0, start.pos) + right.substring(end.pos));
+    const remnant = new Node('e', left.substring(0, start.pos) + right.substring(end.pos));
 
     if (start.node === end.node) {
       return {
-        nodeList: [this.makeE(left.substring(start.pos, end.pos))],
+        nodeList: [new Node('e', left.substring(start.pos, end.pos))],
         involved: [start.node],
         remnant,
       };
     }
 
-    nodeList.push(this.makeE(left.substring(start.pos)));
+    nodeList.push(new Node('e', left.substring(start.pos)));
     involved.push(start.node);
     for (let n = start.node.nextSibling; n !== end.node; n = n.nextSibling) {
       nodeList.push(n);
       involved.push(n);
     }
-    nodeList.push(this.makeE(right.substring(0, end.pos)));
+    nodeList.push(new Node('e', right.substring(0, end.pos)));
     involved.push(end.node);
 
     return {
@@ -141,17 +142,7 @@ export default class Editor extends EventEmitter {
     const selParent = sel.involved[0].parentNode;
     const selPrev = sel.involved[0].previousSibling;
     sel.involved.forEach(x => selParent.removeChild(x));
-    if (selPrev == null) {
-      if (selParent.firstChild == null) {
-        selParent.appendChild(sel.remnant);
-      } else {
-        selParent.insertBefore(sel.remnant, selParent.firstChild);
-      }
-    } else if (selPrev.nextSibling == null) {
-      selParent.appendChild(sel.remnant);
-    } else {
-      selParent.insertBefore(sel.remnant, selPrev.nextSibling);
-    }
+    selParent.insertBefore(sel.remnant, selPrev ? selPrev.nextSibling : selParent.firstChild);
     this.mainCursor.set(sel.remnant, this.selStatus < 0 ? this.mainCursor.pos : this.selCursor.pos);
     this.clearSelection();
     return sel;
@@ -180,12 +171,8 @@ export default class Editor extends EventEmitter {
       const last = clipboard.pop().textContent;
       this.mainCursor.value = value.substring(0, this.mainCursor.pos) + first;
 
-      const node = this.makeE(last + value.substring(this.mainCursor.pos));
-      if (this.mainCursor.node.nextSibling == null) {
-        p.appendChild(node);
-      } else {
-        p.insertBefore(node, this.mainCursor.node.nextSibling);
-      }
+      const node = new Node('e', last + value.substring(this.mainCursor.pos));
+      p.insertBefore(node, this.mainCursor.node.nextSibling);
       clipboard.forEach(x => p.insertBefore(x, node));
       if (moveCursor) {
         this.mainCursor.set(node, last.length);
@@ -219,10 +206,13 @@ export default class Editor extends EventEmitter {
       }
     } else if ((dir < 0 && this.mainCursor.pos <= 0) ||
         (dir > 0 && this.mainCursor.pos >= this.mainCursor.value.length)) {
-      const nodes = this.doc.root.getElementsByTagName('e');
-      const index = Array.prototype.indexOf.call(nodes, this.mainCursor.node);
-      if ((dir < 0 && index > 0) || (dir > 0 && index < nodes.length - 1)) {
-        this.mainCursor.set(nodes[index + dir], dir < 0);
+      let node = this.mainCursor.node;
+      while (node != null) {
+        node = dir > 0 ? node.following : node.preceding;
+        if (node && node.nodeName === 'e') {
+          this.mainCursor.set(node, dir < 0);
+          break;
+        }
       }
     } else if (!out) {
       this.mainCursor.pos += dir;
@@ -243,7 +233,7 @@ export default class Editor extends EventEmitter {
     this.candidates = null;
 
     this.mainCursor.node.setAttribute('current', this.mainCursor.pos.toString());
-    stack.push(this.doc.base.cloneNode(true));
+    // stack.push(this.doc.base.cloneNode(true));
     this.mainCursor.node.removeAttribute('current');
   }
 
@@ -254,9 +244,9 @@ export default class Editor extends EventEmitter {
     }
     this.pushState(to);
     this.doc.base = from.pop().cloneNode(true);
-    this.mainCursor.node = this.doc.root.querySelector('e[current]');
-    this.mainCursor.pos = parseInt(this.mainCursor.node.getAttribute('current'));
-    this.mainCursor.node.removeAttribute('current');
+    // this.mainCursor.node = this.doc.root.querySelector('e[current]');
+    // this.mainCursor.pos = parseInt(this.mainCursor.node.getAttribute('current'));
+    // this.mainCursor.node.removeAttribute('current');
   }
 
   saveState() {
@@ -277,7 +267,7 @@ export default class Editor extends EventEmitter {
     const p = node.parentNode;
     const prev = node.previousSibling;
     const next = node.nextSibling;
-    const newNode = this.makeE(prev.textContent + next.textContent);
+    const newNode = new Node('e', prev.textContent + next.textContent);
     p.insertBefore(newNode, prev);
     this.mainCursor.set(newNode, prev.textContent.length);
     p.removeChild(prev);
@@ -307,7 +297,7 @@ export default class Editor extends EventEmitter {
         }
       } else if (p.nodeName === 'c') {
         if (Doc.getCAttribute(p, 'delete', true)) {
-          const pos = Doc.indexOfNode(p);
+          const pos = p.index;
           const index = Symbols[pp.getAttribute('type')].main || 0;
           const remaining = [];
           for (let n = pp.childNodes[index].firstChild; n != null; n = n.nextSibling) {
@@ -354,15 +344,15 @@ export default class Editor extends EventEmitter {
         let newNode;
         if (!copy) {
           if (vertical) {
-            newNode = this.doc.base.createElement('l');
-            for (let i = 0; i < node.childNodes.length; i++) {
-              const c = this.doc.base.createElement('c');
-              c.appendChild(this.makeE());
+            newNode = new Node('l');
+            for (let i = 0; i < node.childrenCount; i++) {
+              const c = new Node('c');
+              c.appendChild(new Node('e'));
               newNode.appendChild(c);
             }
           } else {
-            newNode = this.doc.base.createElement('c');
-            newNode.appendChild(this.makeE());
+            newNode = new Node('c');
+            newNode.appendChild(new Node('e'));
           }
         } else {
           newNode = node.cloneNode(true);
@@ -419,7 +409,7 @@ export default class Editor extends EventEmitter {
         if (this.selStatus < 0) {
           result += '}';
         }
-        if (text.length === 0 && n.parentNode.childNodes.length > 1) {
+        if (text.length === 0 && n.parentNode.childrenCount > 1) {
           result += `\\class{sel-cursor my-elem my-blank loc${path}-0}{${this.config.caret}}`;
         } else {
           result += `\\class{sel-cursor}{${this.config.caret}}`;
@@ -430,13 +420,13 @@ export default class Editor extends EventEmitter {
       } else if (current.equals(this.tempCursor)) {
         if (text.length > 0) {
           result += `\\class{temp-cursor}{${this.config.caret}}`;
-        } else if (n.parentNode.childNodes.length === 1) {
+        } else if (n.parentNode.childrenCount === 1) {
           result += `\\class{temp-cursor my-elem my-blank loc${path}-0}{[?]}`;
         } else {
           result += `\\class{temp-cursor my-elem my-blank loc${path}-0}{${this.config.caret}}`;
         }
       } else if (text.length === 0) {
-        if (n.parentNode.childNodes.length === 1) {
+        if (n.parentNode.childrenCount === 1) {
           result = `\\class{placeholder my-elem my-blank loc${path}-0}{[?]}`;
         } else {
           result = `\\phantom{\\class{my-elem my-blank loc${path}-0}{${this.config.caret}}}`;
@@ -457,8 +447,7 @@ export default class Editor extends EventEmitter {
   }
 
   makeF(fname, content = []) {
-    const base = this.doc.base;
-    const f = base.createElement('f');
+    const f = new Node('f');
     f.setAttribute('type', fname);
 
     const regex = /{\$([0-9]+)((?:\{[^}]+})*)}/g;
@@ -466,29 +455,23 @@ export default class Editor extends EventEmitter {
     let m;
     while ((m = regex.exec(output)) !== null) {
       const index = parseInt(m[1]);
-      const c = base.createElement('c');
+      const c = new Node('c');
       if (index in content) {
         content[index].forEach(x => c.appendChild(x.cloneNode(true)));
       } else {
-        c.appendChild(this.makeE());
+        c.appendChild(new Node('e'));
       }
 
       const count = m[2].split('}').length - 1;
       let par = f;
       for (let j = 0; j < count; j++) {
-        const l = base.createElement('l');
+        const l = new Node('l');
         par.appendChild(l);
         par = l;
       }
       par.appendChild(c);
     }
     return f;
-  }
-
-  makeE(text = '') {
-    const e = this.doc.base.createElement('e');
-    e.appendChild(this.doc.base.createTextNode(text));
-    return e;
   }
 
   insertString(s) {
@@ -520,7 +503,8 @@ export default class Editor extends EventEmitter {
 
     this.saveState();
     const f = this.makeF(fname, content);
-    node.parentNode.replaceChild(f, node);
+    node.parentNode.insertBefore(f, node);
+    node.parentNode.removeChild(node);
     this.mainCursor.set(symbol.char ? f.nextSibling : f);
     return true;
   }
@@ -535,7 +519,7 @@ export default class Editor extends EventEmitter {
     const value = this.mainCursor.value;
 
     const par = this.mainCursor.node.parentNode;
-    if (par.parentNode.nodeName === 'f' && par.childNodes.length === 1 && value === 'h') {
+    if (par.parentNode && par.parentNode.nodeName === 'f' && par.childrenCount === 1 && value === 'h') {
       const n = par.parentNode;
       this.replaceSymbol(n, `${n.getAttribute('type')}h`);
       return;
@@ -576,8 +560,8 @@ export default class Editor extends EventEmitter {
       this.insertSymbol('pow', true);
       return;
     }
-    if (fname === 'pow' && this.mainCursor.pos === 0 && pp.nodeName === 'f' &&
-        pp.childNodes.length === 1) {
+    if (fname === 'pow' && this.mainCursor.pos === 0 && pp && pp.nodeName === 'f' &&
+        pp.childrenCount === 1) {
       this.mainCursor.node = pp.nextSibling;
       this.insertSymbol('pow');
       return;
@@ -606,12 +590,12 @@ export default class Editor extends EventEmitter {
         toRemove = [prev];
         left = null;
         right = null;
-        content[main] = [this.makeE(), prev, this.makeE()];
+        content[main] = [new Node('e'), prev, new Node('e')];
       } else {
         const token = value.substring(0, this.mainCursor.pos).match(/[0-9.]+$|[a-zA-Z]$/);
         if (token) {
           left = value.slice(0, this.mainCursor.pos - token[0].length);
-          content[main] = [this.makeE(token[0])];
+          content[main] = [new Node('e', token[0])];
         }
       }
     }
@@ -623,8 +607,8 @@ export default class Editor extends EventEmitter {
     toRemove.forEach(x => par.removeChild(x));
     par.insertBefore(f, next);
     if (left != null) {
-      par.insertBefore(this.makeE(left), f);
-      par.insertBefore(this.makeE(right), next);
+      par.insertBefore(new Node('e', left), f);
+      par.insertBefore(new Node('e', right), next);
     }
 
     if (s.char) {

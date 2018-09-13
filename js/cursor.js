@@ -14,7 +14,7 @@ export default class Cursor {
 
     if (this.node.nodeName === 'f') {
       this.node = this.node.firstChild;
-      while (this.node != null && (this.node.childNodes.length > 1 ||
+      while (this.node != null && (this.node.childrenCount > 1 ||
           this.node.firstChild.textContent.length > 0)) {
         this.node = this.node.nextSibling;
       }

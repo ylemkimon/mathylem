@@ -48,11 +48,6 @@ module.exports = {
       },
     ],
   },
-  resolve: {
-    alias: {
-      xmldom$: path.resolve(__dirname, 'js/xmldom_browser.js'),
-    },
-  },
   plugins: [
     new HtmlWebpackPlugin({
       title: 'MathYlem',
