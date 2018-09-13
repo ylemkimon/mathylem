@@ -1,7 +1,7 @@
 MIT License
 
 Copyright (c) 2015-2017 daniel3735928559(https://github.com/daniel3735928559/guppy)
-Copyright (c) 2017 ylemkimon
+Copyright (c) 2017-2018 ylemkimon
 
 This software uses portions of following projects, which are licensed under
 MIT License:
@@ -20,15 +20,6 @@ licensed under MIT License:
 KaTeX
 https://github.com/ylemkimon/KaTeX
 Copyright (c) 2015 Khan Academy
-
-KaTeX uses portions of the underscore.js project, which is MIT licensed with
-the following copyright:
-Copyright (c) 2009-2015 Jeremy Ashkenas, DocumentCloud and Investigative
-Reporters & Editors
-
-match-at
-https://github.com/sophiebits/match-at
-Copyright (c) 2017 Sophie Alpert
 
 EventEmitter3
 https://github.com/primus/eventemitter3
